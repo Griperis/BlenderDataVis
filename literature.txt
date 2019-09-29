@@ -1,0 +1,1 @@
+https://docs.blender.org/manual/en/latest/advanced/scripting/addon_tutorial.html

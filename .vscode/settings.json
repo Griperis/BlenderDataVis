@@ -1,0 +1,17 @@
+{
+  "python.pythonPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Python37_64\\python.exe",
+  "python.linting.pylintEnabled": false,
+  "python.linting.pep8Enabled": true,
+  "python.linting.enabled": true,
+  "python.autoComplete.extraPaths": [
+    "d:/Projects/Blender/Python API/autocomplete/2.80"
+  ],
+  "python.linting.pylintArgs": [
+    "--init-hook",
+    "import sys; sys.path.append('d:/Projects/Blender/Python API/autocomplete/2.80')"
+  ],
+  "python.linting.pep8Args": [
+    "--ignore=E701",
+    "--ignore=E501"
+  ]
+}
