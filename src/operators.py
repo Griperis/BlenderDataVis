@@ -1,4 +1,5 @@
 import bpy
+import bmesh
 import csv
 from mathutils import Vector
 from math import radians
@@ -35,14 +36,61 @@ class OBJECT_OT_create_chart(bpy.types.Operator):
         self.container_object.empty_display_size = 2
         self.container_object.empty_display_type = 'PLAIN_AXES'
         self.container_object.name = "Chart_Container"
+        # How to fix that?
         self.container_object.rotation_euler = (radians(180), 0, 0)
 
-    def create_axis(self, context):
-        ...
-    
-    def create_arrow(self):
-        ...
-    
+    def create_axis(self, dim=2):
+        for d in range(dim):
+            self.create_arrow(d + 1)
+            
+    def create_arrow(self, dim):
+        
+        arrow_length = 10
+        arrow_size = 0.1
+
+        pointer_angle = 30
+        pointer_length = 0.5
+
+        chart_origin = bpy.context.scene.cursor.location
+        
+        arrow_container = bpy.data.objects.new("empty", None)
+        bpy.context.scene.collection.objects.link(arrow_container)
+        arrow_container.parent = self.container_object
+        arrow_container.name = "Axis"
+
+        arrow_container.location = chart_origin
+        arrow_scale = (arrow_length, arrow_size, arrow_size)
+        bpy.ops.mesh.primitive_cube_add(location=chart_origin)
+        obj = bpy.context.active_object
+        obj.parent = arrow_container
+        obj.scale = arrow_scale
+
+        bpy.ops.mesh.primitive_cube_add(location=chart_origin)
+        left = bpy.context.active_object
+        left.parent = arrow_container
+        left.scale = (pointer_length, arrow_size, arrow_size)
+
+        right = left.copy()
+        right.data = left.data.copy()
+        bpy.context.scene.collection.objects.link(right)
+
+        left.rotation_euler = (0, radians(pointer_angle), 0)
+        right.rotation_euler = (0, radians(-pointer_angle), 0)
+        left.location += (arrow_scale[0] - 0.32, 0, left.scale[0] - 0.25)
+        right.location += (arrow_scale[0] - 0.32, 0, -left.scale[0] + 0.25)
+
+        if dim == 1:
+            arrow_container.location += Vector((arrow_scale[0] * 0.5, 0, -2))
+            # x axis
+        elif dim == 2:
+            # y axis
+            arrow_container.rotation_euler = (0, radians(-90), 0)
+            arrow_container.location += Vector((-2, 0, arrow_scale[0] * 0.5))
+        elif dim == 3:
+            # z axis
+            arrow_container.rotation_euler = (0, 0, radians(-90))
+            arrow_container.location += Vector((-2, -2, arrow_scale[0] * 0.5))
+
     def create_labels(self, context):
         ...
 
@@ -71,7 +119,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_create_chart):
     heading = None
 
     text_size: bpy.props.FloatProperty(
-        name="Text size", 
+        name="Text size",
         default=0.4
     )
 
@@ -98,6 +146,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_create_chart):
     def execute(self, context):
         self.init_data()
         self.create_container()
+        self.create_axis(2)
         if self.start_from > len(self.data) or self.start_from + self.nof_entries > len(self.data):
             self.report('ERROR_INVALID_INPUT', 'Selected values are out of range of data')
             return {'CANCELLED'}
