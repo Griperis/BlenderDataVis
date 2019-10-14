@@ -12,9 +12,11 @@ class OBJECT_OT_create_chart(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     data = None
+    chart_origin = None
 
     def __init__(self):
         self.container_object = None
+        self.arrow_container_objects = []
 
     @classmethod
     def poll(cls, context):
@@ -25,6 +27,7 @@ class OBJECT_OT_create_chart(bpy.types.Operator):
         raise NotImplementedError("Execute method should be implemented in every chart operator!")
 
     def invoke(self, context, event):
+        self.chart_origin = context.scene.cursor.location
         return context.window_manager.invoke_props_dialog(self)
 
     def init_data(self):
@@ -36,36 +39,38 @@ class OBJECT_OT_create_chart(bpy.types.Operator):
         self.container_object.empty_display_size = 2
         self.container_object.empty_display_type = 'PLAIN_AXES'
         self.container_object.name = "Chart_Container"
-        # How to fix that?
-        self.container_object.rotation_euler = (radians(180), 0, 0)
+        # set default location for parent object
+        self.container_object.location = self.chart_origin
 
     def create_axis(self, dim=2):
         for d in range(dim):
             self.create_arrow(d + 1)
             
     def create_arrow(self, dim):
-        
-        arrow_length = 10
+        """
+        Creates basic arrow that is positioned relatively to chart container object (left bottom corner),
+        each arrow is but in its "Axis" container.
+        """
+        arrow_length = 15
         arrow_size = 0.1
 
         pointer_angle = 30
         pointer_length = 0.5
-
-        chart_origin = bpy.context.scene.cursor.location
         
         arrow_container = bpy.data.objects.new("empty", None)
+        self.arrow_container_objects.append(arrow_container)
         bpy.context.scene.collection.objects.link(arrow_container)
         arrow_container.parent = self.container_object
-        arrow_container.name = "Axis"
+        arrow_container.name = "Axis" + str(dim)
 
-        arrow_container.location = chart_origin
+        arrow_container.location = (0, 0, 0)
         arrow_scale = (arrow_length, arrow_size, arrow_size)
-        bpy.ops.mesh.primitive_cube_add(location=chart_origin)
+        bpy.ops.mesh.primitive_cube_add(location=(0, 0, 0))
         obj = bpy.context.active_object
         obj.parent = arrow_container
         obj.scale = arrow_scale
 
-        bpy.ops.mesh.primitive_cube_add(location=chart_origin)
+        bpy.ops.mesh.primitive_cube_add(location=(0, 0, 0))
         left = bpy.context.active_object
         left.parent = arrow_container
         left.scale = (pointer_length, arrow_size, arrow_size)
@@ -76,8 +81,8 @@ class OBJECT_OT_create_chart(bpy.types.Operator):
 
         left.rotation_euler = (0, radians(pointer_angle), 0)
         right.rotation_euler = (0, radians(-pointer_angle), 0)
-        left.location += (arrow_scale[0] - 0.32, 0, left.scale[0] - 0.25)
-        right.location += (arrow_scale[0] - 0.32, 0, -left.scale[0] + 0.25)
+        left.location += Vector((arrow_scale[0] - 0.32, 0, left.scale[0] - 0.25))
+        right.location += Vector((arrow_scale[0] - 0.32, 0, -left.scale[0] + 0.25))
 
         if dim == 1:
             arrow_container.location += Vector((arrow_scale[0] * 0.5, 0, -2))
@@ -91,7 +96,13 @@ class OBJECT_OT_create_chart(bpy.types.Operator):
             arrow_container.rotation_euler = (0, 0, radians(-90))
             arrow_container.location += Vector((-2, -2, arrow_scale[0] * 0.5))
 
-    def create_labels(self, context):
+    def create_x_label(self, label):
+        ...
+    
+    def create_y_label(self, label):
+        ...
+    
+    def create_z_label(self, label):
         ...
 
 
@@ -100,14 +111,44 @@ class OBJECT_OT_pie_chart(OBJECT_OT_create_chart):
     bl_idname = "object.create_pie_chart"
     bl_label = "Create pie chart"
     bl_options = {'REGISTER', 'UNDO'}
+
+    def __init__(self):
+        self.cylinder_obj = None
     
     def execute(self, context):
         self.init_data()
-        bpy.ops.mesh.primitive_cylinder_add()
-        obj = context.active_object
-        obj.parent = self.container_object
-        bpy.ops.object.create_chart_axis()
+        self.create_container()
+        data_length = 2
+        bpy.ops.mesh.primitive_cylinder_add(vertices=16, end_fill_type='TRIFAN')
+        self.cylinder_obj = context.active_object
+        self.cylinder_obj.location = Vector((0, 0, 0))
+        self.cylinder_obj.parent = self.container_object
+        self.cylinder_obj.scale = Vector((10, 10, 1))
+        # Create number of various colors (materials) according to display data size (needs to be specified whether by prop or what)
+        self.create_materials(data_length)        
+        
+        #bm = bmesh.from_edit_mesh(self.cylinder_obj.data)
+
+        for f in self.cylinder_obj.data.polygons:
+            sr = ""
+            for idx in f.vertices:
+                print(self.cylinder_obj.data.vertices[idx].co)
+        
+        
         return {'FINISHED'}
+    
+    def create_materials(self, n=1):
+        for i in range(n):
+            mat = bpy.data.materials.new(name="Mat " + str(i))
+            mat.diffuse_color = (1, 0, 0, 0)
+            self.cylinder_obj.data.materials.append(mat)
+
+
+    def create_axis(self, dim):
+        pass
+
+    def create_labels(self):
+        ...
 
 
 class OBJECT_OT_bar_chart(OBJECT_OT_create_chart):
@@ -162,7 +203,6 @@ class OBJECT_OT_bar_chart(OBJECT_OT_create_chart):
         return {'FINISHED'}
        
     def create_example_chart(self, context):
-        cursor = context.scene.cursor.location
         data_len = len(self.data)
         
         # Properties that can be changeable in future
@@ -174,7 +214,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_create_chart):
         max_value = self.parse_col_value(max(self.data, key=lambda x: self.parse_col_value(x.value.split(',')[self.column])).value.split(',')[self.column])
         scale_multiplier = 1 / (max_value[0] / max_chart_height) 
 
-        position = cursor
+        position = Vector((0, 0, 0))
 
         # Add heading
         if (self.heading is not None):
@@ -183,6 +223,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_create_chart):
             to.data.body = str(self.heading[self.column])
             to.data.align_x = 'CENTER'
             to.rotation_euler = (radians(90), 0, 0)
+            to.parent = self.container_object
 
         for i in range(data_len):
 
