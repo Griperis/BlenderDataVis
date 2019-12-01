@@ -2,7 +2,8 @@ import bpy
 import bmesh
 import csv
 from mathutils import Vector
-from math import radians
+from math import radians, pi, floor
+from .data_utils import get_col_float, get_col_str, col_values_sum
 
 
 class OBJECT_OT_create_chart(bpy.types.Operator):
@@ -112,37 +113,124 @@ class OBJECT_OT_pie_chart(OBJECT_OT_create_chart):
     bl_label = "Create pie chart"
     bl_options = {'REGISTER', 'UNDO'}
 
+    vertices: bpy.props.IntProperty(
+        name="Vertices",
+        min=3,
+        default=32
+    )
+
+    column: bpy.props.IntProperty(
+        name="Column",
+        default=1
+    )
+
+    label_column: bpy.props.IntProperty(
+        name="Label column",
+        default=1
+    )
+
+    start_from: bpy.props.IntProperty(
+        name="Starting index",
+        default=0
+    )
+
+    nof_entries: bpy.props.IntProperty(
+        name="Entries",
+        default=10
+    )
+
     def __init__(self):
-        self.cylinder_obj = None
+        self.slices = []
+        self.materials = []
     
     def execute(self, context):
         self.init_data()
         self.create_container()
-        data_length = 2
-        bpy.ops.mesh.primitive_cylinder_add(vertices=16, end_fill_type='TRIFAN')
-        self.cylinder_obj = context.active_object
-        self.cylinder_obj.location = Vector((0, 0, 0))
-        self.cylinder_obj.parent = self.container_object
-        self.cylinder_obj.scale = Vector((10, 10, 1))
-        # Create number of various colors (materials) according to display data size (needs to be specified whether by prop or what)
-        self.create_materials(data_length)        
-        
-        #bm = bmesh.from_edit_mesh(self.cylinder_obj.data)
 
-        for f in self.cylinder_obj.data.polygons:
-            sr = ""
-            for idx in f.vertices:
-                print(self.cylinder_obj.data.vertices[idx].co)
-        
-        
-        return {'FINISHED'}
+        # create cylinder from triangles
+        rot = 0
+        rot_inc = 2.0 * pi / self.vertices
+        scale = 1 / self.vertices * pi
+        for i in range(0, self.vertices):
+            cyl_slice = self.create_slice(context)
+            cyl_slice.scale.y *= scale
+            cyl_slice.rotation_euler.z = rot
+            rot += rot_inc
+            self.slices.append(cyl_slice)
+
+        if bpy.data.scenes[0].dv_props.is_heading and self.start_from == 0:
+            self.start_from = 1
+        print(self.start_from, self.nof_entries)
+        total = col_values_sum(self.data[self.start_from:self.start_from + self.nof_entries:], self.column)
+        print('total: ', total)
+
+        prev_i = 0
+        for i in range(self.start_from, self.start_from + self.nof_entries):
+            value, _ = get_col_float(self.data[i], self.column)
+            portion = value / total
+            increment = floor(portion * self.vertices)
+            portion_end_i = prev_i + increment
+            
+            joined_obj = self.join_slices(prev_i, portion_end_i)
+            self.add_value_label(joined_obj.location, get_col_str(self.data[i], self.label_column), 0.2)
+            prev_i += increment
     
-    def create_materials(self, n=1):
-        for i in range(n):
-            mat = bpy.data.materials.new(name="Mat " + str(i))
-            mat.diffuse_color = (1, 0, 0, 0)
-            self.cylinder_obj.data.materials.append(mat)
+        return {'FINISHED'}
 
+    def join_slices(self, i_from, i_to):
+        bpy.ops.object.select_all(action='DESELECT')
+        for i in range(i_from, i_to):
+            if i > len(self.slices) - 1:
+                raise IndexError('i: {}, len(slices): {}'.format(i, len(self.slices)))
+            self.slices[i].select_set(state=True)
+            bpy.context.view_layer.objects.active = self.slices[i]
+
+        bpy.ops.object.join()
+        obj = bpy.context.active_object
+        return obj
+
+    def create_slice(self, context):
+        """
+        Creates normalized (1 sized) triangle (slice of pie chart)
+        """
+        verts = [(0, 0, 1), (-1, 1, 1), (-1, -1, 1), 
+                 (0, 0, 0), (-1, 1, 0), (-1, -1, 0)
+        ]
+
+        facs = [[0, 1, 2], [3, 4, 5], [0, 1, 3], [1, 3, 4], [0, 2, 3], [2, 3, 5], [1, 2, 4], [2, 4, 5]]
+
+        mesh = bpy.data.meshes.new("pie_mesh")  # add the new mesh
+        obj = bpy.data.objects.new(mesh.name, mesh)
+        col = bpy.data.collections.get("Collection")
+        col.objects.link(obj)
+        obj.parent = self.container_object
+        bpy.context.view_layer.objects.active = obj
+
+        mesh.from_pydata(verts, [], facs)
+
+        return obj
+
+    def add_value_label(self, location, col_text_value, scale_multiplier):
+        bpy.ops.object.text_add()
+        to = bpy.context.object
+        to.data.body = str(col_text_value)
+        to.data.align_x = 'CENTER'
+        to.rotation_euler = (radians(90), 0, 0)
+        to.location = location
+        to.location.z += 1.2
+        to.scale *= scale_multiplier
+        to.parent = self.container_object
+
+    def create_materials(self, n=1):
+        self.new_mat((1, 0, 0, 1))
+        self.new_mat((0, 1, 0, 1))
+        self.new_mat((0, 0, 1, 1))
+
+    def new_mat(self, color):
+        mat = bpy.data.materials.new(name="Mat" + str(len(bpy.data.materials)))
+        mat.diffuse_color = color
+        self.cylinder_obj.data.materials.append(mat)
+        return mat
 
     def create_axis(self, dim):
         pass
@@ -161,14 +249,17 @@ class OBJECT_OT_bar_chart(OBJECT_OT_create_chart):
 
     text_size: bpy.props.FloatProperty(
         name="Text size",
-        default=0.4
+        default=0.8
     )
 
     column: bpy.props.IntProperty(
         name="Column",
         default=1
     )
-
+    create_labels: bpy.props.BoolProperty(
+        name="Create labels",
+        default=True
+    )
     label_column: bpy.props.IntProperty(
         name="Label column",
         default=1
@@ -212,12 +303,12 @@ class OBJECT_OT_bar_chart(OBJECT_OT_create_chart):
 
         # Find max value in given data set to normalize data
         max_value = self.parse_col_value(max(self.data, key=lambda x: self.parse_col_value(x.value.split(',')[self.column])).value.split(',')[self.column])
-        scale_multiplier = 1 / (max_value[0] / max_chart_height) 
+        scale_multiplier = 1 / (max_value[0] / max_chart_height)
 
         position = Vector((0, 0, 0))
 
         # Add heading
-        if (self.heading is not None):
+        if self.heading:
             bpy.ops.object.text_add(location=(position + Vector(((self.nof_entries * spacing) / 2.0 - spacing, 0, 26))))
             to = context.object
             to.data.body = str(self.heading[self.column])
@@ -227,7 +318,9 @@ class OBJECT_OT_bar_chart(OBJECT_OT_create_chart):
 
         for i in range(data_len):
 
-            # First row should be heading
+            if i is 0 and bpy.data.scenes[0].dv_props.is_heading:
+                continue
+    
             row_data = self.data[i].value.split(',')
 
             bpy.ops.mesh.primitive_cube_add()
@@ -247,32 +340,32 @@ class OBJECT_OT_bar_chart(OBJECT_OT_create_chart):
             new_obj.scale.z *= col_value * scale_multiplier
             new_obj.location.z += col_value * scale_multiplier
             new_obj.parent = self.container_object
+            
+            if self.create_labels:
+                self.add_value_label(context, new_obj.location, col_value, col_text_value, scale_multiplier, text_offset)
+                self.add_desc_label(context, new_obj.location, row_data, col_value, scale_multiplier, text_offset)            
+    
+    def add_value_label(self, context, no_loc, col_value, col_text_value, scale_multiplier, text_offset):
+        bpy.ops.object.text_add()
+        to = context.object
+        to.data.body = str(col_text_value)
+        to.data.align_x = 'CENTER'
+        to.rotation_euler = (radians(90), 0, 0)
+        to.location = no_loc
+        to.location.z += col_value * scale_multiplier + text_offset
+        to.scale *= self.text_size
+        to.parent = self.container_object
 
-            # Add value label
-            bpy.ops.object.text_add()
-            to = context.object
-            to.data.body = str(col_text_value)
-            to.data.align_x = 'CENTER'
-            to.rotation_euler = (radians(90), 0, 0)
-            to.location = new_obj.location
-            to.location.z += col_value * scale_multiplier + text_offset
-            to.scale *= self.text_size
-            to.parent = self.container_object
-
-
-            # Description label
-            bpy.ops.object.text_add()
-            tlo = context.object
-            tlo.data.body = str(row_data[self.label_column])
-            tlo.data.align_x = 'CENTER'
-            tlo.rotation_euler = (radians(90), 0, 0)
-            tlo.location = new_obj.location
-            tlo.location.z -= col_value * scale_multiplier + text_offset
-            tlo.scale *= self.text_size
-            tlo.parent = self.container_object
-
-    def create_label():
-        ...
+    def add_desc_label(self, context, no_loc, row_data, col_value, scale_multiplier, text_offset):
+        bpy.ops.object.text_add()
+        to = context.object
+        to.data.body = str(row_data[self.label_column])
+        to.data.align_x = 'CENTER'
+        to.rotation_euler = (radians(90), 0, 0)
+        to.location = no_loc
+        to.location.z -= col_value * scale_multiplier + text_offset
+        to.scale *= self.text_size
+        to.parent = self.container_object
 
     def parse_col_value(self, col_value):
         try:
@@ -306,7 +399,7 @@ class FILE_OT_DVLoadFiles(bpy.types.Operator):
             line_n = 0
             for row in file:
                 line_n += 1
-                if (not load_all and line_n > lines_to_load):
+                if not load_all and line_n > lines_to_load:
                     break
                 row_prop = bpy.data.scenes[0].dv_props.data.add()
                 row_prop.value = row
