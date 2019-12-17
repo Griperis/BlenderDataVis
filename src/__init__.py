@@ -10,7 +10,7 @@ bl_info = {
 }
 
 import bpy
-from .operators import OBJECT_OT_bar_chart, OBJECT_OT_pie_chart, FILE_OT_DVLoadFiles
+from .operators import OBJECT_OT_bar_chart, OBJECT_OT_pie_chart, OBJECT_OT_line_chart, FILE_OT_DVLoadFiles
 
 
 class PANEL_PT_DVAddonPanel(bpy.types.Panel):
@@ -41,6 +41,9 @@ class PANEL_PT_DVAddonPanel(bpy.types.Panel):
 
         row = layout.row()
         row.operator("object.create_pie_chart")
+
+        row = layout.row()
+        row.operator("object.create_line_chart")
 
         layout.label(text='Chart settings')
 
@@ -76,6 +79,7 @@ def register():
     bpy.utils.register_class(DV_PropertyGroup)
     bpy.utils.register_class(OBJECT_OT_bar_chart)
     bpy.utils.register_class(OBJECT_OT_pie_chart)
+    bpy.utils.register_class(OBJECT_OT_line_chart)
     bpy.utils.register_class(FILE_OT_DVLoadFiles)
     bpy.utils.register_class(PANEL_PT_DVAddonPanel)
 
@@ -88,4 +92,5 @@ def unregister():
     bpy.utils.unregister_class(PANEL_PT_DVAddonPanel)
     bpy.utils.unregister_class(OBJECT_OT_bar_chart)
     bpy.utils.unregister_class(OBJECT_OT_pie_chart)
+    bpy.utils.unregister_class(OBJECT_OT_line_chart)
     bpy.utils.unregister_class(FILE_OT_DVLoadFiles)
