@@ -3,8 +3,15 @@ import bmesh
 import csv
 import math
 from mathutils import Vector, Matrix
-from .data_utils import get_col_float, get_col_str, col_values_sum, col_values_max, float_data_gen
+from .data_utils import get_col_float, get_col_str, col_values_sum, col_values_max, col_values_min_max, col_values_min, float_data_gen, float_range
 from .color_utils import sat_col_gen, color_to_triplet
+
+HALF_PI = math.pi * 0.5
+GRAPH_Z_SCALE = 0.5
+
+
+def is_fl_heading():
+    return bpy.data.scenes[0].dv_props.is_heading
 
 
 class OBJECT_OT_generic_chart(bpy.types.Operator):
@@ -15,10 +22,10 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
 
     data = None
     chart_origin = None
+    axis_mat = None
 
     def __init__(self):
         self.container_object = None
-        self.arrow_container_objects = []
 
     @classmethod
     def poll(cls, context):
@@ -38,75 +45,126 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
     def create_container(self):
         self.container_object = bpy.data.objects.new('empty', None)
         bpy.context.scene.collection.objects.link(self.container_object)
-        self.container_object.empty_display_size = 2
+        self.container_object.empty_display_size = 1
         self.container_object.empty_display_type = 'PLAIN_AXES'
         self.container_object.name = 'Chart_Container'
         # set default location for parent object
         self.container_object.location = self.chart_origin
 
-    def create_axis(self, dim=2):
-        for d in range(dim):
-            self.create_arrow(d + 1)
-            
-    def create_arrow(self, dim):
-        '''
-        Creates basic arrow that is positioned relatively to chart container object (left bottom corner),
-        each arrow is but in its 'Axis' container.
-        '''
-        arrow_length = 15
-        arrow_size = 0.1
+    def create_axis(self, spacing, x_vals, y_max=None, y_min=0, z_vals=None, padding=(0, 0, 0), offset=(0, 0, 0)):
+        self.axis_mat = self.new_mat((1, 1, 1), 1, name='Axis_Mat')
+        length = self.create_one_axis(spacing, x_vals, offset[0], padding[0])
+        if y_max:
+            cont = self.create_y_axis(y_min, y_max, offset[1], padding[1])
+            if z_vals:
+                cont.location.x += 2 * length
+        if z_vals:
+            self.create_one_axis(spacing, z_vals, offset[2], padding[2], dim='z')
+    
+    def create_y_axis(self, min_val, max_val, offset, padding):
+        bpy.ops.object.empty_add()
+        axis_cont = bpy.context.object
+        axis_cont.name = 'Axis_Container'
+        axis_cont.location = (0, 0, 0)
+        axis_cont.parent = self.container_object
 
-        pointer_angle = 30
-        pointer_length = 0.5
+        bpy.ops.mesh.primitive_cube_add()
+        line_obj = bpy.context.active_object
+        line_obj.location = (0, 0, 0)
+
+        line_obj.scale = (GRAPH_Z_SCALE + padding + offset * 0.5, 0.005, 0.005)
+        line_obj.location.x += GRAPH_Z_SCALE + padding + offset * 0.5
+        line_obj.parent = axis_cont
+
+        line_obj.active_material = self.axis_mat
+
+        spacing = 0.2 * GRAPH_Z_SCALE
+        val_inc = (abs(min_val) + max_val) * 0.1
+        val = min_val
+        for i in range(0, 11):
+            bpy.ops.mesh.primitive_cube_add()
+            obj = bpy.context.active_object
+            obj.scale = (0.005, 0.005, 0.02)
+            obj.location = (0, 0, 0)
+            obj.location.x += i * spacing + offset
+            obj.parent = axis_cont
+            obj.active_material = self.axis_mat
+
+            self.create_text_object(axis_cont, '{0:.3}'.format(float(val)), (i * spacing + offset, 0, 0.07), (HALF_PI, HALF_PI, 0))
+            val += val_inc
+
+        axis_cont.location += Vector((-padding, 0, -padding))
+        axis_cont.rotation_euler.y -= HALF_PI
+        return axis_cont
+
+    def create_one_axis(self, spacing, vals, offset, padding, dim='x'):
+        bpy.ops.object.empty_add()
+        axis_cont = bpy.context.object
+        axis_cont.name = 'Axis_Container'
+        axis_cont.location = (0, 0, 0)
+        axis_cont.parent = self.container_object
+        # TODO WHAT self.axis_containers.append(axis_cont)
         
-        arrow_container = bpy.data.objects.new('empty', None)
-        self.arrow_container_objects.append(arrow_container)
-        bpy.context.scene.collection.objects.link(arrow_container)
-        arrow_container.parent = self.container_object
-        arrow_container.name = 'Axis' + str(dim)
+        v_len = ((len(vals) - 1) * spacing) * 0.5 + padding + offset * 0.5
+        bpy.ops.mesh.primitive_cube_add()
+        line_obj = bpy.context.active_object
+        line_obj.location = (0, 0, 0)
 
-        arrow_container.location = (0, 0, 0)
-        arrow_scale = (arrow_length, arrow_size, arrow_size)
-        bpy.ops.mesh.primitive_cube_add(location=(0, 0, 0))
-        obj = bpy.context.active_object
-        obj.parent = arrow_container
-        obj.scale = arrow_scale
+        line_obj.scale = (v_len, 0.005, 0.005)
+        line_obj.location.x += v_len
+        line_obj.parent = axis_cont
+        line_obj.active_material = self.axis_mat
 
-        bpy.ops.mesh.primitive_cube_add(location=(0, 0, 0))
-        left = bpy.context.active_object
-        left.parent = arrow_container
-        left.scale = (pointer_length, arrow_size, arrow_size)
+        for i in range(0, len(vals)):
+            bpy.ops.mesh.primitive_cube_add()
+            obj = bpy.context.active_object
+            obj.scale = (0.005, 0.005, 0.02)
+            obj.location = (0, 0, 0)
+            obj.location.x += i * spacing + offset
+            obj.parent = axis_cont
+            obj.active_material = self.axis_mat
 
-        right = left.copy()
-        right.data = left.data.copy()
-        bpy.context.scene.collection.objects.link(right)
+            to_loc = (i * spacing + offset, 0, -0.07)
+            to_rot = (HALF_PI, 0, 0)
+            if dim == 'z':
+                to_rot = (HALF_PI, 0, math.pi)
+    
+            self.create_text_object(axis_cont, vals[i], to_loc, to_rot)
+        
+        axis_cont.location += Vector((-padding, 0, -padding))
+        if dim == 'z':
+            axis_cont.rotation_euler.z += HALF_PI
 
-        left.rotation_euler = (0, math.radians(pointer_angle), 0)
-        right.rotation_euler = (0, math.radians(-pointer_angle), 0)
-        left.location += Vector((arrow_scale[0] - 0.32, 0, left.scale[0] - 0.25))
-        right.location += Vector((arrow_scale[0] - 0.32, 0, -left.scale[0] + 0.25))
+        return v_len
 
-        if dim == 1:
-            arrow_container.location += Vector((arrow_scale[0] * 0.5, 0, -2))
-            # x axis
-        elif dim == 2:
-            # y axis
-            arrow_container.rotation_euler = (0, math.radians(-90), 0)
-            arrow_container.location += Vector((-2, 0, arrow_scale[0] * 0.5))
-        elif dim == 3:
-            # z axis
-            arrow_container.rotation_euler = (0, 0, math.radians(-90))
-            arrow_container.location += Vector((-2, -2, arrow_scale[0] * 0.5))
+
+    def create_text_object(self, axis_cont, text, location_offset, rotation_offset):
+        bpy.ops.object.text_add()
+        to = bpy.context.object
+        to.data.body = str(text)
+        to.data.align_x = 'CENTER'
+        to.scale *= 0.05
+        to.location = axis_cont.location
+        to.location += Vector(location_offset)
+        to.rotation_euler.x += rotation_offset[0]
+        to.rotation_euler.y += rotation_offset[1]
+        to.rotation_euler.z += rotation_offset[2]
+        to.parent = axis_cont
+
+    def new_mat(self, color, alpha, name='Mat'):
+        mat = bpy.data.materials.new(name=name)
+        mat.diffuse_color = (*color, alpha)
+        return mat
 
     def create_x_label(self, label):
         ...
-    
+ 
     def create_y_label(self, label):
         ...
     
     def create_z_label(self, label):
         ...
-
+    
 
 class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
     '''Creates pie chart'''
@@ -156,6 +214,12 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         self.slices = []
         self.materials = []
         self.init_data()
+        
+        found_min, res = col_values_min(self.data, self.column, self.start_from, self.nof_entries)
+        if found_min <= 0:
+            print('Warning: Pie chart does not support negative values!')
+            return {'CANCELLED'}
+        
         self.create_container()
 
         # create cylinder from triangles
@@ -169,26 +233,39 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
             rot += rot_inc
             self.slices.append(cyl_slice)
 
-        if bpy.data.scenes[0].dv_props.is_heading and self.start_from == 0:
-            self.start_from = 1
-
         total = col_values_sum(self.data[self.start_from:self.start_from + self.nof_entries:], self.column)
         color_gen = sat_col_gen(self.nof_entries, *color_to_triplet(self.color_shade))
        
         prev_i = 0
         for i in range(self.start_from, self.start_from + self.nof_entries):
+            
+            if i >= len(self.data):
+                break
+            
             value, _ = get_col_float(self.data[i], self.column)
+
             portion = value / total
 
             increment = round(portion * self.vertices)
+            
+            # Ignore data with zero value
+            if increment == 0:
+                print('Warning: Data with zero value i: {}, value: {}! Useless for pie chart.'.format(i, value))
+                continue
+
             portion_end_i = prev_i + increment
             slice_obj = self.join_slices(prev_i, portion_end_i)
+            if slice_obj is None:
+                raise Exception('Error occurred, try to increase number of vertices, i_from" {}, i_to: {}, inc: {}, val: {}'.format(prev_i, portion_end_i, increment, value))
+                break
 
             slice_mat = self.new_mat(next(color_gen), 1)
             slice_obj.active_material = slice_mat
+            slice_obj.parent = self.container_object
             label_rot_z = (((prev_i + portion_end_i) * 0.5) / self.vertices) * 2.0 * math.pi
             print('i: {} d: {}, p: {}, pfi: {}'.format(i, math.degrees(label_rot_z), portion, (prev_i + portion_end_i) * 0.5 / self.vertices))
-            label_obj = self.add_value_label((1, 0, 0), (0, 0, label_rot_z), get_col_str(self.data[i], self.label_column), 0.2)
+
+            label_obj = self.add_value_label((1, 0, 0), (0, 0, label_rot_z), get_col_str(self.data[i], self.label_column), portion, 0.2)
             label_obj.rotation_euler = (0, 0, 0)
             prev_i += increment
    
@@ -205,6 +282,8 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         if len(bpy.context.selected_objects) > 0:
             bpy.ops.object.join()
             return bpy.context.active_object
+        else:
+            return None
 
     def create_slice(self):
         '''
@@ -228,10 +307,10 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
 
         return obj
 
-    def add_value_label(self, location, rotation, col_text_value, scale_multiplier):
+    def add_value_label(self, location, rotation, label, portion, scale_multiplier):
         bpy.ops.object.text_add()
         to = bpy.context.object
-        to.data.body = str(col_text_value)
+        to.data.body = '{0}: {1:.2}'.format(label, portion)
         to.data.align_x = 'CENTER'
         to.rotation_euler = rotation
         to.location = Vector(location) @ to.rotation_euler.to_matrix()
@@ -240,11 +319,6 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         to.scale *= scale_multiplier
         to.parent = self.container_object
         return to
-
-    def new_mat(self, color, alpha):
-        mat = bpy.data.materials.new(name='Mat' + str(len(bpy.data.materials)))
-        mat.diffuse_color = (*color, alpha)
-        return mat
 
     def create_axis(self, dim):
         pass
@@ -289,6 +363,7 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
     )
 
     def __init__(self):
+        self.cuver_obj = None
         self.x_delta = 0.2
         self.bevel_obj_size = (0.01, 0.01, 0.01)
         self.bevel_settings = {
@@ -308,41 +383,86 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         self.init_data()
         self.create_container()
 
-        max_value, _ = col_values_max(self.data, self.column)
+        min_value, max_value = col_values_min_max(self.data, self.column, self.start_from, self.nof_entries)
         value_gen = float_data_gen(self.data, self.column, self.label_column)
         
-        norm_multiplier = 1.0 / max_value
+        val_range = abs(min_value) + max_value
+
+        norm_multiplier = GRAPH_Z_SCALE * 2.0 / val_range
 
         verts = []
         edges = []
-
+        values = []
+        labels = []
+    
         for i in range(self.start_from, self.start_from + self.nof_entries):
+            if i >= len(self.data):
+                break
+
             value, _ = get_col_float(self.data[i], self.column)
-            verts.append(((i - self.start_from) * self.x_delta, 0, value * norm_multiplier))
+            label = get_col_str(self.data[i], self.label_column)
+            verts.append(((i - self.start_from) * self.x_delta, 0, value * norm_multiplier - min_value * norm_multiplier))
+           
+            values.append(value)
+            labels.append(label)
+
             if i != 0:
                 edges.append([i - self.start_from - 1, i - self.start_from])
         
-        curve_obj = self.create_curve(verts, edges)
-        bevel_obj = self.add_bevel_obj(curve_obj)
+        self.create_curve(verts, edges)
+        self.add_value_labels(verts, values)
+        bevel_obj = self.add_bevel_obj(self.curve_obj)
+        
+        self.create_axis(self.x_delta, labels, y_max=max_value, y_min=min_value, padding=(self.x_delta, self.x_delta, 0), offset=(self.x_delta, self.x_delta, 0))
 
         return {'FINISHED'}
     
+    def add_value_labels(self, verts, values):
+        for i, vert in enumerate(verts):
+            bpy.ops.object.text_add()
+            to = bpy.context.object
+            to.data.body = str(values[i])
+            to.location = vert
+            to.data.align_x = 'CENTER'
+
+            # TODO Whether label should be below or up (depends on the values next to it)
+           
+            st = 2  # steepness threshold
+
+            if i - 1 >= 0 and i + 1 < len(values) and (values[i - 1] - st > values[i] or values[i + 1] - st > values[i]):
+                to.location.z -= 0.05
+                print('moving down')
+            elif i - 1 >= 0 and values[i - 1] - st > values[i]:
+                to.location.x += 0.05
+                print('moving right')
+            elif i + 1 < len(values) and values[i + 1] - st > values[i]:
+                to.location.x -= 0.05
+                print('moving left')
+            else:
+                print('moving up')
+                to.location.z += 0.05
+
+            to.location.z += 0.05
+            to.rotation_euler.x += HALF_PI
+            to.scale *= 0.05
+            to.parent = self.container_object
+            self.select_curve_obj()
+            #bpy.ops.object.parent_set(type='VERTEX')
+
     def create_curve(self, verts, edges):
         m = bpy.data.meshes.new('line_mesh')
-        curve_obj = bpy.data.objects.new('curve_obj', m)
+        self.curve_obj = bpy.data.objects.new('curve_obj', m)
 
-        bpy.context.scene.collection.objects.link(curve_obj)
-        curve_obj.parent = self.container_object
+        bpy.context.scene.collection.objects.link(self.curve_obj)
+        self.curve_obj.parent = self.container_object
         m.from_pydata(verts, edges, [])
         m.update()
 
-        curve_obj.select_set(True)
-        bpy.context.view_layer.objects.active = curve_obj
+        self.select_curve_obj()
         
         self.bevel_curve_obj()
 
         bpy.ops.object.convert(target='CURVE')
-        return curve_obj
 
     def bevel_curve_obj(self):
         bpy.ops.object.mode_set(mode='EDIT')
@@ -365,6 +485,9 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         curve_obj.data.bevel_object = bevel_obj
         return bevel_obj
 
+    def select_curve_obj(self):
+        self.curve_obj.select_set(True)
+        bpy.context.view_layer.objects.active = self.curve_obj
 
 
 class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
@@ -378,19 +501,12 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
     bl_label = 'Create bar chart'
     bl_options = {'REGISTER', 'UNDO'}
 
-    heading = None
-
-    text_size: bpy.props.FloatProperty(
-        name='Text size',
-        default=0.8
-    )
-
     column: bpy.props.IntProperty(
         name='Column',
         default=1
     )
-    create_labels: bpy.props.BoolProperty(
-        name='Create labels',
+    axis_setting: bpy.props.BoolProperty(
+        name='Create Axis',
         default=True
     )
     label_column: bpy.props.IntProperty(
@@ -408,104 +524,107 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         default=10
     )
 
+    dimensions: bpy.props.EnumProperty(
+        name='Dimensions',
+        items=(
+            ('1', '2D', 'Data + Top'),
+            ('2', '3D', 'Data + Data + Top')
+        )
+    )
+
     def execute(self, context):
         self.init_data()
         self.create_container()
-        self.create_axis(2)
+
         if self.start_from > len(self.data) or self.start_from + self.nof_entries > len(self.data):
             self.report('ERROR_INVALID_INPUT', 'Selected values are out of range of data')
             return {'CANCELLED'}
-
-        if bpy.data.scenes[0].dv_props.is_heading:
-            self.heading = self.data[0].value.split(',')
-        else:
-            self.heading = None
             
-        self.data = self.data[self.start_from:self.start_from + self.nof_entries:]
-        self.create_example_chart(context)
+        #self.data = self.data[self.start_from:self.start_from + self.nof_entries:]
+        
+        self.create_chart(context)
 
         return {'FINISHED'}
        
-    def create_example_chart(self, context):
-        data_len = len(self.data)
+    def create_chart(self, context):
         
         # Properties that can be changeable in future
-        spacing = 2
+        spacing = 0.2
         text_offset = 1
-        max_chart_height = 10
 
         # Find max value in given data set to normalize data
-        max_value = self.parse_col_value(max(self.data, key=lambda x: self.parse_col_value(x.value.split(',')[self.column])).value.split(',')[self.column])
-        scale_multiplier = 1 / (max_value[0] / max_chart_height)
+        #max_value, _ = col_values_max(self.data, self.column, start=self.start_from, nof=self.nof_entries) 
+        
+        if self.dimensions == '1':
+            min_value, max_value = col_values_min_max(self.data, self.column, start=self.start_from, nof=self.nof_entries)
+            val_range = abs(min_value) + max_value
+            z_scale_multiplier = GRAPH_Z_SCALE / val_range
 
-        position = Vector((0, 0, 0))
+            location = Vector((0, 0, 0))
+            values = []
+            for i in range(self.start_from, self.start_from + self.nof_entries):
+                col_value, result = get_col_float(self.data[i], self.column)
+                values.append(col_value)
 
-        # Add heading
-        if self.heading:
-            bpy.ops.object.text_add(location=(position + Vector(((self.nof_entries * spacing) / 2.0 - spacing, 0, 26))))
-            to = context.object
-            to.data.body = str(self.heading[self.column])
-            to.data.align_x = 'CENTER'
-            to.rotation_euler = (math.radians(90), 0, 0)
-            to.parent = self.container_object
+                bpy.ops.mesh.primitive_cube_add()
+                cube_obj = context.active_object
+                cube_obj.location = (i * spacing + spacing * 0.5, 0, 0)
+                cube_obj.scale.x = spacing * 0.5
+                cube_obj.scale.y = spacing * 0.5
+                
+                if result is False:
+                    col_value = 1.0
 
-        for i in range(data_len):
+                if col_value == 0:
+                    col_value = 0.01
 
-            if i is 0 and bpy.data.scenes[0].dv_props.is_heading:
-                continue
-    
-            row_data = self.data[i].value.split(',')
+                cube_obj.scale.z = col_value * z_scale_multiplier
+                cube_obj.location.z = col_value * z_scale_multiplier - 2 * min_value * z_scale_multiplier
+                
+                bpy.ops.object.text_add()
+                to = bpy.context.object
+                to.data.body = str(col_value)
+                to.location = cube_obj.location
+                to.location.z += abs(cube_obj.scale.z) + 0.05
+                to.data.align_x = 'CENTER'
+                to.parent = self.container_object
+                to.rotation_euler.x += HALF_PI
+                to.scale *= 0.05
+                
+                cube_obj.parent = self.container_object
+                
+            if self.axis_setting:
+                self.create_axis(spacing, values, max_value, min_value, offset=(spacing, spacing * 0.5, 0), padding=(spacing * 0.5, spacing * 0.5, 0))
+        else:
+            min_value, max_value = col_values_min_max(self.data, 2, start=self.start_from, nof=self.nof_entries)
+            val_range = abs(min_value) + max_value
+            z_scale_multiplier = GRAPH_Z_SCALE / val_range
 
-            bpy.ops.mesh.primitive_cube_add()
-            new_obj = context.active_object
-            new_obj.location = position
-            position = position + Vector((spacing, 0, 0))
-            
-            # column value calculation
-            col_value, result = self.parse_col_value(row_data[self.column])
+            location = Vector((0, 0, 0))
+            x_vals = [0, 1, 2, 3]
+            z_vals = [0, 1, 2, 3]
+            tops = []
+            for i in range(self.start_from, self.start_from + self.nof_entries + 1):
+                col_x, _ = get_col_float(self.data[i], 0)
+                col_y, _ = get_col_float(self.data[i], 1)
+                top, _ = get_col_float(self.data[i], 2)
+                tops.append(top)
+                
+                bpy.ops.mesh.primitive_cube_add()
+                cube_obj = context.active_object
+                cube_obj.location = (col_x * spacing + spacing * 0.5, col_y * spacing + spacing * 0.5, 0)
+                cube_obj.scale.x = spacing * 0.5
+                cube_obj.scale.y = spacing * 0.5
+                
+                if top == 0:
+                    top = 0.01
 
-            if result is False:
-                col_value = 1.0
-                col_text_value = 'N/A'
-            else:
-                col_text_value = str(col_value)
-
-            new_obj.scale.z *= col_value * scale_multiplier
-            new_obj.location.z += col_value * scale_multiplier
-            new_obj.parent = self.container_object
-            
-            if self.create_labels:
-                self.add_value_label(context, new_obj.location, col_value, col_text_value, scale_multiplier, text_offset)
-                self.add_desc_label(context, new_obj.location, row_data, col_value, scale_multiplier, text_offset)            
-    
-    def add_value_label(self, context, no_loc, col_value, col_text_value, scale_multiplier, text_offset):
-        bpy.ops.object.text_add()
-        to = context.object
-        to.data.body = str(col_text_value)
-        to.data.align_x = 'CENTER'
-        to.rotation_euler = (math.radians(90), 0, 0)
-        to.location = no_loc
-        to.location.z += col_value * scale_multiplier + text_offset
-        to.scale *= self.text_size
-        to.parent = self.container_object
-
-    def add_desc_label(self, context, no_loc, row_data, col_value, scale_multiplier, text_offset):
-        bpy.ops.object.text_add()
-        to = context.object
-        to.data.body = str(row_data[self.label_column])
-        to.data.align_x = 'CENTER'
-        to.rotation_euler = (math.radians(90), 0, 0)
-        to.location = no_loc
-        to.location.z -= col_value * scale_multiplier + text_offset
-        to.scale *= self.text_size
-        to.parent = self.container_object
-
-    def parse_col_value(self, col_value):
-        try:
-            return (float(col_value.replace('\'', '')), True)
-        except (TypeError, ValueError) as exc:
-            print('Cannot convert: ' + col_value)
-            return (1.0, False)
+                cube_obj.scale.z = top * z_scale_multiplier
+                cube_obj.location.z = top * z_scale_multiplier - 2 * min_value * z_scale_multiplier
+                cube_obj.parent = self.container_object
+                
+            if self.axis_setting:
+                self.create_axis(spacing, x_vals, max_value, min_value, z_vals=z_vals, offset=(spacing, spacing * 0.5, spacing * 0.5), padding=(spacing * 0.5, spacing * 0.5, spacing * 0.5))
 
 
 class FILE_OT_DVLoadFiles(bpy.types.Operator):

@@ -17,12 +17,38 @@ def get_col_str(row_data, col, separator=','):
     return str(row_data.value.split(separator)[col])
 
 
-def col_values_max(data, col):
+def col_values_min(data, col, start=0, nof=0):
+    '''
+    Finds min value in column in given data and returns it
+    '''
+    if start >= len(data) or start + nof >= len(data):
+        raise IndexError('Out of data bounds!')
+    if nof == 0:
+        nof = len(data)
+
+    found_min, res = get_col_float(min(data[start:start + nof], key=lambda x: get_col_float(x, col)[0]), col)
+    return (found_min, res)
+
+
+def col_values_max(data, col, start=0, nof=0):
     '''
     Finds max value in column in given data and returns it
     '''
-    found_max, res = get_col_float(max(data, key=lambda x: get_col_float(x, col)[0]), col)
+    if start >= len(data) or start + nof >= len(data):
+        raise IndexError('NOF > Length of data!')
+    if nof == 0:
+        nof = len(data)
+    found_max, res = get_col_float(max(data[start:start + nof], key=lambda x: get_col_float(x, col)[0]), col)
     return (found_max, res)
+
+
+def col_values_min_max(data, col, start=0, nof=0):
+    '''
+    Finds min and max value in column in given data and returns it
+    '''
+    found_max, _ = col_values_max(data, col, start, nof)
+    found_min, _ = col_values_min(data, col, start, nof)
+    return (found_min, found_max)
 
 
 def col_values_sum(data, col):
@@ -49,3 +75,22 @@ def float_data_gen(data, col, label_col, separator=','):
         label = get_col_str(entry, label_col, separator)
         yield {'val': val, 'label': label, 'res': res}
 
+
+def float_range(start, stop=None, step=None):
+    '''
+    Generates range of float numbers like python range, but step can be float
+    '''
+    if stop is None:
+        stop = start + 0.0
+        start = 0.0
+
+    if step is None:
+        step = 1.0
+
+    while True:
+        if step > 0 and start >= stop:
+            break
+        elif step < 0 and start <= stop:
+            break
+        yield ("%g" % start) # return float number
+        start = start + step
