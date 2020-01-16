@@ -3,3 +3,6 @@ __pycache__
 **.code-workspace
 
 .vscode/
+lit/*
+media/*
+pic-examples/*

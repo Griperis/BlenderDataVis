@@ -16,9 +16,9 @@ from .operators import OBJECT_OT_bar_chart, OBJECT_OT_pie_chart, OBJECT_OT_line_
 class PANEL_PT_DVAddonPanel(bpy.types.Panel):
     bl_label = "Data visualisation utilities"
     bl_idname = "OBJECT_PT_dv"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = 'Data visualisation'
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_category = 'Data Visualisation Addon'
 
     def draw(self, context):
         layout = self.layout
@@ -34,18 +34,6 @@ class PANEL_PT_DVAddonPanel(bpy.types.Panel):
         row = layout.row()
         row.label(text="Data", icon='WORLD_DATA')
         row.operator("ui.dv_load_data")
-
-        layout.label(text="Select chart")
-        row = layout.row()
-        row.operator("object.create_bar_chart")
-
-        row = layout.row()
-        row.operator("object.create_pie_chart")
-
-        row = layout.row()
-        row.operator("object.create_line_chart")
-
-        layout.label(text='Chart settings')
 
 
 class DV_TableRowProp(bpy.types.PropertyGroup):
@@ -74,6 +62,21 @@ class DV_PropertyGroup(bpy.types.PropertyGroup):
     )
 
 
+class OBJECT_MT_AddChart(bpy.types.Menu):
+    bl_idname = 'OBJECT_MT_Add_Chart'
+    bl_label = 'Add chart'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(OBJECT_OT_bar_chart.bl_idname, icon='PLUGIN')
+        layout.operator(OBJECT_OT_line_chart.bl_idname, icon='PLUGIN')
+        layout.operator(OBJECT_OT_pie_chart.bl_idname, icon='PLUGIN')
+
+
+def chart_ops(self, context):
+    self.layout.menu(OBJECT_MT_AddChart.bl_idname, icon='PLUGIN')
+
+
 def register():
     bpy.utils.register_class(DV_TableRowProp)
     bpy.utils.register_class(DV_PropertyGroup)
@@ -82,6 +85,8 @@ def register():
     bpy.utils.register_class(OBJECT_OT_line_chart)
     bpy.utils.register_class(FILE_OT_DVLoadFiles)
     bpy.utils.register_class(PANEL_PT_DVAddonPanel)
+    bpy.utils.register_class(OBJECT_MT_AddChart)
+    bpy.types.VIEW3D_MT_add.append(chart_ops)
 
     bpy.types.Scene.dv_props = bpy.props.PointerProperty(type=DV_PropertyGroup)
 
@@ -89,8 +94,14 @@ def register():
 def unregister():
     bpy.utils.unregister_class(DV_PropertyGroup)
     bpy.utils.unregister_class(DV_TableRowProp)
+    bpy.utils.unregister_class(OBJECT_MT_AddChart)
     bpy.utils.unregister_class(PANEL_PT_DVAddonPanel)
     bpy.utils.unregister_class(OBJECT_OT_bar_chart)
     bpy.utils.unregister_class(OBJECT_OT_pie_chart)
     bpy.utils.unregister_class(OBJECT_OT_line_chart)
     bpy.utils.unregister_class(FILE_OT_DVLoadFiles)
+    bpy.types.VIEW3D_MT_add.remove(chart_ops)
+
+
+if __name__ == '__main__':
+    register()

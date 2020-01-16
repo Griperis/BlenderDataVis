@@ -4,7 +4,7 @@ import csv
 import math
 from mathutils import Vector, Matrix
 from .data_utils import get_col_float, get_col_str, col_values_sum, col_values_max, col_values_min_max, col_values_min, float_data_gen, float_range
-from .color_utils import sat_col_gen, color_to_triplet
+from .color_utils import sat_col_gen, color_to_triplet, reverse_iterator
 
 HALF_PI = math.pi * 0.5
 GRAPH_Z_SCALE = 0.5
@@ -169,7 +169,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
 class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
     '''Creates pie chart'''
     bl_idname = 'object.create_pie_chart'
-    bl_label = 'Create pie chart'
+    bl_label = 'Pie Chart'
     bl_options = {'REGISTER', 'UNDO'}
 
     vertices: bpy.props.IntProperty(
@@ -194,7 +194,7 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
     )
 
     nof_entries: bpy.props.IntProperty(
-        name='Entries',
+        name='Ending index',
         default=10
     )
 
@@ -330,7 +330,7 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
 class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
     '''Creates line chart as a line or as curve'''
     bl_idname = 'object.create_line_chart'
-    bl_label = 'Create line chart'
+    bl_label = 'Line Chart'
     bl_options = {'REGISTER', 'UNDO'}
 
     column: bpy.props.IntProperty(
@@ -349,7 +349,7 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
     )
 
     nof_entries: bpy.props.IntProperty(
-        name='Entries',
+        name='Ending index',
         default=10
     )
 
@@ -413,7 +413,7 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         self.add_value_labels(verts, values)
         bevel_obj = self.add_bevel_obj(self.curve_obj)
         
-        self.create_axis(self.x_delta, labels, y_max=max_value, y_min=min_value, padding=(self.x_delta, self.x_delta, 0), offset=(self.x_delta, self.x_delta, 0))
+        self.create_axis(self.x_delta, labels, y_max=max_value, y_min=min_value, padding=(self.x_delta * 0.5, self.x_delta * 0.5, 0), offset=(self.x_delta * 0.5, self.x_delta * 0.5, 0))
 
         return {'FINISHED'}
     
@@ -498,7 +498,7 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
 class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
     '''Creates bar chart'''
     bl_idname = 'object.create_bar_chart'
-    bl_label = 'Create bar chart'
+    bl_label = 'Bar Chart'
     bl_options = {'REGISTER', 'UNDO'}
 
     column: bpy.props.IntProperty(
@@ -520,7 +520,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
     )
 
     nof_entries: bpy.props.IntProperty(
-        name='Entries',
+        name='Ending index',
         default=10
     )
 
@@ -530,6 +530,14 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
             ('1', '2D', 'Data + Top'),
             ('2', '3D', 'Data + Data + Top')
         )
+    )
+
+    color_shade: bpy.props.FloatVectorProperty(
+        name='Color',
+        subtype='COLOR',
+        default=(0.0, 0.0, 1.0),
+        min=0.0,
+        max=1.0
     )
 
     def execute(self, context):
@@ -547,14 +555,14 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         return {'FINISHED'}
        
     def create_chart(self, context):
-        
         # Properties that can be changeable in future
         spacing = 0.2
         text_offset = 1
 
         # Find max value in given data set to normalize data
         #max_value, _ = col_values_max(self.data, self.column, start=self.start_from, nof=self.nof_entries) 
-        
+        color_gen = reverse_iterator(sat_col_gen(self.nof_entries + 1, *color_to_triplet(self.color_shade)))
+        #chart_mat = self.new_mat((1, 1, 1), 1, name='Bar_Chart_Mat')
         if self.dimensions == '1':
             min_value, max_value = col_values_min_max(self.data, self.column, start=self.start_from, nof=self.nof_entries)
             val_range = abs(min_value) + max_value
@@ -568,6 +576,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
 
                 bpy.ops.mesh.primitive_cube_add()
                 cube_obj = context.active_object
+                cube_obj.active_material = self.new_mat(next(color_gen), 1)
                 cube_obj.location = (i * spacing + spacing * 0.5, 0, 0)
                 cube_obj.scale.x = spacing * 0.5
                 cube_obj.scale.y = spacing * 0.5
@@ -596,22 +605,27 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
             if self.axis_setting:
                 self.create_axis(spacing, values, max_value, min_value, offset=(spacing, spacing * 0.5, 0), padding=(spacing * 0.5, spacing * 0.5, 0))
         else:
-            min_value, max_value = col_values_min_max(self.data, 2, start=self.start_from, nof=self.nof_entries)
+            min_value, max_value = col_values_min_max(self.data, 2, start=self.start_from, nof=self.nof_entries + 1)
+            print('maxik:', max_value)
             val_range = abs(min_value) + max_value
             z_scale_multiplier = GRAPH_Z_SCALE / val_range
 
             location = Vector((0, 0, 0))
-            x_vals = [0, 1, 2, 3]
-            z_vals = [0, 1, 2, 3]
+            x_vals = set()
+
+            z_vals = set()
             tops = []
             for i in range(self.start_from, self.start_from + self.nof_entries + 1):
                 col_x, _ = get_col_float(self.data[i], 0)
                 col_y, _ = get_col_float(self.data[i], 1)
                 top, _ = get_col_float(self.data[i], 2)
                 tops.append(top)
-                
+                x_vals.add(col_x)
+                z_vals.add(col_y)
+
                 bpy.ops.mesh.primitive_cube_add()
                 cube_obj = context.active_object
+                cube_obj.active_material = self.new_mat(next(color_gen), 1)
                 cube_obj.location = (col_x * spacing + spacing * 0.5, col_y * spacing + spacing * 0.5, 0)
                 cube_obj.scale.x = spacing * 0.5
                 cube_obj.scale.y = spacing * 0.5
@@ -624,7 +638,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
                 cube_obj.parent = self.container_object
                 
             if self.axis_setting:
-                self.create_axis(spacing, x_vals, max_value, min_value, z_vals=z_vals, offset=(spacing, spacing * 0.5, spacing * 0.5), padding=(spacing * 0.5, spacing * 0.5, spacing * 0.5))
+                self.create_axis(spacing, list(x_vals), max_value, min_value, z_vals=list(z_vals), offset=(spacing, spacing * 0.5, spacing * 0.5), padding=(spacing * 0.5, spacing * 0.5, spacing * 0.5))
 
 
 class FILE_OT_DVLoadFiles(bpy.types.Operator):

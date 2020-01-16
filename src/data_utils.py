@@ -21,7 +21,7 @@ def col_values_min(data, col, start=0, nof=0):
     '''
     Finds min value in column in given data and returns it
     '''
-    if start >= len(data) or start + nof >= len(data):
+    if start >= len(data) or start + nof > len(data):
         raise IndexError('Out of data bounds!')
     if nof == 0:
         nof = len(data)
@@ -34,7 +34,7 @@ def col_values_max(data, col, start=0, nof=0):
     '''
     Finds max value in column in given data and returns it
     '''
-    if start >= len(data) or start + nof >= len(data):
+    if start >= len(data) or start + nof > len(data):
         raise IndexError('NOF > Length of data!')
     if nof == 0:
         nof = len(data)

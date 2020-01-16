@@ -19,6 +19,10 @@ def rgb_col_gen(length, r, g, b):
         yield base_color
 
 
+def reverse_iterator(iter):
+    return reversed(list(iter))
+
+
 def sat_col_gen(length, r, g, b):
     base_color_hsv = Vector(rgb_to_hsv(r, g, b))
     step_size = 1.0 / length
