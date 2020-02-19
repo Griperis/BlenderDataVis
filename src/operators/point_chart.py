@@ -1,0 +1,3 @@
+class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
+    '''Creates point chart'''
+    ...

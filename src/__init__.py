@@ -1,21 +1,29 @@
 bl_info = {
-    "name": "Data Visualisation Addon",
-    "author": "Zdenek Dolezal",
-    "description": "",
-    "blender": (2, 80, 0),
-    "version": (0, 0, 1),
-    "location": "",
-    "warning": "",
-    "category": "Generic"
+    'name': 'Data Visualisation Addon',
+    'author': 'Zdenek Dolezal',
+    'description': '',
+    'blender': (2, 80, 0),
+    'version': (0, 0, 3),
+    'location': '',
+    'warning': '',
+    'category': 'Generic'
 }
 
 import bpy
-from .operators import OBJECT_OT_bar_chart, OBJECT_OT_pie_chart, OBJECT_OT_line_chart, FILE_OT_DVLoadFiles
+
+from src.operators.data_load import FILE_OT_DVLoadFiles
+from src.operators.bar_chart import OBJECT_OT_bar_chart
+from src.operators.line_chart import OBJECT_OT_line_chart
+from src.operators.pie_chart import OBJECT_OT_pie_chart
+#from src.operators.point_chart import OBJECT_OT_point_chart
 
 
 class PANEL_PT_DVAddonPanel(bpy.types.Panel):
-    bl_label = "Data visualisation utilities"
-    bl_idname = "OBJECT_PT_dv"
+    '''
+    Menu panel used for loading and managing data
+    '''
+    bl_label = 'Data visualisation utilities'
+    bl_idname = 'OBJECT_PT_dv'
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_category = 'Data Visualisation Addon'
@@ -32,37 +40,43 @@ class PANEL_PT_DVAddonPanel(bpy.types.Panel):
         row.prop(bpy.data.scenes[0].dv_props, 'is_heading')
 
         row = layout.row()
-        row.label(text="Data", icon='WORLD_DATA')
-        row.operator("ui.dv_load_data")
+        row.label(text='Data', icon='WORLD_DATA')
+        row.operator('ui.dv_load_data')
 
 
 class DV_TableRowProp(bpy.types.PropertyGroup):
+    '''
+    One row of loaded data as string
+    '''
     value: bpy.props.StringProperty()
 
 
 class DV_PropertyGroup(bpy.types.PropertyGroup):
-    """
+    '''
     All addon settings and data are stored in this property group.
-    """
+    '''
     data: bpy.props.CollectionProperty(
-        name="Data",
+        name='Data',
         type=DV_TableRowProp
     )
     line_count: bpy.props.IntProperty(
-        name="Number of lines",
+        name='Number of lines',
         default=10
     )
     is_heading: bpy.props.BoolProperty(
-        name="First line heading",
+        name='First line heading',
         default=True
     )
     all_lines: bpy.props.BoolProperty(
-        name="Load all lines",
+        name='Load all lines',
         default=True
     )
 
 
 class OBJECT_MT_AddChart(bpy.types.Menu):
+    '''
+    Menu panel grouping chart related operators in Blender AddObject panel
+    '''
     bl_idname = 'OBJECT_MT_Add_Chart'
     bl_label = 'Add chart'
 
