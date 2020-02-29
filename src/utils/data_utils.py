@@ -1,3 +1,14 @@
+def get_row_list(row_data, separator=','):
+    return [float(x) for x in row_data.value.split(separator)]
+
+
+def get_data_as_ll(data):
+    mat = []
+    for row in data:
+        mat.append(get_row_list(row))
+    return mat
+
+
 def get_col_float(row_data, col, separator=','):
     '''
     Tries to convert row_data at column position into float value, uses separator to split the row into columns.

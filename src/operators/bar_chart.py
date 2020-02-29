@@ -3,7 +3,7 @@ import math
 from mathutils import Vector
 
 
-from src.utils.data_utils import get_col_float, get_col_str, col_values_sum, col_values_min_max
+from src.utils.data_utils import get_col_float, get_col_str, col_values_sum, col_values_min_max, get_row_list, get_data_as_ll
 from src.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator
 from src.general import OBJECT_OT_generic_chart, CONST
 
@@ -84,9 +84,8 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         text_offset = 1
 
         # Find max value in given data set to normalize data
-        #max_value, _ = col_values_max(self.data, self.column, start=self.start_from, nof=self.nof_entries) 
         color_gen = reverse_iterator(sat_col_gen(self.nof_entries + 1, *color_to_triplet(self.color_shade)))
-        #chart_mat = self.new_mat((1, 1, 1), 1, name='Bar_Chart_Mat')
+        data_matrix = get_data_as_ll(self.data)
         if self.dimensions == '1':
             min_value, max_value = col_values_min_max(self.data, self.column, start=self.start_from, nof=self.nof_entries)
             val_range = abs(min_value) + max_value

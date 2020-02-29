@@ -11,11 +11,11 @@ bl_info = {
 
 import bpy
 
-from src.operators.data_load import FILE_OT_DVLoadFiles
+from src.operators.data_load import FILE_OT_DVLoadFile
 from src.operators.bar_chart import OBJECT_OT_bar_chart
 from src.operators.line_chart import OBJECT_OT_line_chart
 from src.operators.pie_chart import OBJECT_OT_pie_chart
-#from src.operators.point_chart import OBJECT_OT_point_chart
+from src.operators.point_chart import OBJECT_OT_point_chart
 
 
 class PANEL_PT_DVAddonPanel(bpy.types.Panel):
@@ -31,13 +31,12 @@ class PANEL_PT_DVAddonPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.label(text='Data load')
+        first_scene = bpy.data.scenes[0]
+
+        layout.label(text='Chart settings')
         row = layout.row()
-        row.prop(bpy.data.scenes[0].dv_props, 'all_lines')
-        row.prop(bpy.data.scenes[0].dv_props, 'line_count')
-        
-        row = layout.row()
-        row.prop(bpy.data.scenes[0].dv_props, 'is_heading')
+        row.prop(first_scene.dv_props, 'width')
+        row.prop(first_scene.dv_props, 'height')
 
         row = layout.row()
         row.label(text='Data', icon='WORLD_DATA')
@@ -59,17 +58,14 @@ class DV_PropertyGroup(bpy.types.PropertyGroup):
         name='Data',
         type=DV_TableRowProp
     )
-    line_count: bpy.props.IntProperty(
-        name='Number of lines',
-        default=10
+    width: bpy.props.FloatProperty(
+        name='Width',
+        default=1.0
+        
     )
-    is_heading: bpy.props.BoolProperty(
-        name='First line heading',
-        default=True
-    )
-    all_lines: bpy.props.BoolProperty(
-        name='Load all lines',
-        default=True
+    height: bpy.props.FloatProperty(
+        name='Height',
+        default=1.0
     )
 
 
@@ -85,6 +81,7 @@ class OBJECT_MT_AddChart(bpy.types.Menu):
         layout.operator(OBJECT_OT_bar_chart.bl_idname, icon='PLUGIN')
         layout.operator(OBJECT_OT_line_chart.bl_idname, icon='PLUGIN')
         layout.operator(OBJECT_OT_pie_chart.bl_idname, icon='PLUGIN')
+        layout.operator(OBJECT_OT_point_chart.bl_idname, icon='PLUGIN')
 
 
 def chart_ops(self, context):
@@ -97,7 +94,8 @@ def register():
     bpy.utils.register_class(OBJECT_OT_bar_chart)
     bpy.utils.register_class(OBJECT_OT_pie_chart)
     bpy.utils.register_class(OBJECT_OT_line_chart)
-    bpy.utils.register_class(FILE_OT_DVLoadFiles)
+    bpy.utils.register_class(OBJECT_OT_point_chart)
+    bpy.utils.register_class(FILE_OT_DVLoadFile)
     bpy.utils.register_class(PANEL_PT_DVAddonPanel)
     bpy.utils.register_class(OBJECT_MT_AddChart)
     bpy.types.VIEW3D_MT_add.append(chart_ops)
@@ -113,7 +111,8 @@ def unregister():
     bpy.utils.unregister_class(OBJECT_OT_bar_chart)
     bpy.utils.unregister_class(OBJECT_OT_pie_chart)
     bpy.utils.unregister_class(OBJECT_OT_line_chart)
-    bpy.utils.unregister_class(FILE_OT_DVLoadFiles)
+    bpy.utils.unregister_class(OBJECT_OT_point_chart)
+    bpy.utils.unregister_class(FILE_OT_DVLoadFile)
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
 
 

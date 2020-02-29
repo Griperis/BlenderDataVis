@@ -1,7 +1,7 @@
 import bpy
 
 
-class FILE_OT_DVLoadFiles(bpy.types.Operator):
+class FILE_OT_DVLoadFile(bpy.types.Operator):
     '''
     Loads data from CSV file to property in first scene
     '''
@@ -16,19 +16,14 @@ class FILE_OT_DVLoadFiles(bpy.types.Operator):
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
-
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
-        lines_to_load = bpy.data.scenes[0].dv_props.line_count
-        load_all = bpy.data.scenes[0].dv_props.all_lines
         bpy.data.scenes[0].dv_props.data.clear()
         with open(self.filepath, 'r') as file:
             line_n = 0
             for row in file:
                 line_n += 1
-                if not load_all and line_n > lines_to_load:
-                    break
                 row_prop = bpy.data.scenes[0].dv_props.data.add()
                 row_prop.value = row
         print(f'File: {self.filepath}, loaded {line_n} lines!')

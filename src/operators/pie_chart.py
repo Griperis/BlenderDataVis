@@ -58,7 +58,7 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         
         found_min, res = col_values_min(self.data, self.column, self.start_from, self.nof_entries)
         if found_min <= 0:
-            print('Warning: Pie chart does not support negative values!')
+            self.report({'WARNING'}, 'Pie chart does not support negative values')
             return {'CANCELLED'}
         
         self.create_container()
