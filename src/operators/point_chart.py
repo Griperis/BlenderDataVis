@@ -2,7 +2,7 @@ import bpy
 
 from src.general import OBJECT_OT_generic_chart, CONST, Properties
 from src.operators.features.axis import AxisFactory, AxisDir
-from src.utils.data_utils import get_data_as_ll, find_data_range
+from src.utils.data_utils import get_data_as_ll, find_data_range, normalize_value
 from src.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
 
 from mathutils import Vector
@@ -102,12 +102,13 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
 
             # normalize height
 
-            x_norm = (entry[0] - self.x_axis_range[0]) / (self.x_axis_range[1] - self.x_axis_range[0])
-            z_norm = (entry[value_index] - data_min) / (data_max - data_min)
+            x_norm = normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1]) 
+            z_norm = normalize_value(entry[value_index], data_min, data_max)
             if self.dimensions == '2':
                 point_obj.location = (x_norm, 0.0, z_norm)
             else:
                 y_norm = (entry[1] - self.y_axis_range[0]) / (self.y_axis_range[1] - self.y_axis_range[0])
+                y_norm = normalize_value(entry[1], self.y_axis_range[0]A, self.y_axis_range[1])
                 point_obj.location = (x_norm, y_norm, z_norm)
     
             point_obj.parent = self.container_object

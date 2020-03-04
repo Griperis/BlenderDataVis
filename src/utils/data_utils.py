@@ -124,3 +124,11 @@ def float_range(start, stop=None, step=None):
             break
         yield start
         start = start + step
+
+
+def normalize_value(value, minimum, maximum):
+    '''
+    Normalizes value into <0, 1> interval, range of data where value is included
+    is specified by minimum and maximum
+    '''
+    return (value - minimum) / (maximum - minimum)
