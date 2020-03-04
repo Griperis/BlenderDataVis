@@ -10,6 +10,24 @@ class CONST:
     HALF_PI = math.pi * 0.5
 
 
+class Properties:
+    '''
+    Access to Blender properties related to addon, which are not in specific chart operators 
+    '''
+    def get_data():
+        return bpy.data.scenes[0].dv_props.data
+
+    def get_text_size():
+        return bpy.data.scenes[0].dv_props.text_size
+
+    def get_axis_thickness():
+        return bpy.data.scenes[0].dv_props.axis_thickness
+
+    def get_axis_tick_mark_height():
+        return bpy.data.scenes[0].dv_props.axis_tick_mark_height
+
+
+
 class OBJECT_OT_generic_chart(bpy.types.Operator):
     '''Creates chart'''
     bl_idname = 'object.create_chart'
@@ -35,9 +53,6 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         self.chart_origin = context.scene.cursor.location
         return context.window_manager.invoke_props_dialog(self)
 
-    def init_data(self):
-        self.data = bpy.data.scenes[0].dv_props.data
-
     def create_container(self):
         bpy.ops.object.empty_add()
         self.container_object = bpy.context.object
@@ -55,7 +70,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
                 cont.location.x += 2 * length
         if z_vals:
             self.create_one_axis(spacing, z_vals, offset[2], padding[2], dim='z')
-    
+   
     def create_y_axis(self, min_val, max_val, offset, padding):
         bpy.ops.object.empty_add()
         axis_cont = bpy.context.object
@@ -132,18 +147,18 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
 
         return v_len
 
-    def create_text_object(self, axis_cont, text, location_offset, rotation_offset):
+    def create_text_object(self, parent, text, location_offset, rotation_offset):
         bpy.ops.object.text_add()
         to = bpy.context.object
         to.data.body = str(text)
         to.data.align_x = 'CENTER'
         to.scale *= 0.05
-        to.location = axis_cont.location
+        to.location = parent.location
         to.location += Vector(location_offset)
         to.rotation_euler.x += rotation_offset[0]
         to.rotation_euler.y += rotation_offset[1]
         to.rotation_euler.z += rotation_offset[2]
-        to.parent = axis_cont
+        to.parent = parent
 
     def new_mat(self, color, alpha, name='Mat'):
         mat = bpy.data.materials.new(name=name)
@@ -159,3 +174,5 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
     def create_z_label(self, label):
         ...
     
+    def init_data(self):
+        self.data = bpy.data.scenes[0].dv_props.data

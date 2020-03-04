@@ -9,6 +9,24 @@ def get_data_as_ll(data):
     return mat
 
 
+def find_data_range(data, range_x, range_y=None):
+    '''
+    Finds data value range in parameter data in space defined by range_x and range_z
+    data - data defined as list of lists, each row consist of [x, (y), top]
+    range_x - bounds in x direction (min, max)
+    range_y - bounds in y direction (min, max)
+
+    returns - (min, max) of data
+    '''
+    if range_y is None:
+        filtered_data = list(filter(lambda row: range_x[0] <= row[0] <= range_x[1], data))
+    else:
+        filtered_data = list(filter(lambda val: range_x[0] <= val[0] <= range_x[1] and range_y[0] <= val[1] <= range_y[1], data))
+
+    top_index = (1 if range_y is None else 2)
+    return (min(filtered_data, key=lambda x: x[top_index])[top_index], max(filtered_data, key=lambda x: x[top_index])[top_index])
+
+
 def get_col_float(row_data, col, separator=','):
     '''
     Tries to convert row_data at column position into float value, uses separator to split the row into columns.
@@ -90,6 +108,7 @@ def float_data_gen(data, col, label_col, separator=','):
 def float_range(start, stop=None, step=None):
     '''
     Generates range of float numbers like python range, but step can be float
+    Inspiration taken from: https://pynative.com/python-range-for-float-numbers/
     '''
     if stop is None:
         stop = start + 0.0
@@ -99,9 +118,9 @@ def float_range(start, stop=None, step=None):
         step = 1.0
 
     while True:
-        if step > 0 and start >= stop:
+        if step > 0 and start > stop:
             break
-        elif step < 0 and start <= stop:
+        elif step < 0 and start < stop:
             break
-        yield ("%g" % start) # return float number
+        yield start
         start = start + step

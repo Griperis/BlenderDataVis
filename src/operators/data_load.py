@@ -26,5 +26,5 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
                 line_n += 1
                 row_prop = bpy.data.scenes[0].dv_props.data.add()
                 row_prop.value = row
-        print(f'File: {self.filepath}, loaded {line_n} lines!')
+        self.report({'INFO'}, f'File: {self.filepath}, loaded {line_n} lines!')
         return {'FINISHED'}

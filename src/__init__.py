@@ -20,7 +20,7 @@ from src.operators.point_chart import OBJECT_OT_point_chart
 
 class PANEL_PT_DVAddonPanel(bpy.types.Panel):
     '''
-    Menu panel used for loading and managing data
+    Menu panel used for loading data and managing addon settings
     '''
     bl_label = 'Data visualisation utilities'
     bl_idname = 'OBJECT_PT_dv'
@@ -34,13 +34,21 @@ class PANEL_PT_DVAddonPanel(bpy.types.Panel):
         first_scene = bpy.data.scenes[0]
 
         layout.label(text='Chart settings')
-        row = layout.row()
-        row.prop(first_scene.dv_props, 'width')
-        row.prop(first_scene.dv_props, 'height')
 
         row = layout.row()
         row.label(text='Data', icon='WORLD_DATA')
         row.operator('ui.dv_load_data')
+
+        layout.label(text='Axis settings')
+        row = layout.row()
+
+        row.prop(first_scene.dv_props, 'text_size')
+        row = layout.row()
+
+        row.prop(first_scene.dv_props, 'axis_thickness')
+        row = layout.row()
+
+        row.prop(first_scene.dv_props, 'axis_tick_mark_height')
 
 
 class DV_TableRowProp(bpy.types.PropertyGroup):
@@ -58,14 +66,21 @@ class DV_PropertyGroup(bpy.types.PropertyGroup):
         name='Data',
         type=DV_TableRowProp
     )
-    width: bpy.props.FloatProperty(
-        name='Width',
-        default=1.0
-        
+
+    text_size: bpy.props.FloatProperty(
+        name='Text size',
+        default=0.1,
+        description='Size of addon generated text'
     )
-    height: bpy.props.FloatProperty(
-        name='Height',
-        default=1.0
+
+    axis_thickness: bpy.props.FloatProperty(
+        name='Axis thickness',
+        default=0.01,
+        description='How thick is the axis object'
+    )
+    axis_tick_mark_height: bpy.props.FloatProperty(
+        name='Axis tick mark height',
+        default=0.03
     )
 
 
