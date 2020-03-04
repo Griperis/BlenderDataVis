@@ -165,14 +165,22 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         mat.diffuse_color = (*color, alpha)
         return mat
 
-    def create_x_label(self, label):
-        ...
- 
-    def create_y_label(self, label):
-        ...
-    
-    def create_z_label(self, label):
-        ...
-    
     def init_data(self):
         self.data = bpy.data.scenes[0].dv_props.data
+
+    def in_axis_range_bounds(self, entry):
+        '''
+        Checks whether the entry point defined as [x, y, z] is within user selected axis range
+        returns False if not in range, else True
+        '''
+        entry_dims = len(entry)
+        if entry_dims == 2 or entry_dims == 3:
+            if entry[0] < self.x_axis_range[0] or entry[0] > self.x_axis_range[1]:
+                return False
+
+        if entry_dims == 3:
+            if entry[1] < self.y_axis_range[0] or entry[1] > self.y_axis_range[1]:
+                return False
+
+        return True
+    
