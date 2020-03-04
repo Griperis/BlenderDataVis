@@ -1,7 +1,7 @@
 import bpy
 
 from src.general import OBJECT_OT_generic_chart, CONST, Properties
-from src.operators.features.axis import Axis, AxisDir
+from src.operators.features.axis import AxisFactory, AxisDir
 from src.utils.data_utils import get_data_as_ll, find_data_range
 from src.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
 
@@ -18,14 +18,14 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
     dimensions: bpy.props.EnumProperty(
         name='Dimensions',
         items=(
-            ('2D', '2D', 'Data + Top'),
-            ('3D', '3D', 'Data + Data + Top')
+            ('2', '2D', 'Data + Top'),
+            ('3', '3D', 'Data + Data + Top')
         )
     )
 
     point_scale: bpy.props.FloatProperty(
         name='Point scale',
-        default=0.1
+        default=0.05
     )
 
     x_axis_step: bpy.props.FloatProperty(
@@ -72,11 +72,7 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
         self.create_container()
         data_list = get_data_as_ll(self.data)
 
-        # if self.dimensions == '3D' and not math.sqrt(len(data_matrix)).is_integer():
-        #     self.report({'ERROR'}, 'Data is in invalid shape for 3D chart')
-        #     return {'CANCELLED'}
-
-        if self.dimensions == '2D':
+        if self.dimensions == '2':
             value_index = 1
         else:
             if len(data_list[0]) == 2:
@@ -85,7 +81,7 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
             value_index = 2
 
         # fix length of data to parse
-        data_min, data_max = find_data_range(data_list, self.x_axis_range, self.y_axis_range if self.dimensions == '3D' else None)
+        data_min, data_max = find_data_range(data_list, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
         
         data_value_range = data_max - data_min
 
@@ -108,21 +104,22 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
 
             x_norm = (entry[0] - self.x_axis_range[0]) / (self.x_axis_range[1] - self.x_axis_range[0])
             z_norm = (entry[value_index] - data_min) / (data_max - data_min)
-            if self.dimensions == '2D':
+            if self.dimensions == '2':
                 point_obj.location = (x_norm, 0.0, z_norm)
             else:
                 y_norm = (entry[1] - self.y_axis_range[0]) / (self.y_axis_range[1] - self.y_axis_range[0])
                 point_obj.location = (x_norm, y_norm, z_norm)
     
             point_obj.parent = self.container_object
-
-        x_axis = Axis(self.container_object, self.x_axis_step, self.x_axis_range, AxisDir.X)
-        x_axis.create(self.padding, 0.0)
-        y_axis = Axis(self.container_object, self.y_axis_step, self.y_axis_range, AxisDir.Y)
-        y_axis.create(self.padding, 0.0)
         
-        z_axis = Axis(self.container_object, self.z_axis_step, (data_min, data_max), AxisDir.Z)
-        z_axis.create(self.padding, 0.0)
+        AxisFactory.create(
+            self.container_object,
+            (self.x_axis_step, self.y_axis_step, self.z_axis_step),
+            (self.x_axis_range, self.y_axis_range, (data_min, data_max)),
+            int(self.dimensions),
+            padding=self.padding,
+            offset=0.0
+        )
         return {'FINISHED'}
 
     def in_axis_range_bounds(self, entry):

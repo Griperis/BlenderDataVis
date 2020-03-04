@@ -14,6 +14,39 @@ class AxisDir(Enum):
     Z = 2
 
 
+class AxisFactory:
+    @staticmethod
+    def create(parent, axis_steps, axis_ranges, dim, padding=0.0, offset=0.0):
+        '''
+        Factory method that creates all axis with all values specified by parameters
+        parent - parent object for axis containers
+        axis_steps - list of axis step sizes (x_step_size, y_step_size, z_step_size)
+        axis_ranges - list of axis ranges ((x_min, x_max), (...), (...))
+        dim - number of dimensions (2 or 3) in which to create axis
+        '''
+        if dim not in [2, 3]:
+            raise AttributeError('Only 2 or 3 dim axis supported. {} is invalid number'.format(dim))
+        
+        for i in range(dim):
+            if i == 0:
+                direction = AxisDir.X
+            elif i == 1:
+                # y axis in 2D chart is z in blender 3D space
+                if dim == 2:
+                    direction = AxisDir.Z
+                else:
+                    direction = AxisDir.Y
+            elif i == 2:
+                direction = AxisDir.Z
+
+            # create Y axis in 2D in Z direction using Z values
+            if dim == 2 and i == 1:
+                axis = Axis(parent, axis_steps[2], axis_ranges[2], direction)
+            else:
+                axis = Axis(parent, axis_steps[i], axis_ranges[i], direction)
+            axis.create(padding, offset, True if dim == 2 else False)
+
+
 class Axis:
     '''
     Abstraction for axis creation and its labeling
@@ -63,6 +96,11 @@ class Axis:
         return obj
 
     def create_tick_mark(self, x_location):
+        '''
+        Creates tick mark at x_location of self.thickness size and height of self.mark_height and
+        ads it to axis container
+        x_location - location of mark along x axis
+        '''
         bpy.ops.mesh.primitive_cube_add()
         obj = bpy.context.active_object
         obj.scale = (self.thickness, self.thickness, self.mark_height)
@@ -71,16 +109,21 @@ class Axis:
         obj.parent = self.axis_cont
 
     def create_ticks(self, start_pos):
+        '''
+        Creates tick marks from self.range with stepsize of self.step
+        start_pos - starting position for all ticks (so it can start with offset)
+        '''
         for value in float_range(self.range[0], self.range[1], self.step):
             tick_location = start_pos + (value - self.range[0]) / (self.range[1] - self.range[0])
             self.create_tick_mark(tick_location)
             self.create_tick_label(value, tick_location)
 
-    def create(self, padding, offset):
+    def create(self, padding, offset, only_2d=False):
         '''
         Creates axis in range for dir dimension with spacing as set by ctor
         padding - how far should the axis start from the chart object (space around chart)
-        offset -  how the value should be offset to its position (e. g. bar_chart in middle of bar)
+        offset - how the value should be offset to its position (e. g. bar_chart in middle of bar)
+        only_2d - ignore y padding
         '''
         self.create_container()
         # create line with text by spacing in ax_range
@@ -88,9 +131,9 @@ class Axis:
         axis_line = self.create_axis_line(line_len * 0.5)
         self.create_ticks(offset)
 
-        #think about - padding to bottom, padding left and right, so axis match on ends, so it looks visualy pleasing...
         if self.dir == AxisDir.X:
-            self.axis_cont.location.y -= padding
+            if not only_2d:
+                self.axis_cont.location.y -= padding
             axis_line.location.x -= padding
             self.axis_cont.location.z -= padding
             # increase the length of axis in y direction to match the start
@@ -103,7 +146,8 @@ class Axis:
             axis_line.location.x -= padding
             self.axis_cont.rotation_euler = (0, -math.pi * 0.5, 0)
             self.axis_cont.location.x -= padding
-            self.axis_cont.location.y -= padding
+            if not only_2d:
+                self.axis_cont.location.y -= padding
 
     def create_tick_label(self, value, x_location):
         bpy.ops.object.text_add()
