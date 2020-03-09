@@ -1,8 +1,8 @@
 import bpy
 
 from src.general import OBJECT_OT_generic_chart, CONST, Properties
-from src.operators.features.axis import AxisFactory, AxisDir
-from src.utils.data_utils import get_data_as_ll, find_data_range, normalize_value
+from src.operators.features.axis import AxisFactory
+from src.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
 from src.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
 
 from mathutils import Vector
@@ -18,8 +18,8 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
     dimensions: bpy.props.EnumProperty(
         name='Dimensions',
         items=(
-            ('2', '2D', 'Data + Top'),
-            ('3', '3D', 'Data + Data + Top')
+            ('3', '3D', 'X, Y, Z'),
+            ('2', '2D', 'X, Z'),
         )
     )
 
@@ -28,10 +28,16 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
         default=0.05
     )
 
+    auto_ranges: bpy.props.BoolProperty(
+        name='Automatic axis ranges',
+        default=True
+    )
+
     x_axis_step: bpy.props.FloatProperty(
         name='Step of x axis',
         default=1.0
     )
+
     x_axis_range: bpy.props.FloatVectorProperty(
         name='Range of x axis',
         size=2,
@@ -64,32 +70,43 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
 
     padding: bpy.props.FloatProperty(
         name='Padding',
-        default=0.2
+        default=0.1,
+        min=0.0
     )
+
+    def draw(self, context):
+        super().draw(context)
+        layout = self.layout
+        row = layout.row()
+        row.prop(self, 'point_scale')
+
+        row = layout.row()
+        row.prop(self, 'color_shade')
+
+    def init_range(self, data):
+        self.x_axis_range = find_axis_range(data, 0)
+        self.y_axis_range = find_axis_range(data, 1)
 
     def execute(self, context):
         self.init_data()
         self.create_container()
         data_list = get_data_as_ll(self.data)
+        if self.auto_ranges:
+            self.init_range(data_list)
 
         if self.dimensions == '2':
             value_index = 1
         else:
             if len(data_list[0]) == 2:
-                self.report({'ERROR'}, 'Data is only 2D!')
+                self.report({'ERROR'}, 'Data are only 2D!')
                 return {'CANCELLED'}
             value_index = 2
 
         # fix length of data to parse
         data_min, data_max = find_data_range(data_list, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
         
-        data_value_range = data_max - data_min
-
-        color_gen = ColorGen(self.color_shade, (data_min, data_max)) #reverse_iterator(sat_col_gen(len(self.data), *color_to_triplet(self.color_shade)))
+        color_gen = ColorGen(self.color_shade, (data_min, data_max))
         for i, entry in enumerate(data_list):
-            if len(entry) > 3:
-                self.report({'ERROR'}, 'Too many dimensions in data!')
-                return {'CANCELLED'}
             
             # skip values outside defined axis range
             if not self.in_axis_range_bounds(entry):
@@ -107,8 +124,7 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
             if self.dimensions == '2':
                 point_obj.location = (x_norm, 0.0, z_norm)
             else:
-                y_norm = (entry[1] - self.y_axis_range[0]) / (self.y_axis_range[1] - self.y_axis_range[0])
-                y_norm = normalize_value(entry[1], self.y_axis_range[0]A, self.y_axis_range[1])
+                y_norm = normalize_value(entry[1], self.y_axis_range[0], self.y_axis_range[1])
                 point_obj.location = (x_norm, y_norm, z_norm)
     
             point_obj.parent = self.container_object
@@ -122,4 +138,3 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
             offset=0.0
         )
         return {'FINISHED'}
-

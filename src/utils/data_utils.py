@@ -9,9 +9,17 @@ def get_data_as_ll(data):
     return mat
 
 
+def find_axis_range(data, val_idx):
+    return (min(data, key=lambda x: x[val_idx])[val_idx], max(data, key=lambda x: x[val_idx])[val_idx])
+
+
+def get_data_in_range(data, range_x):
+    return list(filter(lambda val: range_x[0] <= val[0] <= range_x[1], data))
+
+
 def find_data_range(data, range_x, range_y=None):
     '''
-    Finds data value range in parameter data in space defined by range_x and range_z
+    Finds data value range in parameter data in space defined by range_x and range_yy
     data - data defined as list of lists, each row consist of [x, (y), top]
     range_x - bounds in x direction (min, max)
     range_y - bounds in y direction (min, max)

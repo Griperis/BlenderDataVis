@@ -14,18 +14,21 @@ class Properties:
     '''
     Access to Blender properties related to addon, which are not in specific chart operators 
     '''
+    @staticmethod
     def get_data():
         return bpy.data.scenes[0].dv_props.data
 
+    @staticmethod
     def get_text_size():
         return bpy.data.scenes[0].dv_props.text_size
 
+    @staticmethod
     def get_axis_thickness():
         return bpy.data.scenes[0].dv_props.axis_thickness
 
+    @staticmethod
     def get_axis_tick_mark_height():
         return bpy.data.scenes[0].dv_props.axis_tick_mark_height
-
 
 
 class OBJECT_OT_generic_chart(bpy.types.Operator):
@@ -40,6 +43,37 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
 
     def __init__(self):
         self.container_object = None
+
+    def draw(self, context):
+        layout = self.layout
+
+        only_2d = hasattr(self, 'only_2d')
+
+        if not only_2d:
+            row = layout.row()
+            row.prop(self, 'dimensions')
+
+        row = layout.row()
+        row.prop(self, 'auto_ranges')
+
+        if not self.auto_ranges:
+            row = layout.row()
+            row.prop(self, 'x_axis_range')
+            if not only_2d and self.dimensions == '3':
+                row = layout.row()
+                row.prop(self, 'y_axis_range')
+        
+        row = layout.row()
+        row.label(text='Axis step:')
+        row = layout.row()
+        row.prop(self, 'x_axis_step', text='x')
+        if not only_2d and self.dimensions == '3':
+            row.prop(self, 'y_axis_step', text='y')
+        row.prop(self, 'z_axis_step', text='z')
+
+        row = layout.row()
+        row.prop(self, 'padding')
+
 
     @classmethod
     def poll(cls, context):
@@ -183,4 +217,3 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
                 return False
 
         return True
-    

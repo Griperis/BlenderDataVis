@@ -1,9 +1,11 @@
 import bpy
 import math
+from itertools import zip_longest
 from mathutils import Vector
 
 
-from src.utils.data_utils import float_data_gen, col_values_min_max, get_col_float, get_col_str
+from src.utils.data_utils import get_data_as_ll, find_data_range, find_axis_range, normalize_value, get_data_in_range
+from src.operators.features.axis import AxisFactory
 from src.general import OBJECT_OT_generic_chart
 from src.general import CONST
 
@@ -14,37 +16,43 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
     bl_label = 'Line Chart'
     bl_options = {'REGISTER', 'UNDO'}
 
-    column: bpy.props.IntProperty(
-        name='Column',
-        default=1
-    )
-
-    label_column: bpy.props.IntProperty(
-        name='Label column',
-        default=0
-    )
-
-    start_from: bpy.props.IntProperty(
-        name='Starting index',
-        default=0
-    )
-
-    nof_entries: bpy.props.IntProperty(
-        name='Ending index',
-        default=10
-    )
-
     rounded: bpy.props.EnumProperty(
         name='Rounded',
         items=(
-            ('1', 'Rounded', 'Rounded corners'),
+            ('1', 'Rounded', 'Beveled corners'),
             ('2', 'Sharp', 'Sharp corners')
         )
+    )
+    auto_ranges: bpy.props.BoolProperty(
+        name='Automatic axis ranges',
+        default=True
+    )
 
+    x_axis_step: bpy.props.FloatProperty(
+        name='Step of x axis',
+        default=1.0
+    )
+
+    x_axis_range: bpy.props.FloatVectorProperty(
+        name='Range of x axis',
+        size=2,
+        default=(0.0, 1.0)
+    )
+
+    z_axis_step: bpy.props.FloatProperty(
+        name='Step of z axis',
+        default=1.0
+    )
+
+    padding: bpy.props.FloatProperty(
+        name='Padding',
+        default=0.1,
+        min=0.0
     )
 
     def __init__(self):
         self.cuver_obj = None
+        self.only_2d = True
         self.x_delta = 0.2
         self.bevel_obj_size = (0.01, 0.01, 0.01)
         self.bevel_settings = {
@@ -59,76 +67,44 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
                 'profile': 1.0,
             },
         }
-    
+
+    def draw(self, context):
+        super().draw(context)
+
     def execute(self, context):
         self.init_data()
         self.create_container()
 
-        min_value, max_value = col_values_min_max(self.data, self.column, self.start_from, self.nof_entries)
-        value_gen = float_data_gen(self.data, self.column, self.label_column)
+        data_list = get_data_as_ll(self.data)
+        if len(data_list[0]) > 2:
+            self.report({'ERROR'}, 'Line chart supports X Y values only')
+            return {'CANCELLED'}
         
-        val_range = abs(min_value) + max_value
-
-        norm_multiplier = CONST.GRAPH_Z_SCALE * 2.0 / val_range
-
-        verts = []
-        edges = []
-        values = []
-        labels = []
-    
-        for i in range(self.start_from, self.start_from + self.nof_entries):
-            if i >= len(self.data):
-                break
-
-            value, _ = get_col_float(self.data[i], self.column)
-            label = get_col_str(self.data[i], self.label_column)
-            verts.append(((i - self.start_from) * self.x_delta, 0, value * norm_multiplier - min_value * norm_multiplier))
-           
-            values.append(value)
-            labels.append(label)
-
-            if i != 0:
-                edges.append([i - self.start_from - 1, i - self.start_from])
+        if self.auto_ranges:
+            self.x_axis_range = find_axis_range(data_list, 0)
         
-        self.create_curve(verts, edges)
-        self.add_value_labels(verts, values)
-        bevel_obj = self.add_bevel_obj(self.curve_obj)
-        
-        self.create_axis(self.x_delta, labels, y_max=max_value, y_min=min_value, padding=(self.x_delta * 0.5, self.x_delta * 0.5, 0), offset=(self.x_delta * 0.5, self.x_delta * 0.5, 0))
+        data_min, data_max = find_data_range(data_list, self.x_axis_range)
 
+        data_list = get_data_in_range(data_list, self.x_axis_range)
+
+        sorted_data = sorted(data_list, key=lambda x: x[0])
+
+        normalized_vert_list = [(normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for entry in sorted_data]
+        edges = [[i - 1, i] for i in range(1, len(normalized_vert_list))]
+
+        self.create_curve(normalized_vert_list, edges)
+        self.add_bevel_obj()
+
+        AxisFactory.create(
+            self.container_object,
+            (self.x_axis_step, 0, self.z_axis_step),
+            (self.x_axis_range, [], (data_min, data_max)),
+            2,
+            padding=self.padding,
+            offset=0.0
+        )
         return {'FINISHED'}
-    
-    def add_value_labels(self, verts, values):
-        for i, vert in enumerate(verts):
-            bpy.ops.object.text_add()
-            to = bpy.context.object
-            to.data.body = str(values[i])
-            to.location = vert
-            to.data.align_x = 'CENTER'
-
-            # TODO Whether label should be below or up (depends on the values next to it)
-           
-            st = 2  # steepness threshold
-
-            if i - 1 >= 0 and i + 1 < len(values) and (values[i - 1] - st > values[i] or values[i + 1] - st > values[i]):
-                to.location.z -= 0.05
-                print('moving down')
-            elif i - 1 >= 0 and values[i - 1] - st > values[i]:
-                to.location.x += 0.05
-                print('moving right')
-            elif i + 1 < len(values) and values[i + 1] - st > values[i]:
-                to.location.x -= 0.05
-                print('moving left')
-            else:
-                print('moving up')
-                to.location.z += 0.05
-
-            to.location.z += 0.05
-            to.rotation_euler.x += CONST.HALF_PI
-            to.scale *= 0.05
-            to.parent = self.container_object
-            self.select_curve_obj()
-
+        
     def create_curve(self, verts, edges):
         m = bpy.data.meshes.new('line_mesh')
         self.curve_obj = bpy.data.objects.new('curve_obj', m)
@@ -156,13 +132,13 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         )   
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    def add_bevel_obj(self, curve_obj):
+    def add_bevel_obj(self):
         bpy.ops.mesh.primitive_plane_add()
         bevel_obj = bpy.context.active_object
         bevel_obj.scale = self.bevel_obj_size
         
         bpy.ops.object.convert(target='CURVE')
-        curve_obj.data.bevel_object = bevel_obj
+        self.curve_obj.data.bevel_object = bevel_obj
         return bevel_obj
 
     def select_curve_obj(self):

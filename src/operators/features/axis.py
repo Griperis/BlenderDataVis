@@ -105,7 +105,7 @@ class Axis:
         obj = bpy.context.active_object
         obj.scale = (self.thickness, self.thickness, self.mark_height)
         obj.location = (0, 0, 0)
-        obj.location.x += x_location
+        obj.location.x += x_location - self.thickness * 0.5
         obj.parent = self.axis_cont
 
     def create_ticks(self, start_pos):
