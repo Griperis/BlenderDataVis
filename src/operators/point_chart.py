@@ -2,7 +2,7 @@ import bpy
 
 from src.general import OBJECT_OT_generic_chart, CONST, Properties
 from src.operators.features.axis import AxisFactory
-from src.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
+from src.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range, DataType
 from src.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
 
 from mathutils import Vector
@@ -89,8 +89,7 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
 
     def execute(self, context):
         self.init_data()
-        self.create_container()
-        data_list = get_data_as_ll(self.data)
+        data_list = get_data_as_ll(self.data, DataType.Numerical)
         if self.auto_ranges:
             self.init_range(data_list)
 
@@ -102,6 +101,7 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
                 return {'CANCELLED'}
             value_index = 2
 
+        self.create_container()
         # fix length of data to parse
         data_min, data_max = find_data_range(data_list, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
         

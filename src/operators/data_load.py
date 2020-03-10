@@ -28,3 +28,4 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
                 row_prop.value = row
         self.report({'INFO'}, f'File: {self.filepath}, loaded {line_n} lines!')
         return {'FINISHED'}
+

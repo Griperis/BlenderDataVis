@@ -2,8 +2,8 @@ import bpy
 import math
 from mathutils import Matrix, Vector
 
-from src.utils.data_utils import col_values_min, col_values_sum, get_col_float, get_col_str
-from src.utils.color_utils import sat_col_gen, color_to_triplet
+from src.utils.data_utils import get_data_as_ll, find_data_range, DataType
+from src.utils.color_utils import sat_col_gen, ColorGen
 from src.general import OBJECT_OT_generic_chart, CONST
 
 
@@ -19,26 +19,6 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         default=64
     )
 
-    column: bpy.props.IntProperty(
-        name='Column',
-        default=1
-    )
-
-    label_column: bpy.props.IntProperty(
-        name='Label column',
-        default=0
-    )
-
-    start_from: bpy.props.IntProperty(
-        name='Starting index',
-        default=0
-    )
-
-    nof_entries: bpy.props.IntProperty(
-        name='Ending index',
-        default=10
-    )
-
     color_shade: bpy.props.FloatVectorProperty(
         name='Color',
         subtype='COLOR',
@@ -47,19 +27,22 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         max=1.0
     )
 
-    def __init__(self):
-        self.slices = []
-        self.materials = []
-    
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.prop(self, 'vertices')
+        row = layout.row()
+        row.prop(self, 'color_shade')
+
     def execute(self, context):
         self.slices = []
         self.materials = []
         self.init_data()
-        
-        found_min, res = col_values_min(self.data, self.column, self.start_from, self.nof_entries)
-        if found_min <= 0:
-            self.report({'WARNING'}, 'Pie chart does not support negative values')
-            return {'CANCELLED'}
+
+        data_list = get_data_as_ll(self.data, DataType.Categorical)
+        data_min = min(data_list, key=lambda entry: entry[1])[1]
+        if data_min <= 0:
+            self.report({'ERROR'}, 'Pie chart support only positive values!')
         
         self.create_container()
 
@@ -74,39 +57,32 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
             rot += rot_inc
             self.slices.append(cyl_slice)
 
-        total = col_values_sum(self.data[self.start_from:self.start_from + self.nof_entries:], self.column)
-        color_gen = sat_col_gen(self.nof_entries, *color_to_triplet(self.color_shade))
+        values_sum = sum(int(entry[1]) for entry in data_list)
+        data_len = len(data_list)
+        color_gen = ColorGen(self.color_shade, (0, data_len))
        
         prev_i = 0
-        for i in range(self.start_from, self.start_from + self.nof_entries):
+        for i in range(len(data_list)):
             
-            if i >= len(self.data):
-                break
+            portion = data_list[i][1] / values_sum
             
-            value, _ = get_col_float(self.data[i], self.column)
-
-            portion = value / total
-
             increment = round(portion * self.vertices)
-            
             # Ignore data with zero value
             if increment == 0:
-                print('Warning: Data with zero value i: {}, value: {}! Useless for pie chart.'.format(i, value))
+                print('Warning: Data with zero value i: {}, value: {}! Useless for pie chart.'.format(i, data_list[i][1]))
                 continue
-
+            
             portion_end_i = prev_i + increment
             slice_obj = self.join_slices(prev_i, portion_end_i)
             if slice_obj is None:
-                raise Exception('Error occurred, try to increase number of vertices, i_from" {}, i_to: {}, inc: {}, val: {}'.format(prev_i, portion_end_i, increment, value))
+                raise Exception('Error occurred, try to increase number of vertices, i_from" {}, i_to: {}, inc: {}, val: {}'.format(prev_i, portion_end_i, increment, data_list[i][1]))
                 break
 
-            slice_mat = self.new_mat(next(color_gen), 1)
+            slice_mat = self.new_mat(color_gen.next(data_len - i), 1)
             slice_obj.active_material = slice_mat
             slice_obj.parent = self.container_object
             label_rot_z = (((prev_i + portion_end_i) * 0.5) / self.vertices) * 2.0 * math.pi
-            print('i: {} d: {}, p: {}, pfi: {}'.format(i, math.degrees(label_rot_z), portion, (prev_i + portion_end_i) * 0.5 / self.vertices))
-
-            label_obj = self.add_value_label((1, 0, 0), (0, 0, label_rot_z), get_col_str(self.data[i], self.label_column), portion, 0.2)
+            label_obj = self.add_value_label((1, 0, 0), (0, 0, label_rot_z), data_list[i][0], portion, 0.2)
             label_obj.rotation_euler = (0, 0, 0)
             prev_i += increment
    
@@ -130,11 +106,10 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         '''
         Creates a triangle (slice of pie chart)
         '''
-        verts = [(0, 0, 0.1), (-1, 1, 0.1), (-1, -1, 0.1), 
-                 (0, 0, 0), (-1, 1, 0), (-1, -1, 0)
-        ]
+        verts = [(0, 0, 0.1), (-1, 1, 0.1), (-1, -1, 0.1),
+                 (0, 0, 0), (-1, 1, 0), (-1, -1, 0)]
 
-        facs = [[0, 1, 2], [3, 4, 5], [0, 1, 3], [1, 3, 4], [0, 2, 3], [2, 3, 5], [1, 2, 4], [2, 4, 5]]
+        faces = [[0, 1, 2], [3, 4, 5], [0, 1, 3], [1, 3, 4], [0, 2, 3], [2, 3, 5], [1, 2, 4], [2, 4, 5]]
 
         mesh = bpy.data.meshes.new('pie_mesh')  # add the new mesh
         obj = bpy.data.objects.new(mesh.name, mesh)
@@ -143,7 +118,7 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         obj.parent = self.container_object
         bpy.context.view_layer.objects.active = obj
 
-        mesh.from_pydata(verts, [], facs)
+        mesh.from_pydata(verts, [], faces)
         mesh.update()
 
         return obj
@@ -160,9 +135,3 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         to.scale *= scale_multiplier
         to.parent = self.container_object
         return to
-
-    def create_axis(self, dim):
-        pass
-
-    def create_labels(self):
-        pass

@@ -3,7 +3,7 @@ import math
 from mathutils import Vector
 
 
-from src.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
+from src.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range, DataType
 from src.utils.color_utils import ColorGen
 from src.general import OBJECT_OT_generic_chart, CONST, Properties
 from src.operators.features.axis import AxisFactory
@@ -97,9 +97,9 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
 
     def execute(self, context):
         self.init_data()
-        self.create_container()
-        data_list = get_data_as_ll(self.data)
+        data_list = get_data_as_ll(self.data, DataType.Numerical)
         self.init_range(data_list)
+        self.create_container()
 
         data_min, data_max = find_data_range(data_list, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
 

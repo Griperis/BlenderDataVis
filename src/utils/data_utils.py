@@ -1,11 +1,24 @@
-def get_row_list(row_data, separator=','):
-    return [float(x) for x in row_data.value.split(separator)]
+from enum import Enum
 
 
-def get_data_as_ll(data):
+class DataType(Enum):
+    Numerical = 0
+    Categorical = 1
+    Categorical_3D = 2
+
+
+def get_row_list(row_data, data_type, separator):
+    if data_type == DataType.Categorical:
+        row = row_data.value.split(separator)
+        return [str(row[0]), float(row[1])]
+    elif data_type == DataType.Numerical:
+        return [float(x) for x in row_data.value.split(separator)]
+
+
+def get_data_as_ll(data, data_type, separator=','):
     mat = []
     for row in data:
-        mat.append(get_row_list(row))
+        mat.append(get_row_list(row, data_type, separator))
     return mat
 
 

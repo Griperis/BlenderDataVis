@@ -16,6 +16,7 @@ from src.operators.bar_chart import OBJECT_OT_bar_chart
 from src.operators.line_chart import OBJECT_OT_line_chart
 from src.operators.pie_chart import OBJECT_OT_pie_chart
 from src.operators.point_chart import OBJECT_OT_point_chart
+from src.general import CONST
 
 
 class PANEL_PT_DVAddonPanel(bpy.types.Panel):
@@ -31,24 +32,26 @@ class PANEL_PT_DVAddonPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        first_scene = bpy.data.scenes[0]
+        data_storage = bpy.data.scenes[0]
 
         layout.label(text='Chart settings')
 
         row = layout.row()
         row.label(text='Data', icon='WORLD_DATA')
+        
+        row = layout.row()
         row.operator('ui.dv_load_data')
 
         layout.label(text='Axis settings')
+        
         row = layout.row()
+        row.prop(data_storage.dv_props, 'text_size')
 
-        row.prop(first_scene.dv_props, 'text_size')
         row = layout.row()
-
-        row.prop(first_scene.dv_props, 'axis_thickness')
+        row.prop(data_storage.dv_props, 'axis_thickness')
+        
         row = layout.row()
-
-        row.prop(first_scene.dv_props, 'axis_tick_mark_height')
+        row.prop(data_storage.dv_props, 'axis_tick_mark_height')
 
 
 class DV_TableRowProp(bpy.types.PropertyGroup):
@@ -60,7 +63,7 @@ class DV_TableRowProp(bpy.types.PropertyGroup):
 
 class DV_PropertyGroup(bpy.types.PropertyGroup):
     '''
-    All addon settings and data are stored in this property group.
+    General addon settings and data are stored in this property group.
     '''
     data: bpy.props.CollectionProperty(
         name='Data',

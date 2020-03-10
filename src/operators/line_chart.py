@@ -4,7 +4,7 @@ from itertools import zip_longest
 from mathutils import Vector
 
 
-from src.utils.data_utils import get_data_as_ll, find_data_range, find_axis_range, normalize_value, get_data_in_range
+from src.utils.data_utils import get_data_as_ll, find_data_range, find_axis_range, normalize_value, get_data_in_range, DataType
 from src.operators.features.axis import AxisFactory
 from src.general import OBJECT_OT_generic_chart
 from src.general import CONST
@@ -16,8 +16,12 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
     bl_label = 'Line Chart'
     bl_options = {'REGISTER', 'UNDO'}
 
+    bevel_edges: bpy.props.BoolProperty(
+        name='Bevel edges'
+    )
+
     rounded: bpy.props.EnumProperty(
-        name='Rounded',
+        name='Settings',
         items=(
             ('1', 'Rounded', 'Beveled corners'),
             ('2', 'Sharp', 'Sharp corners')
@@ -69,13 +73,19 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         }
 
     def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.prop(self, 'bevel_edges')
+        if self.bevel_edges:
+            row = layout.row()
+            row.prop(self, 'rounded')
         super().draw(context)
 
     def execute(self, context):
         self.init_data()
         self.create_container()
 
-        data_list = get_data_as_ll(self.data)
+        data_list = get_data_as_ll(self.data, DataType.Numerical)
         if len(data_list[0]) > 2:
             self.report({'ERROR'}, 'Line chart supports X Y values only')
             return {'CANCELLED'}
@@ -115,8 +125,8 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         m.update()
 
         self.select_curve_obj()
-        
-        self.bevel_curve_obj()
+        if self.bevel_edges:
+            self.bevel_curve_obj()
 
         bpy.ops.object.convert(target='CURVE')
 
