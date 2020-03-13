@@ -1,6 +1,6 @@
 import bpy
 
-from src.general import OBJECT_OT_generic_chart, CONST, Properties
+from src.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
 from src.operators.features.axis import AxisFactory
 from src.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range, DataType
 from src.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
@@ -74,6 +74,10 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
         min=0.0
     )
 
+    label_settings: bpy.props.PointerProperty(
+        type=DV_LabelPropertyGroup
+    )
+
     def draw(self, context):
         super().draw(context)
         layout = self.layout
@@ -88,25 +92,24 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
         self.y_axis_range = find_axis_range(data, 1)
 
     def execute(self, context):
-        self.init_data()
-        data_list = get_data_as_ll(self.data, DataType.Numerical)
+        self.init_data(DataType.Numerical)
         if self.auto_ranges:
-            self.init_range(data_list)
+            self.init_range(self.data)
 
         if self.dimensions == '2':
             value_index = 1
         else:
-            if len(data_list[0]) == 2:
+            if len(self.data[0]) == 2:
                 self.report({'ERROR'}, 'Data are only 2D!')
                 return {'CANCELLED'}
             value_index = 2
 
         self.create_container()
         # fix length of data to parse
-        data_min, data_max = find_data_range(data_list, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
+        data_min, data_max = find_data_range(self.data, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
         
         color_gen = ColorGen(self.color_shade, (data_min, data_max))
-        for i, entry in enumerate(data_list):
+        for i, entry in enumerate(self.data):
             
             # skip values outside defined axis range
             if not self.in_axis_range_bounds(entry):
@@ -134,6 +137,7 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
             (self.x_axis_step, self.y_axis_step, self.z_axis_step),
             (self.x_axis_range, self.y_axis_range, (data_min, data_max)),
             int(self.dimensions),
+            labels=self.labels,
             padding=self.padding,
             offset=0.0
         )

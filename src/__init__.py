@@ -16,10 +16,11 @@ from src.operators.bar_chart import OBJECT_OT_bar_chart
 from src.operators.line_chart import OBJECT_OT_line_chart
 from src.operators.pie_chart import OBJECT_OT_pie_chart
 from src.operators.point_chart import OBJECT_OT_point_chart
+from src.general import DV_LabelPropertyGroup
 from src.general import CONST
 
 
-class PANEL_PT_DVAddonPanel(bpy.types.Panel):
+class DV_AddonPanel(bpy.types.Panel):
     '''
     Menu panel used for loading data and managing addon settings
     '''
@@ -54,7 +55,7 @@ class PANEL_PT_DVAddonPanel(bpy.types.Panel):
         row.prop(data_storage.dv_props, 'axis_tick_mark_height')
 
 
-class DV_TableRowProp(bpy.types.PropertyGroup):
+class DV_RowProp(bpy.types.PropertyGroup):
     '''
     One row of loaded data as string
     '''
@@ -67,7 +68,7 @@ class DV_PropertyGroup(bpy.types.PropertyGroup):
     '''
     data: bpy.props.CollectionProperty(
         name='Data',
-        type=DV_TableRowProp
+        type=DV_RowProp
     )
 
     text_size: bpy.props.FloatProperty(
@@ -81,6 +82,7 @@ class DV_PropertyGroup(bpy.types.PropertyGroup):
         default=0.01,
         description='How thick is the axis object'
     )
+
     axis_tick_mark_height: bpy.props.FloatProperty(
         name='Axis tick mark height',
         default=0.03
@@ -107,14 +109,15 @@ def chart_ops(self, context):
 
 
 def register():
-    bpy.utils.register_class(DV_TableRowProp)
+    bpy.utils.register_class(DV_RowProp)
     bpy.utils.register_class(DV_PropertyGroup)
+    bpy.utils.register_class(DV_LabelPropertyGroup)
     bpy.utils.register_class(OBJECT_OT_bar_chart)
     bpy.utils.register_class(OBJECT_OT_pie_chart)
     bpy.utils.register_class(OBJECT_OT_line_chart)
     bpy.utils.register_class(OBJECT_OT_point_chart)
     bpy.utils.register_class(FILE_OT_DVLoadFile)
-    bpy.utils.register_class(PANEL_PT_DVAddonPanel)
+    bpy.utils.register_class(DV_AddonPanel)
     bpy.utils.register_class(OBJECT_MT_AddChart)
     bpy.types.VIEW3D_MT_add.append(chart_ops)
 
@@ -123,14 +126,15 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(DV_PropertyGroup)
-    bpy.utils.unregister_class(DV_TableRowProp)
+    bpy.utils.unregister_class(DV_RowProp)
     bpy.utils.unregister_class(OBJECT_MT_AddChart)
-    bpy.utils.unregister_class(PANEL_PT_DVAddonPanel)
+    bpy.utils.unregister_class(DV_AddonPanel)
     bpy.utils.unregister_class(OBJECT_OT_bar_chart)
     bpy.utils.unregister_class(OBJECT_OT_pie_chart)
     bpy.utils.unregister_class(OBJECT_OT_line_chart)
     bpy.utils.unregister_class(OBJECT_OT_point_chart)
     bpy.utils.unregister_class(FILE_OT_DVLoadFile)
+    bpy.utils.unregister_class(DV_LabelPropertyGroup)
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
 
 

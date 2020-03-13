@@ -6,7 +6,7 @@ from mathutils import Vector
 
 from src.utils.data_utils import get_data_as_ll, find_data_range, find_axis_range, normalize_value, get_data_in_range, DataType
 from src.operators.features.axis import AxisFactory
-from src.general import OBJECT_OT_generic_chart
+from src.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
 from src.general import CONST
 
 
@@ -54,8 +54,11 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         min=0.0
     )
 
+    label_settings: bpy.props.PointerProperty(
+        type=DV_LabelPropertyGroup
+    )
+
     def __init__(self):
-        self.cuver_obj = None
         self.only_2d = True
         self.x_delta = 0.2
         self.bevel_obj_size = (0.01, 0.01, 0.01)
@@ -82,22 +85,20 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         super().draw(context)
 
     def execute(self, context):
-        self.init_data()
+        self.init_data(DataType.Numerical)
         self.create_container()
-
-        data_list = get_data_as_ll(self.data, DataType.Numerical)
-        if len(data_list[0]) > 2:
+        if len(self.data[0]) > 2:
             self.report({'ERROR'}, 'Line chart supports X Y values only')
             return {'CANCELLED'}
         
         if self.auto_ranges:
-            self.x_axis_range = find_axis_range(data_list, 0)
+            self.x_axis_range = find_axis_range(self.data, 0)
         
-        data_min, data_max = find_data_range(data_list, self.x_axis_range)
+        data_min, data_max = find_data_range(self.data, self.x_axis_range)
 
-        data_list = get_data_in_range(data_list, self.x_axis_range)
+        self.data = get_data_in_range(self.data, self.x_axis_range)
 
-        sorted_data = sorted(data_list, key=lambda x: x[0])
+        sorted_data = sorted(self.data, key=lambda x: x[0])
 
         normalized_vert_list = [(normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for entry in sorted_data]
         edges = [[i - 1, i] for i in range(1, len(normalized_vert_list))]
@@ -110,6 +111,7 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
             (self.x_axis_step, 0, self.z_axis_step),
             (self.x_axis_range, [], (data_min, data_max)),
             2,
+            labels=self.labels,
             padding=self.padding,
             offset=0.0
         )
@@ -117,7 +119,7 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         
     def create_curve(self, verts, edges):
         m = bpy.data.meshes.new('line_mesh')
-        self.curve_obj = bpy.data.objects.new('curve_obj', m)
+        self.curve_obj = bpy.data.objects.new('line_chart_curve', m)
 
         bpy.context.scene.collection.objects.link(self.curve_obj)
         self.curve_obj.parent = self.container_object
@@ -134,8 +136,8 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         bpy.ops.object.mode_set(mode='EDIT')
         opts = self.bevel_settings['rounded'] if self.rounded == '1' else self.bevel_settings['sharp']
         bpy.ops.mesh.bevel(
-            segments=opts['segments'], 
-            offset=opts['offset'], 
+            segments=opts['segments'],
+            offset=opts['offset'],
             offset_type='OFFSET',
             profile=opts['profile'],
             vertex_only=True

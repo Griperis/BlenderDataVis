@@ -5,7 +5,7 @@ from mathutils import Vector
 
 from src.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range, DataType
 from src.utils.color_utils import ColorGen
-from src.general import OBJECT_OT_generic_chart, CONST, Properties
+from src.general import OBJECT_OT_generic_chart, CONST, Properties, DV_LabelPropertyGroup
 from src.operators.features.axis import AxisFactory
 
 
@@ -61,14 +61,6 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         default=1.0
     )
 
-    color_shade: bpy.props.FloatVectorProperty(
-        name='Color',
-        subtype='COLOR',
-        default=(0.0, 0.0, 1.0),
-        min=0.0,
-        max=1.0
-    )
-
     padding: bpy.props.FloatProperty(
         name='Padding',
         default=0.1
@@ -80,6 +72,10 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         default=(0.0, 0.0, 1.0),
         min=0.0,
         max=1.0
+    )
+
+    label_settings: bpy.props.PointerProperty(
+        type=DV_LabelPropertyGroup
     )
 
     def draw(self, context):
@@ -96,12 +92,11 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         self.y_axis_range = find_axis_range(data, 1)
 
     def execute(self, context):
-        self.init_data()
-        data_list = get_data_as_ll(self.data, DataType.Numerical)
-        self.init_range(data_list)
+        self.init_data(DataType.Numerical)
+        self.init_range(self.data)
         self.create_container()
 
-        data_min, data_max = find_data_range(data_list, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
+        data_min, data_max = find_data_range(self.data, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
 
         color_gen = ColorGen(self.color_shade, (data_min, data_max))
 
@@ -110,7 +105,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         else:
             value_index = 2
 
-        for entry in data_list:
+        for entry in self.data:
             if not self.in_axis_range_bounds(entry):
                 continue
 
@@ -119,7 +114,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
             x_norm = normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1])
             z_norm = normalize_value(entry[value_index], data_min, data_max)
             if z_norm >= 0.0 and z_norm <= 0.0001:
-                z_norm = 0.001
+                z_norm = 0.0001
             if self.dimensions == '2':
                 bar_obj.scale = (self.bar_size[0], self.bar_size[1], z_norm)
                 bar_obj.location = (x_norm, 0.0, z_norm)
@@ -135,6 +130,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
             (self.x_axis_step, self.y_axis_step, self.z_axis_step),
             (self.x_axis_range, self.y_axis_range, (data_min, data_max)),
             int(self.dimensions),
+            labels=self.labels,
             padding=self.padding,
             offset=0.0
         )

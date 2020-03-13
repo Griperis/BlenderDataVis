@@ -16,13 +16,14 @@ class AxisDir(Enum):
 
 class AxisFactory:
     @staticmethod
-    def create(parent, axis_steps, axis_ranges, dim, padding=0.0, offset=0.0):
+    def create(parent, axis_steps, axis_ranges, dim, labels=[], padding=0.0, offset=0.0):
         '''
         Factory method that creates all axis with all values specified by parameters
         parent - parent object for axis containers
         axis_steps - list of axis step sizes (x_step_size, y_step_size, z_step_size)
         axis_ranges - list of axis ranges ((x_min, x_max), (...), (...))
         dim - number of dimensions (2 or 3) in which to create axis
+        labels - array of labels for each axis [x, y, z]
         '''
         if dim not in [2, 3]:
             raise AttributeError('Only 2 or 3 dim axis supported. {} is invalid number'.format(dim))
@@ -40,11 +41,13 @@ class AxisFactory:
                 direction = AxisDir.Z
 
             # create Y axis in 2D in Z direction using Z values
+            dir_idx = i
             if dim == 2 and i == 1:
-                axis = Axis(parent, axis_steps[2], axis_ranges[2], direction)
+                dir_idx = 2
+                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction)
             else:
-                axis = Axis(parent, axis_steps[i], axis_ranges[i], direction)
-            axis.create(padding, offset, True if dim == 2 else False)
+                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction)
+            axis.create(padding, offset, labels[dir_idx], True if dim == 2 else False)
 
 
 class Axis:
@@ -118,7 +121,7 @@ class Axis:
             self.create_tick_mark(tick_location)
             self.create_tick_label(value, tick_location)
 
-    def create(self, padding, offset, only_2d=False):
+    def create(self, padding, offset, label, only_2d=False):
         '''
         Creates axis in range for dir dimension with spacing as set by ctor
         padding - how far should the axis start from the chart object (space around chart)
@@ -130,6 +133,8 @@ class Axis:
         line_len = 1.0 + padding + offset
         axis_line = self.create_axis_line(line_len * 0.5)
         self.create_ticks(offset)
+        if label is not None:
+            self.create_label(label)
 
         if self.dir == AxisDir.X:
             if not only_2d:
@@ -149,22 +154,38 @@ class Axis:
             if not only_2d:
                 self.axis_cont.location.y -= padding
 
-    def create_tick_label(self, value, x_location):
-        bpy.ops.object.text_add()
-        obj = bpy.context.object
-        obj.data.body = '%.2f' % value
-        obj.data.align_x = 'CENTER'
-        obj.scale *= self.text_size
+    def create_label(self, value):
+        obj = self.create_text_object(value)
         obj.parent = self.axis_cont
+        obj.location = (1.3, 0, 0)
+        self.rotate_text_object(obj)
+
+    def create_tick_label(self, value, x_location):
+        obj = self.create_text_object(value)
+        obj.parent = self.axis_cont
+        self.rotate_text_object(obj)
         if self.dir == AxisDir.Z:
-            obj.rotation_euler.y = math.radians(90)
             obj.location = (x_location, 0, 0.2)
         else:
-            obj.location = (x_location, 0, -0.2)
+            obj.location = (x_location, 0, -0.2)     
 
+    def create_text_object(self, value):
+        bpy.ops.object.text_add()
+        obj = bpy.context.object
+        if type(value) is float:
+            obj.data.body = '%.2f' % value
+        else:
+            obj.data.body = str(value)
+        obj.data.align_x = 'CENTER'
+        obj.scale *= self.text_size
+        return obj
+
+    def rotate_text_object(self, obj):
+        if self.dir == AxisDir.Z:
+            obj.rotation_euler.y = math.radians(90)
+    
         if self.dir == AxisDir.Y:
             obj.rotation_euler.z = math.radians(180)
 
         obj.rotation_euler.x = math.radians(90)
-
 

@@ -37,10 +37,9 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
     def execute(self, context):
         self.slices = []
         self.materials = []
-        self.init_data()
+        self.init_data(DataType.Categorical)
 
-        data_list = get_data_as_ll(self.data, DataType.Categorical)
-        data_min = min(data_list, key=lambda entry: entry[1])[1]
+        data_min = min(self.data, key=lambda entry: entry[1])[1]
         if data_min <= 0:
             self.report({'ERROR'}, 'Pie chart support only positive values!')
         
@@ -57,32 +56,32 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
             rot += rot_inc
             self.slices.append(cyl_slice)
 
-        values_sum = sum(int(entry[1]) for entry in data_list)
-        data_len = len(data_list)
+        values_sum = sum(int(entry[1]) for entry in self.data)
+        data_len = len(self.data)
         color_gen = ColorGen(self.color_shade, (0, data_len))
        
         prev_i = 0
-        for i in range(len(data_list)):
+        for i in range(len(self.data)):
             
-            portion = data_list[i][1] / values_sum
+            portion = self.data[i][1] / values_sum
             
             increment = round(portion * self.vertices)
             # Ignore data with zero value
             if increment == 0:
-                print('Warning: Data with zero value i: {}, value: {}! Useless for pie chart.'.format(i, data_list[i][1]))
+                print('Warning: Data with zero value i: {}, value: {}! Useless for pie chart.'.format(i, self.data[i][1]))
                 continue
             
             portion_end_i = prev_i + increment
             slice_obj = self.join_slices(prev_i, portion_end_i)
             if slice_obj is None:
-                raise Exception('Error occurred, try to increase number of vertices, i_from" {}, i_to: {}, inc: {}, val: {}'.format(prev_i, portion_end_i, increment, data_list[i][1]))
+                raise Exception('Error occurred, try to increase number of vertices, i_from" {}, i_to: {}, inc: {}, val: {}'.format(prev_i, portion_end_i, increment, self.data[i][1]))
                 break
 
             slice_mat = self.new_mat(color_gen.next(data_len - i), 1)
             slice_obj.active_material = slice_mat
             slice_obj.parent = self.container_object
             label_rot_z = (((prev_i + portion_end_i) * 0.5) / self.vertices) * 2.0 * math.pi
-            label_obj = self.add_value_label((1, 0, 0), (0, 0, label_rot_z), data_list[i][0], portion, 0.2)
+            label_obj = self.add_value_label((1, 0, 0), (0, 0, label_rot_z), self.data[i][0], portion, 0.2)
             label_obj.rotation_euler = (0, 0, 0)
             prev_i += increment
    

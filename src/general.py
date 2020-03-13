@@ -3,11 +3,90 @@ import bpy
 import math
 
 from mathutils import Vector
+from src.utils.data_utils import get_data_as_ll
 
 
 class CONST:
     GRAPH_Z_SCALE = 0.5
     HALF_PI = math.pi * 0.5
+
+
+# for future use
+class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
+    auto_ranges: bpy.props.BoolProperty(
+        name='Automatic axis ranges',
+        default=True
+    )
+  
+    x_step: bpy.props.FloatProperty(
+        name='Step of x axis',
+        default=1.0
+    )
+
+    x_range: bpy.props.FloatVectorProperty(
+        name='Range of x axis',
+        size=2,
+        default=(0.0, 1.0)
+    )
+
+    _step: bpy.props.FloatProperty(
+        name='Step of y axis',
+        default=1.0
+    )
+
+    y_range: bpy.props.FloatVectorProperty(
+        name='Range of y axis',
+        size=2,
+        default=(0.0, 1.0)
+    )
+
+    z_step: bpy.props.FloatProperty(
+        name='Step of z axis',
+        default=1.0
+    )
+
+    thickness: bpy.props.FloatProperty(
+        name='Axis thickness',
+        default=0.01,
+        description='How thick is the axis object'
+    )
+
+    tick_mark_height: bpy.props.FloatProperty(
+        name='Axis tick mark height',
+        default=0.03
+    )
+
+    padding: bpy.props.FloatProperty(
+        name='Padding',
+        default=0.1
+    )
+
+
+class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
+    create: bpy.props.BoolProperty(
+        name='Create labels',
+        default=True
+    )
+
+    from_data: bpy.props.BoolProperty(
+        name='From data',
+        default=True
+    )
+
+    x_label: bpy.props.StringProperty(
+        name='X',
+        default='X Label'
+    )
+
+    y_label: bpy.props.StringProperty(
+        name='Y',
+        default='Y Label'
+    )
+
+    z_label: bpy.props.StringProperty(
+        name='Z',
+        default='Z Label'
+    )
 
 
 class Properties:
@@ -43,6 +122,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
 
     def __init__(self):
         self.container_object = None
+        self.labels = []
 
     def draw(self, context):
         layout = self.layout
@@ -73,6 +153,21 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
 
         row = layout.row()
         row.prop(self, 'padding')
+
+        row = layout.row()
+        row.label(text='Label settings')
+
+        if hasattr(self, 'label_settings'):
+            row.prop(self.label_settings, 'create')
+            if self.label_settings.create:
+                row.prop(self.label_settings, 'from_data')
+                if not self.label_settings.from_data:
+                    row = layout.row()
+                    row.prop(self.label_settings, 'x_label')
+                    if not only_2d and self.dimensions == '3':
+                        row.prop(self.label_settings, 'y_label')
+                    row.prop(self.label_settings, 'z_label')
+
 
 
     @classmethod
@@ -199,8 +294,27 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         mat.diffuse_color = (*color, alpha)
         return mat
 
-    def init_data(self):
-        self.data = bpy.data.scenes[0].dv_props.data
+    def init_data(self, data_type):
+        data = list(bpy.data.scenes[0].dv_props.data)
+        if hasattr(self, 'label_settings'):
+            self.init_labels(data)
+        self.data = get_data_as_ll(data, data_type)
+
+    def init_labels(self, data):
+        if not self.label_settings.create:
+            self.labels = [None, None, None]
+            return
+        if self.label_settings.from_data:
+            first_line = data.pop(0).value.split(',')
+            length = len(first_line)
+            if length == 2:
+                self.labels = (first_line[0], '', first_line[1])
+            elif length == 3:
+                self.labels = (first_line[0], first_line[1], first_line[2])
+            else:
+                self.report({'ERROR'}, 'Unsupported number of labels on first line')
+        else:
+            self.labels = [self.label_settings.x_label, self.label_settings.y_label, self.label_settings.z_label]
 
     def in_axis_range_bounds(self, entry):
         '''
