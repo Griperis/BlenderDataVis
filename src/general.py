@@ -124,7 +124,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         self.container_object = None
         self.labels = []
 
-    def draw(self, context):
+    def draw(self, context):        
         layout = self.layout
 
         only_2d = hasattr(self, 'only_2d')

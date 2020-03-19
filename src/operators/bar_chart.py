@@ -10,7 +10,7 @@ from src.operators.features.axis import AxisFactory
 
 
 class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
-    '''Creates bar chart'''
+    '''Creates (3D or 2D) bar chart from data'''
     bl_idname = 'object.create_bar_chart'
     bl_label = 'Bar Chart'
     bl_options = {'REGISTER', 'UNDO'}
@@ -93,7 +93,13 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
 
     def execute(self, context):
         self.init_data(DataType.Numerical)
-        self.init_range(self.data)
+        if self.auto_ranges:
+            self.init_range(self.data)
+
+        if self.dimensions == '3' and len(self.data[0]) != 3:
+            self.report({'ERROR'}, 'Data are only 2D!')
+            return {'CANCELLED'}
+
         self.create_container()
 
         data_min, data_max = find_data_range(self.data, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
@@ -116,8 +122,8 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
             if z_norm >= 0.0 and z_norm <= 0.0001:
                 z_norm = 0.0001
             if self.dimensions == '2':
-                bar_obj.scale = (self.bar_size[0], self.bar_size[1], z_norm)
-                bar_obj.location = (x_norm, 0.0, z_norm)
+                bar_obj.scale = (self.bar_size[0], self.bar_size[1], z_norm * 0.5)
+                bar_obj.location = (x_norm, 0.0, z_norm * 0.5)
             else:
                 y_norm = normalize_value(entry[1], self.y_axis_range[0], self.y_axis_range[1])
                 bar_obj.scale = (self.bar_size[0], self.bar_size[1], z_norm * 0.5)

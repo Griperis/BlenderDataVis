@@ -10,6 +10,8 @@ bl_info = {
 }
 
 import bpy
+import bpy.utils.previews
+import os
 
 from src.operators.data_load import FILE_OT_DVLoadFile
 from src.operators.bar_chart import OBJECT_OT_bar_chart
@@ -18,7 +20,6 @@ from src.operators.pie_chart import OBJECT_OT_pie_chart
 from src.operators.point_chart import OBJECT_OT_point_chart
 from src.general import DV_LabelPropertyGroup
 from src.general import CONST
-
 
 class DV_AddonPanel(bpy.types.Panel):
     '''
@@ -98,17 +99,42 @@ class OBJECT_MT_AddChart(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator(OBJECT_OT_bar_chart.bl_idname, icon='PLUGIN')
-        layout.operator(OBJECT_OT_line_chart.bl_idname, icon='PLUGIN')
-        layout.operator(OBJECT_OT_pie_chart.bl_idname, icon='PLUGIN')
-        layout.operator(OBJECT_OT_point_chart.bl_idname, icon='PLUGIN')
+        main_icons = preview_collections['main']
+        layout.operator(OBJECT_OT_bar_chart.bl_idname, icon_value=main_icons['bar_chart'].icon_id)
+        layout.operator(OBJECT_OT_line_chart.bl_idname, icon_value=main_icons['line_chart'].icon_id)
+        layout.operator(OBJECT_OT_pie_chart.bl_idname, icon_value=main_icons['pie_chart'].icon_id)
+        layout.operator(OBJECT_OT_point_chart.bl_idname, icon_value=main_icons['point_chart'].icon_id)
+
+
+preview_collections = {}
 
 
 def chart_ops(self, context):
-    self.layout.menu(OBJECT_MT_AddChart.bl_idname, icon='PLUGIN')
+    icon = preview_collections['main']['addon_icon']
+    self.layout.menu(OBJECT_MT_AddChart.bl_idname, icon_value=icon.icon_id)
+
+
+def load_icons():
+    pcoll = bpy.utils.previews.new()
+
+    icons_dir = os.path.join(os.path.dirname(__file__), "icons")
+    for icon in os.listdir(icons_dir):
+        name, ext = icon.split('.')
+        print(name, ext)
+        if ext == 'png':
+            pcoll.load(name, os.path.join(icons_dir, icon), 'IMAGE')
+    
+    preview_collections['main'] = pcoll
+
+
+def remove_icons():
+    for pcoll in preview_collections.values():
+        bpy.utils.previews.remove(pcoll)
+    preview_collections.clear()
 
 
 def register():
+    load_icons()
     bpy.utils.register_class(DV_RowProp)
     bpy.utils.register_class(DV_PropertyGroup)
     bpy.utils.register_class(DV_LabelPropertyGroup)
@@ -125,6 +151,7 @@ def register():
 
 
 def unregister():
+    remove_icons()
     bpy.utils.unregister_class(DV_PropertyGroup)
     bpy.utils.unregister_class(DV_RowProp)
     bpy.utils.unregister_class(OBJECT_MT_AddChart)

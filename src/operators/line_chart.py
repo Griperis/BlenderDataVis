@@ -90,10 +90,10 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         if len(self.data[0]) > 2:
             self.report({'ERROR'}, 'Line chart supports X Y values only')
             return {'CANCELLED'}
-        
+
         if self.auto_ranges:
             self.x_axis_range = find_axis_range(self.data, 0)
-        
+
         data_min, data_max = find_data_range(self.data, self.x_axis_range)
 
         self.data = get_data_in_range(self.data, self.x_axis_range)
