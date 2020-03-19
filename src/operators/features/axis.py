@@ -16,7 +16,7 @@ class AxisDir(Enum):
 
 class AxisFactory:
     @staticmethod
-    def create(parent, axis_steps, axis_ranges, dim, labels=[], padding=0.0, offset=0.0):
+    def create(parent, axis_steps, axis_ranges, dim, labels=[], tick_labels=([], [], []), padding=0.0, offset=0.0):
         '''
         Factory method that creates all axis with all values specified by parameters
         parent - parent object for axis containers
@@ -44,9 +44,9 @@ class AxisFactory:
             dir_idx = i
             if dim == 2 and i == 1:
                 dir_idx = 2
-                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction)
+                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx])
             else:
-                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction)
+                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx])
             axis.create(padding, offset, labels[dir_idx], True if dim == 2 else False)
 
 
@@ -59,7 +59,7 @@ class Axis:
     dir - direction of axis specified by AxisDir class
     hm - height multiplier to normalize chart height
     '''
-    def __init__(self, parent, step, ax_range, ax_dir):
+    def __init__(self, parent, step, ax_range, ax_dir, labels):
         self.step = step
         self.range = ax_range
         self.parent_object = parent
@@ -72,6 +72,7 @@ class Axis:
             raise AttributeError('Use AxisDir enumeration as ax_range param')
 
         self.axis_cont = None
+        self.labels = labels
 
     def create_container(self):
         '''
@@ -119,7 +120,10 @@ class Axis:
         for value in float_range(self.range[0], self.range[1], self.step):
             tick_location = start_pos + (value - self.range[0]) / (self.range[1] - self.range[0])
             self.create_tick_mark(tick_location)
-            self.create_tick_label(value, tick_location)
+            if len(self.labels) == 0:
+                self.create_tick_label(value, tick_location)
+            else:
+                self.create_tick_label(self.labels[int(value)], tick_location, rotate=True)
 
     def create(self, padding, offset, label, only_2d=False):
         '''
@@ -160,14 +164,16 @@ class Axis:
         obj.location = (1.3, 0, 0)
         self.rotate_text_object(obj)
 
-    def create_tick_label(self, value, x_location):
+    def create_tick_label(self, value, x_location, rotate=False):
         obj = self.create_text_object(value)
+        if rotate:
+            obj.rotation_euler.y = math.radians(45)
         obj.parent = self.axis_cont
         self.rotate_text_object(obj)
         if self.dir == AxisDir.Z:
             obj.location = (x_location, 0, 0.2)
         else:
-            obj.location = (x_location, 0, -0.2)     
+            obj.location = (x_location, 0, -0.2)
 
     def create_text_object(self, value):
         bpy.ops.object.text_add()

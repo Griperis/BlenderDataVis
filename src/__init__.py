@@ -21,6 +21,7 @@ from src.operators.point_chart import OBJECT_OT_point_chart
 from src.general import DV_LabelPropertyGroup
 from src.general import CONST
 
+
 class DV_AddonPanel(bpy.types.Panel):
     '''
     Menu panel used for loading data and managing addon settings
@@ -74,7 +75,7 @@ class DV_PropertyGroup(bpy.types.PropertyGroup):
 
     text_size: bpy.props.FloatProperty(
         name='Text size',
-        default=0.1,
+        default=0.05,
         description='Size of addon generated text'
     )
 
@@ -120,7 +121,6 @@ def load_icons():
     icons_dir = os.path.join(os.path.dirname(__file__), "icons")
     for icon in os.listdir(icons_dir):
         name, ext = icon.split('.')
-        print(name, ext)
         if ext == 'png':
             pcoll.load(name, os.path.join(icons_dir, icon), 'IMAGE')
     

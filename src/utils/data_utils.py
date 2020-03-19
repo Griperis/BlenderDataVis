@@ -43,7 +43,6 @@ def find_data_range(data, range_x, range_y=None):
         filtered_data = list(filter(lambda row: range_x[0] <= row[0] <= range_x[1], data))
     else:
         filtered_data = list(filter(lambda val: range_x[0] <= val[0] <= range_x[1] and range_y[0] <= val[1] <= range_y[1], data))
-
     top_index = (1 if range_y is None else 2)
     return (min(filtered_data, key=lambda x: x[top_index])[top_index], max(filtered_data, key=lambda x: x[top_index])[top_index])
 

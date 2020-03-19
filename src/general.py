@@ -128,13 +128,20 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         layout = self.layout
 
         only_2d = hasattr(self, 'only_2d')
+        numerical = True
+        if hasattr(self, 'data_type'):
+            if self.data_type == '1':
+                numerical = False
 
+        only_2d = only_2d or not numerical
+    
         if not only_2d:
             row = layout.row()
             row.prop(self, 'dimensions')
 
-        row = layout.row()
-        row.prop(self, 'auto_ranges')
+        if numerical:
+            row = layout.row()
+            row.prop(self, 'auto_ranges')
 
         if not self.auto_ranges:
             row = layout.row()
@@ -146,7 +153,8 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         row = layout.row()
         row.label(text='Axis step:')
         row = layout.row()
-        row.prop(self, 'x_axis_step', text='x')
+        if numerical:
+            row.prop(self, 'x_axis_step', text='x')
         if not only_2d and self.dimensions == '3':
             row.prop(self, 'y_axis_step', text='y')
         row.prop(self, 'z_axis_step', text='z')
@@ -199,7 +207,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
                 cont.location.x += 2 * length
         if z_vals:
             self.create_one_axis(spacing, z_vals, offset[2], padding[2], dim='z')
-   
+
     def create_y_axis(self, min_val, max_val, offset, padding):
         bpy.ops.object.empty_add()
         axis_cont = bpy.context.object
@@ -298,7 +306,10 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         data = list(bpy.data.scenes[0].dv_props.data)
         if hasattr(self, 'label_settings'):
             self.init_labels(data)
-        self.data = get_data_as_ll(data, data_type)
+        try:
+            self.data = get_data_as_ll(data, data_type)
+        except Exception:
+            self.report({'ERROR'}, 'Data should be in X, Y, Z format (2 or 3 dimensions are currently supported)')
 
     def init_labels(self, data):
         if not self.label_settings.create:
@@ -323,6 +334,9 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         '''
         entry_dims = len(entry)
         if entry_dims == 2 or entry_dims == 3:
+            if hasattr(self, 'data_type') and self.data_type != '0':
+                return True
+
             if entry[0] < self.x_axis_range[0] or entry[0] > self.x_axis_range[1]:
                 return False
 
