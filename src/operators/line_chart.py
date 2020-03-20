@@ -20,6 +20,14 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         name='Bevel edges'
     )
 
+    data_type: bpy.props.EnumProperty(
+        name='Chart type',
+        items=(
+            ('0', 'Numerical', 'X relative to Z or Y'),
+            ('1', 'Categorical', 'Label and value'),
+        )
+    )
+
     rounded: bpy.props.EnumProperty(
         name='Settings',
         items=(
@@ -27,6 +35,12 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
             ('2', 'Sharp', 'Sharp corners')
         )
     )
+
+    auto_steps: bpy.props.BoolProperty(
+        name='Automatic axis steps',
+        default=True
+    )
+    
     auto_ranges: bpy.props.BoolProperty(
         name='Automatic axis ranges',
         default=True
@@ -78,29 +92,46 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
     def draw(self, context):
         layout = self.layout
         row = layout.row()
-        row.prop(self, 'bevel_edges')
+        row.prop(self, 'data_type')
         if self.bevel_edges:
             row = layout.row()
             row.prop(self, 'rounded')
         super().draw(context)
+        layout = self.layout
+        row = layout.row()
+        row.prop(self, 'bevel_edges')
+        if self.bevel_edges:
+            row = layout.row()
+            row.prop(self, 'rounded')
 
     def execute(self, context):
-        self.init_data(DataType.Numerical)
-        self.create_container()
+        if not self.init_data(self.data_type_as_enum()):
+            return {'CANCELLED'}
         if len(self.data[0]) > 2:
             self.report({'ERROR'}, 'Line chart supports X Y values only')
             return {'CANCELLED'}
+        self.create_container()
 
-        if self.auto_ranges:
-            self.x_axis_range = find_axis_range(self.data, 0)
+        if self.data_type_as_enum() == DataType.Numerical:
+            if self.auto_ranges:
+                self.x_axis_range = find_axis_range(self.data, 0)
+            data_min, data_max = find_data_range(self.data, self.x_axis_range)
+            self.data = get_data_in_range(self.data, self.x_axis_range)
+            sorted_data = sorted(self.data, key=lambda x: x[0])
+        else:
+            self.x_axis_range[0] = 0
+            self.x_axis_range[1] = len(self.data) - 1
+            data_min = min(self.data, key=lambda val: val[1])[1]
+            data_max = max(self.data, key=lambda val: val[1])[1]
+            sorted_data = self.data
 
-        data_min, data_max = find_data_range(self.data, self.x_axis_range)
+        tick_labels = []
+        if self.data_type_as_enum() == DataType.Numerical:
+            normalized_vert_list = [(normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for entry in sorted_data]
+        else:
+            normalized_vert_list = [(normalize_value(i, self.x_axis_range[0], self.x_axis_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for i, entry in enumerate(sorted_data)]
+            tick_labels = list(zip(*sorted_data))[0]
 
-        self.data = get_data_in_range(self.data, self.x_axis_range)
-
-        sorted_data = sorted(self.data, key=lambda x: x[0])
-
-        normalized_vert_list = [(normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for entry in sorted_data]
         edges = [[i - 1, i] for i in range(1, len(normalized_vert_list))]
 
         self.create_curve(normalized_vert_list, edges)
@@ -111,8 +142,10 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
             (self.x_axis_step, 0, self.z_axis_step),
             (self.x_axis_range, [], (data_min, data_max)),
             2,
+            tick_labels=(tick_labels, [], []),
             labels=self.labels,
             padding=self.padding,
+            auto_steps=self.auto_steps,
             offset=0.0
         )
         return {'FINISHED'}

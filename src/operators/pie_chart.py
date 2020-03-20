@@ -37,7 +37,8 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
     def execute(self, context):
         self.slices = []
         self.materials = []
-        self.init_data(DataType.Categorical)
+        if not self.init_data(DataType.Categorical):
+            return {'CANCELLED'}
 
         data_min = min(self.data, key=lambda entry: entry[1])[1]
         if data_min <= 0:

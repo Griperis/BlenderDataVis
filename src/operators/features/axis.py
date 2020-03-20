@@ -16,7 +16,7 @@ class AxisDir(Enum):
 
 class AxisFactory:
     @staticmethod
-    def create(parent, axis_steps, axis_ranges, dim, labels=[], tick_labels=([], [], []), padding=0.0, offset=0.0):
+    def create(parent, axis_steps, axis_ranges, dim, labels=[], tick_labels=([], [], []), auto_steps=False, padding=0.0, offset=0.0):
         '''
         Factory method that creates all axis with all values specified by parameters
         parent - parent object for axis containers
@@ -44,9 +44,9 @@ class AxisFactory:
             dir_idx = i
             if dim == 2 and i == 1:
                 dir_idx = 2
-                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx])
+                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx], auto_steps)
             else:
-                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx])
+                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx], auto_steps)
             axis.create(padding, offset, labels[dir_idx], True if dim == 2 else False)
 
 
@@ -59,9 +59,12 @@ class Axis:
     dir - direction of axis specified by AxisDir class
     hm - height multiplier to normalize chart height
     '''
-    def __init__(self, parent, step, ax_range, ax_dir, labels):
-        self.step = step
+    def __init__(self, parent, step, ax_range, ax_dir, labels, auto_step=False):
         self.range = ax_range
+        if not auto_step:
+            self.step = step
+        else:
+            self.step = (self.range[1] - self.range[0]) / 10
         self.parent_object = parent
         self.thickness = Properties.get_axis_thickness()
         self.mark_height = Properties.get_axis_tick_mark_height()

@@ -3,7 +3,7 @@ import bpy
 import math
 
 from mathutils import Vector
-from src.utils.data_utils import get_data_as_ll
+from src.utils.data_utils import get_data_as_ll, DataType
 
 
 class CONST:
@@ -141,6 +141,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
 
         if numerical:
             row = layout.row()
+            row.label(text='Axis ranges:')
             row.prop(self, 'auto_ranges')
 
         if not self.auto_ranges:
@@ -151,19 +152,21 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
                 row.prop(self, 'y_axis_range')
         
         row = layout.row()
-        row.label(text='Axis step:')
-        row = layout.row()
-        if numerical:
-            row.prop(self, 'x_axis_step', text='x')
-        if not only_2d and self.dimensions == '3':
-            row.prop(self, 'y_axis_step', text='y')
-        row.prop(self, 'z_axis_step', text='z')
+        row.label(text='Axis steps:')
+        row.prop(self, 'auto_steps')
+        if not self.auto_steps:
+            row = layout.row()
+            if numerical:
+                row.prop(self, 'x_axis_step', text='x')
+            if not only_2d and self.dimensions == '3':
+                row.prop(self, 'y_axis_step', text='y')
+            row.prop(self, 'z_axis_step', text='z')
 
         row = layout.row()
         row.prop(self, 'padding')
 
         row = layout.row()
-        row.label(text='Label settings')
+        row.label(text='Label settings:')
 
         if hasattr(self, 'label_settings'):
             row.prop(self.label_settings, 'create')
@@ -207,6 +210,15 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
                 cont.location.x += 2 * length
         if z_vals:
             self.create_one_axis(spacing, z_vals, offset[2], padding[2], dim='z')
+
+    def data_type_as_enum(self):
+        if not hasattr(self, 'data_type'):
+            return DataType.Numerical
+
+        if self.data_type == '0':
+            return DataType.Numerical
+        elif self.data_type == '1':
+            return DataType.Categorical
 
     def create_y_axis(self, min_val, max_val, offset, padding):
         bpy.ops.object.empty_add()
@@ -308,8 +320,12 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
             self.init_labels(data)
         try:
             self.data = get_data_as_ll(data, data_type)
-        except Exception:
-            self.report({'ERROR'}, 'Data should be in X, Y, Z format (2 or 3 dimensions are currently supported)')
+        except Exception as e:
+            print(e)
+            self.report({'ERROR'}, 'Data should be in X, Y, Z format (2 or 3 dimensions are currently supported).\nData should be in format according to chart type!')
+            return False
+        
+        return True
 
     def init_labels(self, data):
         if not self.label_settings.create:

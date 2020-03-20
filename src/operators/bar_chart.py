@@ -41,6 +41,11 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         name='Automatic axis ranges',
         default=True
     )
+
+    auto_steps: bpy.props.BoolProperty(
+        name='Automatic axis steps',
+        default=True
+    )
     
     x_axis_step: bpy.props.FloatProperty(
         name='Step of x axis',
@@ -110,7 +115,8 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
             return DataType.Categorical
 
     def execute(self, context):
-        self.init_data(self.data_type_as_enum())
+        if not self.init_data(self.data_type_as_enum()):
+            return {'CANCELLED'}
         if self.data_type_as_enum() == DataType.Numerical:
             if self.auto_ranges:
                 self.init_range(self.data)
@@ -171,6 +177,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
             tick_labels=(tick_labels, [], []),
             labels=self.labels,
             padding=self.padding,
+            auto_steps=self.auto_steps,
             offset=0.0
         )
 

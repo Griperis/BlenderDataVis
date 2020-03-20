@@ -33,6 +33,11 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
         default=True
     )
 
+    auto_steps: bpy.props.BoolProperty(
+        name='Automatic axis steps',
+        default=True
+    )
+
     x_axis_step: bpy.props.FloatProperty(
         name='Step of x axis',
         default=1.0
@@ -92,7 +97,8 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
         self.y_axis_range = find_axis_range(data, 1)
 
     def execute(self, context):
-        self.init_data(DataType.Numerical)
+        if not self.init_data(DataType.Numerical):
+            return {'CANCELLED'}
         if self.auto_ranges:
             self.init_range(self.data)
 
@@ -139,6 +145,7 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
             int(self.dimensions),
             labels=self.labels,
             padding=self.padding,
+            auto_steps=self.auto_steps,
             offset=0.0
         )
         return {'FINISHED'}
