@@ -96,7 +96,7 @@ class OBJECT_MT_AddChart(bpy.types.Menu):
     Menu panel grouping chart related operators in Blender AddObject panel
     '''
     bl_idname = 'OBJECT_MT_Add_Chart'
-    bl_label = 'Add chart'
+    bl_label = 'Chart'
 
     def draw(self, context):
         layout = self.layout
