@@ -26,11 +26,11 @@ class DV_AddonPanel(bpy.types.Panel):
     '''
     Menu panel used for loading data and managing addon settings
     '''
-    bl_label = 'Data visualisation utilities'
+    bl_label = 'Data visualisation'
     bl_idname = 'OBJECT_PT_dv'
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_category = 'Data Visualisation Addon'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Data Visualisation'
 
     def draw(self, context):
         layout = self.layout
@@ -108,6 +108,7 @@ class OBJECT_MT_AddChart(bpy.types.Menu):
 
 
 preview_collections = {}
+data_loaded = 0
 
 
 def chart_ops(self, context):
@@ -123,7 +124,7 @@ def load_icons():
         name, ext = icon.split('.')
         if ext == 'png':
             pcoll.load(name, os.path.join(icons_dir, icon), 'IMAGE')
-    
+
     preview_collections['main'] = pcoll
 
 

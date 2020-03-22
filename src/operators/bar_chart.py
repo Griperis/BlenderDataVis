@@ -92,10 +92,6 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
     )
 
     def draw(self, context):
-        layout = self.layout
-        row = layout.row()
-        row.prop(self, 'data_type')
-
         super().draw(context)
         layout = self.layout
         row = layout.row()
