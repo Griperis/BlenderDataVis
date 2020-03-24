@@ -113,10 +113,10 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
         self.create_container()
         # fix length of data to parse
         data_min, data_max = find_data_range(self.data, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
-        
+
         color_gen = ColorGen(self.color_shade, (data_min, data_max))
         for i, entry in enumerate(self.data):
-            
+
             # skip values outside defined axis range
             if not self.in_axis_range_bounds(entry):
                 continue
@@ -128,16 +128,16 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
 
             # normalize height
 
-            x_norm = normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1]) 
+            x_norm = normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1])
             z_norm = normalize_value(entry[value_index], data_min, data_max)
             if self.dimensions == '2':
                 point_obj.location = (x_norm, 0.0, z_norm)
             else:
                 y_norm = normalize_value(entry[1], self.y_axis_range[0], self.y_axis_range[1])
                 point_obj.location = (x_norm, y_norm, z_norm)
-    
+
             point_obj.parent = self.container_object
-        
+
         AxisFactory.create(
             self.container_object,
             (self.x_axis_step, self.y_axis_step, self.z_axis_step),

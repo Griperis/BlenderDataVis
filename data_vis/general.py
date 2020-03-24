@@ -17,7 +17,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
         name='Automatic axis ranges',
         default=True
     )
-  
+
     x_step: bpy.props.FloatProperty(
         name='Step of x axis',
         default=1.0
@@ -91,7 +91,7 @@ class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
 
 class Properties:
     '''
-    Access to Blender properties related to addon, which are not in specific chart operators 
+    Access to Blender properties related to addon, which are not in specific chart operators
     '''
     @staticmethod
     def get_data():
@@ -124,7 +124,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         self.container_object = None
         self.labels = []
 
-    def draw(self, context):  
+    def draw(self, context):
         layout = self.layout
         if hasattr(self, 'data_type'):
             row = layout.row()
@@ -137,7 +137,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
                 numerical = False
 
         only_2d = only_2d or not numerical
-    
+
         if not only_2d:
             row = layout.row()
             row.prop(self, 'dimensions')
@@ -153,7 +153,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
             if not only_2d and self.dimensions == '3':
                 row = layout.row()
                 row.prop(self, 'y_axis_range')
-        
+
         row = layout.row()
         row.label(text='Axis steps:')
         row.prop(self, 'auto_steps')
@@ -264,7 +264,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         axis_cont.location = (0, 0, 0)
         axis_cont.parent = self.container_object
         # TODO WHAT self.axis_containers.append(axis_cont)
-        
+
         v_len = ((len(vals) - 1) * spacing) * 0.5 + padding + offset * 0.5
         bpy.ops.mesh.primitive_cube_add()
         line_obj = bpy.context.active_object
@@ -288,9 +288,8 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
             to_rot = (CONST.HALF_PI, 0, 0)
             if dim == 'z':
                 to_rot = (CONST.HALF_PI, 0, math.pi)
-    
             self.create_text_object(axis_cont, vals[i], to_loc, to_rot)
-        
+
         axis_cont.location += Vector((-padding, 0, -padding))
         if dim == 'z':
             axis_cont.rotation_euler.z += CONST.HALF_PI
@@ -324,7 +323,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         except Exception as e:
             self.report({'ERROR'}, 'Data should be in X, Y, Z format (2 or 3 dimensions are currently supported).\nData should be in format according to chart type!' + str(e))
             return False
-        
+
         return True
 
     def init_labels(self, data):

@@ -26,7 +26,7 @@ class AxisFactory:
         '''
         if dim not in [2, 3]:
             raise AttributeError('Only 2 or 3 dim axis supported. {} is invalid number'.format(dim))
-        
+
         for i in range(dim):
             if i == 0:
                 direction = AxisDir.X
@@ -96,7 +96,7 @@ class Axis:
         obj = bpy.context.active_object
         obj.parent = self.axis_cont
         obj.location = (0, 0, 0)
-        
+
         obj.scale = (length, self.thickness, self.thickness)
         obj.location.x += length
         return obj
@@ -191,9 +191,8 @@ class Axis:
     def rotate_text_object(self, obj):
         if self.dir == AxisDir.Z:
             obj.rotation_euler.y = math.radians(90)
-    
+
         if self.dir == AxisDir.Y:
             obj.rotation_euler.z = math.radians(180)
 
         obj.rotation_euler.x = math.radians(90)
-

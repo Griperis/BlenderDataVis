@@ -40,7 +40,7 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         name='Automatic axis steps',
         default=True
     )
-    
+
     auto_ranges: bpy.props.BoolProperty(
         name='Automatic axis ranges',
         default=True
@@ -146,7 +146,7 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
             offset=0.0
         )
         return {'FINISHED'}
-        
+
     def create_curve(self, verts, edges):
         m = bpy.data.meshes.new('line_mesh')
         self.curve_obj = bpy.data.objects.new('line_chart_curve', m)
@@ -171,14 +171,14 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
             offset_type='OFFSET',
             profile=opts['profile'],
             vertex_only=True
-        )   
+        )
         bpy.ops.object.mode_set(mode='OBJECT')
 
     def add_bevel_obj(self):
         bpy.ops.mesh.primitive_plane_add()
         bevel_obj = bpy.context.active_object
         bevel_obj.scale = self.bevel_obj_size
-        
+
         bpy.ops.object.convert(target='CURVE')
         self.curve_obj.data.bevel_object = bevel_obj
         return bevel_obj

@@ -43,7 +43,7 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         data_min = min(self.data, key=lambda entry: entry[1])[1]
         if data_min <= 0:
             self.report({'ERROR'}, 'Pie chart support only positive values!')
-        
+
         self.create_container()
 
         # create cylinder from triangles
@@ -60,18 +60,18 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         values_sum = sum(int(entry[1]) for entry in self.data)
         data_len = len(self.data)
         color_gen = ColorGen(self.color_shade, (0, data_len))
-       
+
         prev_i = 0
         for i in range(len(self.data)):
-            
+
             portion = self.data[i][1] / values_sum
-            
+
             increment = round(portion * self.vertices)
             # Ignore data with zero value
             if increment == 0:
                 print('Warning: Data with zero value i: {}, value: {}! Useless for pie chart.'.format(i, self.data[i][1]))
                 continue
-            
+
             portion_end_i = prev_i + increment
             slice_obj = self.join_slices(prev_i, portion_end_i)
             if slice_obj is None:
@@ -85,7 +85,7 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
             label_obj = self.add_value_label((1, 0, 0), (0, 0, label_rot_z), self.data[i][0], portion, 0.2)
             label_obj.rotation_euler = (0, 0, 0)
             prev_i += increment
-   
+
         return {'FINISHED'}
 
     def join_slices(self, i_from, i_to):

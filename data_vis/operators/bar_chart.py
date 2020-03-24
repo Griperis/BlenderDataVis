@@ -46,7 +46,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         name='Automatic axis steps',
         default=True
     )
-    
+
     x_axis_step: bpy.props.FloatProperty(
         name='Step of x axis',
         default=1.0
@@ -131,7 +131,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         else:
             data_min = min(self.data, key=lambda val: val[1])[1]
             data_max = max(self.data, key=lambda val: val[1])[1]
-            
+
         color_gen = ColorGen(self.color_shade, (data_min, data_max))
 
         if self.dimensions == '2':
