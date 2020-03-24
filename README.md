@@ -8,7 +8,7 @@
 
 Addon allows users to load data into Blender and create simple customizable visualisations from it.
 ## Quickstart
-Download `data_vis.zip` install it in blender preferences. Or get the folder `data_vis` (from repo or the zip) into blender addons directory manually.
+Download `data_vis.zip` and install it in blender preferences. Or get the folder `data_vis` (from repo or the zip) and move it into blender addons directory manually.
 
 ## Introduction
 Brief section about how to use the addon and what principles are applied to data and visualisations and how addon works. Addon extends Blender UI in two places:
@@ -71,6 +71,6 @@ Planned features:
 Feel free to submit any issues or ideas how to do something better! I am only an intermediate Blender user, so i dont know many features and possibilieties of it.
 
 ## Author
-Zdeněk Doležal
+Zdeněk Doležal - Bachelor Thesis
 
 Faculty of information technology BUT
