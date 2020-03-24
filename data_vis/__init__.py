@@ -6,7 +6,7 @@ bl_info = {
     'version': (1, 0, 0),
     'location': 'Object -> Add Mesh',
     'warning': '',
-    'category': 'View 3D'
+    'category': 'Generic'
 }
 
 import bpy
@@ -40,18 +40,18 @@ class DV_AddonPanel(bpy.types.Panel):
 
         row = layout.row()
         row.label(text='Data', icon='WORLD_DATA')
-        
+
         row = layout.row()
         row.operator('ui.dv_load_data')
 
         layout.label(text='Axis settings')
-        
+
         row = layout.row()
         row.prop(data_storage.dv_props, 'text_size')
 
         row = layout.row()
         row.prop(data_storage.dv_props, 'axis_thickness')
-        
+
         row = layout.row()
         row.prop(data_storage.dv_props, 'axis_tick_mark_height')
 
