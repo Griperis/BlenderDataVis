@@ -2,9 +2,9 @@
     <img src="media/logo.png" alt="Addon logo" height="100px" style="padding-right: 20px;">
     <img src="https://download.blender.org/branding/blender_logo_socket.png" alt="Blender logo" width="200px" style="padding-left: 20px; padding-bottom: 20px;">
 </p>
-<p align="center" style="font-size: 26px">
+<h3 align="center">
     Data visualisation addon for blender
-</p>
+</h3>
 
 Addon allows users to load data into Blender and create simple customizable visualisations from it.
 
