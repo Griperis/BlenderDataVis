@@ -5,10 +5,12 @@
 <h3 align="center">
     Data visualisation addon for blender
 </h3>
-
+<p align="center">
 Addon allows users to load data into Blender and create simple customizable visualisations from it.
+</p>
+
 ## Quickstart
-Download `data_vis.zip` and install it in blender preferences. Or get the folder `data_vis` (from repo or the zip) and move it into blender addons directory manually.
+Download `data_vis.zip` and install it in Blender (Edit -> Preferences -> Addons). Or get the folder `data_vis` (from repo or the zip) and move it into blender addons directory manually.
 
 ## Introduction
 Brief section about how to use the addon and what principles are applied to data and visualisations and how addon works. Addon extends Blender UI in two places:
@@ -52,23 +54,25 @@ All charts sizes are normalized to 1, e. g. you can create stem chart by using b
 
 ## Status
 Currently supported visualisations:
-- Pie chart
-- Line chart
-- Bar chart (2d, 3d)
-- Point chart (2d, 3d)
+- Pie chart (Categorical)
+- Line chart (Categorical, Numeric)
+- Bar chart (Categorical, 2D Numeric, 3D Numeric)
+- Point chart (2D Numeric, 3D Numeric)
 
 
 Known issues:
-- Redo action can mess up data and chart origin
+- Redo action can mess up loaded data and chart origin
 - Charts from large data take long time to generate
 
 Planned features:
 - Data analysis, so charts and their features are enabled automatically, not by user
 - Surface chart
-- Animations
+- Material shaders
 - Muliple categories for categorical charts
+- Animations
+- Label alignment to camera for render
 
-Feel free to submit any issues or ideas how to do something better! I am only an intermediate Blender user, so i dont know many features and possibilieties of it.
+Feel free to submit any issues or ideas!
 
 ## Author
 Zdeněk Doležal - Bachelor Thesis
