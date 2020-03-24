@@ -3,23 +3,22 @@ bl_info = {
     'author': 'Zdenek Dolezal',
     'description': '',
     'blender': (2, 80, 0),
-    'version': (0, 0, 3),
-    'location': '',
+    'version': (1, 0, 0),
+    'location': 'Object -> Add Mesh',
     'warning': '',
-    'category': 'Generic'
+    'category': 'View 3D'
 }
 
 import bpy
 import bpy.utils.previews
 import os
 
-from src.operators.data_load import FILE_OT_DVLoadFile
-from src.operators.bar_chart import OBJECT_OT_bar_chart
-from src.operators.line_chart import OBJECT_OT_line_chart
-from src.operators.pie_chart import OBJECT_OT_pie_chart
-from src.operators.point_chart import OBJECT_OT_point_chart
-from src.general import DV_LabelPropertyGroup
-from src.general import CONST
+from .operators.data_load import FILE_OT_DVLoadFile
+from .operators.bar_chart import OBJECT_OT_bar_chart
+from .operators.line_chart import OBJECT_OT_line_chart
+from .operators.pie_chart import OBJECT_OT_pie_chart
+from .operators.point_chart import OBJECT_OT_point_chart
+from .general import DV_LabelPropertyGroup
 
 
 class DV_AddonPanel(bpy.types.Panel):

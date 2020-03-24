@@ -4,6 +4,6 @@ __pycache__
 
 .vscode/
 lit/*
-media/*
+media_private/*
 pic-examples/*
 csv/*
