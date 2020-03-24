@@ -82,7 +82,7 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
             slice_obj.active_material = slice_mat
             slice_obj.parent = self.container_object
             label_rot_z = (((prev_i + portion_end_i) * 0.5) / self.vertices) * 2.0 * math.pi
-            label_obj = self.add_value_label((1, 0, 0), (0, 0, label_rot_z), self.data[i][0], portion, 0.2)
+            label_obj = self.add_value_label((1, 0, 0), (0, 0, label_rot_z), self.data[i][0], portion, 0.2, self.data[i][1])
             label_obj.rotation_euler = (0, 0, 0)
             prev_i += increment
 
@@ -111,7 +111,7 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
 
         faces = [[0, 1, 2], [3, 4, 5], [0, 1, 3], [1, 3, 4], [0, 2, 3], [2, 3, 5], [1, 2, 4], [2, 4, 5]]
 
-        mesh = bpy.data.meshes.new('pie_mesh')  # add the new mesh
+        mesh = bpy.data.meshes.new('pie_mesh')
         obj = bpy.data.objects.new(mesh.name, mesh)
         col = bpy.data.collections.get('Collection')
         col.objects.link(obj)
@@ -123,10 +123,10 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
 
         return obj
 
-    def add_value_label(self, location, rotation, label, portion, scale_multiplier):
+    def add_value_label(self, location, rotation, label, portion, scale_multiplier, value):
         bpy.ops.object.text_add()
         to = bpy.context.object
-        to.data.body = '{0}: {1:.2}'.format(label, portion)
+        to.data.body = '{0}: {1}'.format(label, value)
         to.data.align_x = 'CENTER'
         to.rotation_euler = rotation
         to.location = Vector(location) @ to.rotation_euler.to_matrix()

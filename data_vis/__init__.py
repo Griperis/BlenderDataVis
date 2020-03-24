@@ -1,5 +1,5 @@
 bl_info = {
-    'name': 'Data Visualisation Addon',
+    'name': 'Data Visualisation',
     'author': 'Zdenek Dolezal',
     'description': '',
     'blender': (2, 80, 0),
