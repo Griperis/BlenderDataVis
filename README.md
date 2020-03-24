@@ -13,7 +13,7 @@ Brief section about how to use the addon and what principles are applied to data
 - Add Object Menu - Create new visualisations under Chart subgroup
 - View3D Tools - Manipulate with data and some properties
 
-Addon uses Blender coordinate system, 2D chart is generated along X and Z axis, 3D charts extends to Y axis. Form of chart creation and parametrization is inspired by matplotlib. I tried to make chart creation simple but customizable. 
+Addon uses Blender coordinate system, 2D chart is generated along X and Z axis, 3D charts extend along Y axis. Form of chart creation and parametrization is inspired by matplotlib. I tried to make chart creation simple but customizable. 
 
 ### CSV Format
 Addon supports values separated by `, (commas)`

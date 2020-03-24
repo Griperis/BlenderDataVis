@@ -2,9 +2,9 @@ import bpy
 import math
 from mathutils import Matrix, Vector
 
-from src.utils.data_utils import get_data_as_ll, find_data_range, DataType
-from src.utils.color_utils import sat_col_gen, ColorGen
-from src.general import OBJECT_OT_generic_chart, CONST
+from data_vis.utils.data_utils import get_data_as_ll, find_data_range, DataType
+from data_vis.utils.color_utils import sat_col_gen, ColorGen
+from data_vis.general import OBJECT_OT_generic_chart, CONST
 
 
 class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):

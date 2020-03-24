@@ -4,10 +4,10 @@ from itertools import zip_longest
 from mathutils import Vector
 
 
-from src.utils.data_utils import get_data_as_ll, find_data_range, find_axis_range, normalize_value, get_data_in_range, DataType
-from src.operators.features.axis import AxisFactory
-from src.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
-from src.general import CONST
+from data_vis.utils.data_utils import get_data_as_ll, find_data_range, find_axis_range, normalize_value, get_data_in_range, DataType
+from data_vis.operators.features.axis import AxisFactory
+from data_vis.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
+from data_vis.general import CONST
 
 
 class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):

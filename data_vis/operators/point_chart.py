@@ -1,9 +1,9 @@
 import bpy
 
-from src.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
-from src.operators.features.axis import AxisFactory
-from src.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range, DataType
-from src.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
+from data_vis.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
+from data_vis.operators.features.axis import AxisFactory
+from data_vis.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range, DataType
+from data_vis.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
 
 from mathutils import Vector
 import math

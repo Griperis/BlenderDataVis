@@ -1,11 +1,10 @@
-
-from src.general import Properties
-from src.utils.data_utils import float_range
-
 from enum import Enum
 from mathutils import Vector
 import bpy
 import math
+
+from data_vis.general import Properties
+from data_vis.utils.data_utils import float_range
 
 
 class AxisDir(Enum):

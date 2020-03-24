@@ -3,7 +3,7 @@ import bpy
 import math
 
 from mathutils import Vector
-from src.utils.data_utils import get_data_as_ll, DataType
+from data_vis.utils.data_utils import get_data_as_ll, DataType
 
 
 class CONST:
@@ -322,8 +322,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         try:
             self.data = get_data_as_ll(data, data_type)
         except Exception as e:
-            print(e)
-            self.report({'ERROR'}, 'Data should be in X, Y, Z format (2 or 3 dimensions are currently supported).\nData should be in format according to chart type!')
+            self.report({'ERROR'}, 'Data should be in X, Y, Z format (2 or 3 dimensions are currently supported).\nData should be in format according to chart type!' + str(e))
             return False
         
         return True
