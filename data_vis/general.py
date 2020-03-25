@@ -117,12 +117,12 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     data = None
-    chart_origin = None
     axis_mat = None
 
     def __init__(self):
         self.container_object = None
         self.labels = []
+        self.chart_origin = (0, 0, 0)
 
     def draw(self, context):
         layout = self.layout

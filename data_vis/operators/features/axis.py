@@ -60,7 +60,7 @@ class Axis:
     '''
     def __init__(self, parent, step, ax_range, ax_dir, labels, auto_step=False):
         self.range = ax_range
-        if not auto_step:
+        if not auto_step or len(labels) > 0:
             self.step = step
         else:
             self.step = (self.range[1] - self.range[0]) / 10

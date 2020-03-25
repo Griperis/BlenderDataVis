@@ -62,7 +62,7 @@ Currently supported visualisations:
 
 Known issues:
 - Redo action can mess up loaded data and chart origin
-- Charts from large data take long time to generate
+- Charts from larger files (>200 entries) take long time to generate
 
 Planned features:
 - Data analysis, so charts and their features are enabled automatically, not by user
