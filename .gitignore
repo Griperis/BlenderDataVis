@@ -1,0 +1,9 @@
+.vscode/*
+__pycache__
+**.code-workspace
+
+.vscode/
+lit/*
+media_private/*
+pic-examples/*
+csv/*
