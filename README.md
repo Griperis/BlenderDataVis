@@ -15,7 +15,7 @@ Download `data_vis.zip` and install it in Blender (Edit -> Preferences -> Addons
 ## Introduction
 Brief section about how to use the addon and what principles are applied to data and visualisations and how addon works. Addon extends Blender UI in two places:
 - Add Object Menu - Create new visualisations under Chart subgroup (Shift + A)
-- View3D Tools - Manipulate with data and some properties (Press N to show them)
+- View3D Tools - Manipulate with data and some properties (N)
 
 Addon uses Blender coordinate system, 2D chart is generated along X and Z axis, 3D charts extend along Y axis. Form of chart creation and parametrization is inspired by matplotlib. I tried to make chart creation simple but customizable. 
 
