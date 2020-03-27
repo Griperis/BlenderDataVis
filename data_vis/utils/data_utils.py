@@ -1,11 +1,4 @@
-from enum import Enum
-
-
-class DataType(Enum):
-    Numerical = 0
-    Categorical = 1
-    Categorical_3D = 2
-
+from src.data_manager import DataType
 
 def get_row_list(row_data, data_type, separator):
     if data_type == DataType.Categorical:

@@ -91,10 +91,10 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
 
     def draw(self, context):
         super().draw(context)
+        layout = self.layout
         if self.bevel_edges:
             row = layout.row()
             row.prop(self, 'rounded')
-        layout = self.layout
         row = layout.row()
         row.prop(self, 'bevel_edges')
         if self.bevel_edges:

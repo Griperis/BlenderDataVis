@@ -315,23 +315,24 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         return mat
 
     def init_data(self, data_type):
-        data = list(bpy.data.scenes[0].dv_props.data)
+        data_manager = DataManager()
+        # data = list(bpy.data.scenes[0].dv_props.data)
         if hasattr(self, 'label_settings'):
-            self.init_labels(data)
+            self.init_labels(data_manager)
         try:
-            self.data = get_data_as_ll(data, data_type)
+            data = data_manager.get_parsed_data(data_type)
         except Exception as e:
             self.report({'ERROR'}, 'Data should be in X, Y, Z format (2 or 3 dimensions are currently supported).\nData should be in format according to chart type!' + str(e))
             return False
 
+        self.data = data
         return True
 
-    def init_labels(self, data):
+    def init_labels(self, labels):
         if not self.label_settings.create:
             self.labels = [None, None, None]
             return
         if self.label_settings.from_data:
-            first_line = data.pop(0).value.split(',')
             length = len(first_line)
             if length == 2:
                 self.labels = (first_line[0], '', first_line[1])

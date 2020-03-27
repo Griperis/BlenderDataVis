@@ -1,4 +1,6 @@
 import bpy
+from mathutils import Vector
+import math
 
 from data_vis.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
 from data_vis.operators.features.axis import AxisFactory

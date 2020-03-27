@@ -42,6 +42,7 @@ class DV_AddonPanel(bpy.types.Panel):
         row.label(text='Data', icon='WORLD_DATA')
 
         row = layout.row()
+        row.operator(OBJECT_OT_test.bl_idname)
         row.operator('ui.dv_load_data')
 
         layout.label(text='Axis settings')
@@ -107,7 +108,7 @@ class OBJECT_MT_AddChart(bpy.types.Menu):
 
 
 preview_collections = {}
-data_loaded = 0
+data_manager = DataManager()
 
 
 def chart_ops(self, context):
@@ -142,6 +143,7 @@ def register():
     bpy.utils.register_class(OBJECT_OT_pie_chart)
     bpy.utils.register_class(OBJECT_OT_line_chart)
     bpy.utils.register_class(OBJECT_OT_point_chart)
+    bpy.utils.register_class(OBJECT_OT_test)
     bpy.utils.register_class(FILE_OT_DVLoadFile)
     bpy.utils.register_class(DV_AddonPanel)
     bpy.utils.register_class(OBJECT_MT_AddChart)
@@ -161,6 +163,7 @@ def unregister():
     bpy.utils.unregister_class(OBJECT_OT_line_chart)
     bpy.utils.unregister_class(OBJECT_OT_point_chart)
     bpy.utils.unregister_class(FILE_OT_DVLoadFile)
+    bpy.utils.unregister_class(OBJECT_OT_test)
     bpy.utils.unregister_class(DV_LabelPropertyGroup)
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
 

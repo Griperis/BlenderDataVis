@@ -1,4 +1,5 @@
 import bpy
+from src.data_manager import DataManager
 
 
 class FILE_OT_DVLoadFile(bpy.types.Operator):
@@ -20,12 +21,16 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
 
     def execute(self, context):
         bpy.data.scenes[0].dv_props.data.clear()
+        data_manager = DataManager()
+        data_manager.load_data(self.filepath)
+
         with open(self.filepath, 'r') as file:
             line_n = 0
             for row in file:
                 line_n += 1
                 row_prop = bpy.data.scenes[0].dv_props.data.add()
                 row_prop.value = row
+
         self.report({'INFO'}, f'File: {self.filepath}, loaded {line_n} lines!')
         return {'FINISHED'}
 
