@@ -12,7 +12,7 @@ Addon allows users to load data into Blender and create simple customizable visu
 ## Quickstart
 Download `data_vis.zip` and install it in Blender (Edit -> Preferences -> Addons). Or get the folder `data_vis` (from repo or the zip) and move it into blender addons directory manually.
 <p align="center">
-    <img src="media/video.gif" height="480px">
+    <img src="media/video_4.gif" height="480px">
 </p>
 ## Introduction
 Brief section about how to use the addon and what principles are applied to data and visualisations and how addon works. Addon extends Blender UI in two places:
