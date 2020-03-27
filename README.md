@@ -14,6 +14,7 @@ Download `data_vis.zip` and install it in Blender (Edit -> Preferences -> Addons
 <p align="center">
     <img src="media/video_4.gif" height="480px">
 </p>
+
 ## Introduction
 Brief section about how to use the addon and what principles are applied to data and visualisations and how addon works. Addon extends Blender UI in two places:
 - Add Object Menu - Create new visualisations under Chart subgroup (Shift + A)
