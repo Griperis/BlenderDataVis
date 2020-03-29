@@ -2,9 +2,10 @@ import bpy
 import math
 from mathutils import Matrix, Vector
 
-from data_vis.utils.data_utils import get_data_as_ll, find_data_range, DataType
+from data_vis.utils.data_utils import get_data_as_ll, find_data_range
 from data_vis.utils.color_utils import sat_col_gen, ColorGen
 from data_vis.general import OBJECT_OT_generic_chart, CONST
+from data_vis.data_manager import DataManager, DataType
 
 
 class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
@@ -27,6 +28,11 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         max=1.0
     )
 
+    @classmethod
+    def poll(cls, context):
+        dm = DataManager()
+        return not dm.has_labels and dm.is_type(DataType.Categorical, 2)
+
     def draw(self, context):
         layout = self.layout
         row = layout.row()
@@ -37,8 +43,7 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
     def execute(self, context):
         self.slices = []
         self.materials = []
-        if not self.init_data(DataType.Categorical):
-            return {'CANCELLED'}
+        self.init_data()
 
         data_min = min(self.data, key=lambda entry: entry[1])[1]
         if data_min <= 0:

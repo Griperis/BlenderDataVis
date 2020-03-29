@@ -1,4 +1,4 @@
-from src.data_manager import DataType
+from data_vis.data_manager import DataType
 
 def get_row_list(row_data, data_type, separator):
     if data_type == DataType.Categorical:

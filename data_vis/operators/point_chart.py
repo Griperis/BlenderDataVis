@@ -4,8 +4,9 @@ import math
 
 from data_vis.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
-from data_vis.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range, DataType
+from data_vis.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
 from data_vis.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
+from data_vis.data_manager import DataManager, DataType
 
 from mathutils import Vector
 import math
@@ -85,6 +86,10 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
         type=DV_LabelPropertyGroup
     )
 
+    @classmethod
+    def poll(cls, context):
+        return DataManager().is_type(DataType.Numerical, 3)
+
     def draw(self, context):
         super().draw(context)
         layout = self.layout
@@ -99,8 +104,7 @@ class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
         self.y_axis_range = find_axis_range(data, 1)
 
     def execute(self, context):
-        if not self.init_data(DataType.Numerical):
-            return {'CANCELLED'}
+        self.init_data()
         if self.auto_ranges:
             self.init_range(self.data)
 

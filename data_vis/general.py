@@ -4,6 +4,7 @@ import math
 
 from mathutils import Vector
 from data_vis.utils.data_utils import get_data_as_ll, DataType
+from data_vis.data_manager import DataManager
 
 
 class CONST:
@@ -123,6 +124,12 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         self.container_object = None
         self.labels = []
         self.chart_origin = (0, 0, 0)
+        self.dm = DataManager()
+        if hasattr(self, 'dimensions'):
+            self.dimensions = str(self.dm.dimensions)
+
+        if hasattr(self, 'data_type'):
+            self.data_type = '0' if self.dm.predicted_data_type == DataType.Numerical else '1'
 
     def draw(self, context):
         layout = self.layout
@@ -130,7 +137,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
             row = layout.row()
             row.prop(self, 'data_type')
 
-        only_2d = hasattr(self, 'only_2d')
+        only_2d = hasattr(self, 'dimensions')
         numerical = True
         if hasattr(self, 'data_type'):
             if self.data_type == '1':
@@ -138,7 +145,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
 
         only_2d = only_2d or not numerical
 
-        if not only_2d:
+        if hasattr(self, 'dimensions') and self.dm.predicted_data_type != DataType.Categorical:
             row = layout.row()
             row.prop(self, 'dimensions')
 
@@ -150,7 +157,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         if not self.auto_ranges:
             row = layout.row()
             row.prop(self, 'x_axis_range')
-            if not only_2d and self.dimensions == '3':
+            if self.dm.dimensions == 3:
                 row = layout.row()
                 row.prop(self, 'y_axis_range')
 
@@ -161,7 +168,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
             row = layout.row()
             if numerical:
                 row.prop(self, 'x_axis_step', text='x')
-            if not only_2d and self.dimensions == '3':
+            if self.dm.dimensions == 3:
                 row.prop(self, 'y_axis_step', text='y')
             row.prop(self, 'z_axis_step', text='z')
 
@@ -178,14 +185,14 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
                 if not self.label_settings.from_data:
                     row = layout.row()
                     row.prop(self.label_settings, 'x_label')
-                    if not only_2d and self.dimensions == '3':
+                    if self.dm.dimensions == 3:
                         row.prop(self.label_settings, 'y_label')
                     row.prop(self.label_settings, 'z_label')
 
     @classmethod
     def poll(cls, context):
         '''Default behavior for every chart poll method (when data is not available, cannot create chart)'''
-        return len(bpy.data.scenes[0].dv_props.data) > 0
+        return self.dm.parsed_data is not None
 
     def execute(self, context):
         raise NotImplementedError('Execute method should be implemented in every chart operator!')
@@ -220,6 +227,7 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
             return DataType.Numerical
         elif self.data_type == '1':
             return DataType.Categorical
+
 
     def create_y_axis(self, min_val, max_val, offset, padding):
         bpy.ops.object.empty_add()
@@ -314,25 +322,20 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         mat.diffuse_color = (*color, alpha)
         return mat
 
-    def init_data(self, data_type):
-        data_manager = DataManager()
-        # data = list(bpy.data.scenes[0].dv_props.data)
+    def init_data(self):
         if hasattr(self, 'label_settings'):
-            self.init_labels(data_manager)
-        try:
-            data = data_manager.get_parsed_data(data_type)
-        except Exception as e:
-            self.report({'ERROR'}, 'Data should be in X, Y, Z format (2 or 3 dimensions are currently supported).\nData should be in format according to chart type!' + str(e))
-            return False
+            self.init_labels()
+        data = self.dm.get_parsed_data()
 
         self.data = data
         return True
 
-    def init_labels(self, labels):
+    def init_labels(self):
         if not self.label_settings.create:
-            self.labels = [None, None, None]
+            self.labels = (None, None, None)
             return
-        if self.label_settings.from_data:
+        if self.dm.has_labels:
+            first_line = self.dm.get_labels()
             length = len(first_line)
             if length == 2:
                 self.labels = (first_line[0], '', first_line[1])
