@@ -247,7 +247,6 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         # set default location for parent object
         self.container_object.location = self.chart_origin
 
-
     def data_type_as_enum(self):
         if not hasattr(self, 'data_type'):
             return DataType.Numerical

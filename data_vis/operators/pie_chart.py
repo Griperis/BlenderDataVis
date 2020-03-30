@@ -9,7 +9,7 @@ from data_vis.data_manager import DataManager, DataType
 
 
 class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
-    '''Creates pie chart'''
+    '''Creates Pie Chart, supports 2D Categorical values without labels'''
     bl_idname = 'object.create_pie_chart'
     bl_label = 'Pie Chart'
     bl_options = {'REGISTER', 'UNDO'}

@@ -10,7 +10,7 @@ from data_vis.data_manager import DataManager, DataType
 
 
 class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
-    '''Creates line chart as a line or as curve'''
+    '''Creates Line Chart, supports 2D Numerical or Categorical values with or w/o labels'''
     bl_idname = 'object.create_line_chart'
     bl_label = 'Line Chart'
     bl_options = {'REGISTER', 'UNDO'}

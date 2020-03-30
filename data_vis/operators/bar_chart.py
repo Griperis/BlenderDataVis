@@ -12,7 +12,7 @@ from data_vis.colors import NodeShader
 
 
 class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
-    '''Creates (3D or 2D) bar chart from data'''
+    '''Creates Bar Chart, supports 2D and 3D Numerical Data and 2D categorical data with or w/o labels'''
     bl_idname = 'object.create_bar_chart'
     bl_label = 'Bar Chart'
     bl_options = {'REGISTER', 'UNDO'}

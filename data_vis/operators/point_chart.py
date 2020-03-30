@@ -10,7 +10,7 @@ from data_vis.data_manager import DataManager, DataType
 
 
 class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
-    '''Creates point chart'''
+    '''Creates Point Chart, supports 2D and 3D Numerical values with or w/o labels'''
     bl_idname = 'object.create_point_chart'
     bl_label = 'Point Chart'
     bl_options = {'REGISTER', 'UNDO'}
