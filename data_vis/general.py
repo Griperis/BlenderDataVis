@@ -228,7 +228,6 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         elif self.data_type == '1':
             return DataType.Categorical
 
-
     def create_y_axis(self, min_val, max_val, offset, padding):
         bpy.ops.object.empty_add()
         axis_cont = bpy.context.object

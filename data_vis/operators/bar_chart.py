@@ -81,6 +81,16 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         default=0.1
     )
 
+    color_type: bpy.props.EnumProperty(
+        name='Shader color type',
+        items=(
+            ('0', 'Constant', 'One color'),
+            ('1', 'Random', 'Random colors'),
+            ('2', 'Gradient', 'Gradient')
+        ),
+        default='2'
+    )
+
     color_shade: bpy.props.FloatVectorProperty(
         name='Color',
         subtype='COLOR',
@@ -105,6 +115,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         row.prop(self, 'bar_size')
 
         row = layout.row()
+        row.prop(self, 'color_type')
         row.prop(self, 'color_shade')
 
     def init_range(self, data):
@@ -139,7 +150,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
             data_max = max(self.data, key=lambda val: val[1])[1]
 
         #color_gen = ColorGen(self.color_shade, (data_min, data_max))
-        shader = NodeShader(self.color_shade)
+        shader = NodeShader(self.color_shade, NodeShader.Type.str_to_type(self.color_type))
 
         if self.dimensions == '2':
             value_index = 1
