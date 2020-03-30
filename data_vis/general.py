@@ -5,6 +5,7 @@ import math
 from mathutils import Vector
 from data_vis.utils.data_utils import get_data_as_ll, DataType
 from data_vis.data_manager import DataManager
+from data_vis.colors import NodeShader
 
 
 class CONST:
@@ -87,6 +88,31 @@ class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
     z_label: bpy.props.StringProperty(
         name='Z',
         default='Z Label'
+    )
+
+
+class DV_ColorPropertyGroup(bpy.types.PropertyGroup):
+    use_shader: bpy.props.BoolProperty(
+        name='Use Shader',
+        default=True
+    )
+
+    color_type: bpy.props.EnumProperty(
+        name='Shader Type',
+        items=(
+            ('0', 'Constant', 'One color'),
+            ('1', 'Random', 'Random colors'),
+            ('2', 'Gradient', 'Gradient based on value')
+        ),
+        default='2'
+    )
+
+    color_shade: bpy.props.FloatVectorProperty(
+        name='Base Color',
+        subtype='COLOR',
+        default=(0.0, 0.0, 1.0),
+        min=0.0,
+        max=1.0
     )
 
 
@@ -175,10 +201,13 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         row = layout.row()
         row.prop(self, 'padding')
 
-        row = layout.row()
-        row.label(text='Label settings:')
+        self.draw_label_settings(layout)
+        self.draw_color_settings(layout)
 
+    def draw_label_settings(self, layout):
         if hasattr(self, 'label_settings'):
+            row = layout.row()
+            row.label(text='Label settings:')
             row.prop(self.label_settings, 'create')
             if self.label_settings.create:
                 row.prop(self.label_settings, 'from_data')
@@ -188,6 +217,16 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
                     if self.dm.dimensions == 3:
                         row.prop(self.label_settings, 'y_label')
                     row.prop(self.label_settings, 'z_label')
+    
+    def draw_color_settings(self, layout):
+        if hasattr(self, 'color_settings'):
+            box = layout.box()
+            box.label(text='Color settings')
+            box.prop(self.color_settings, 'use_shader')
+            if self.color_settings.use_shader:
+                box.prop(self.color_settings, 'color_type')
+            if not NodeShader.Type.str_to_type(self.color_settings.color_type) == NodeShader.Type.Random:
+                box.prop(self.color_settings, 'color_shade')
 
     @classmethod
     def poll(cls, context):

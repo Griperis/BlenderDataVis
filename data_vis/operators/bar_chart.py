@@ -5,7 +5,7 @@ from mathutils import Vector
 
 from data_vis.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
 from data_vis.utils.color_utils import ColorGen
-from data_vis.general import OBJECT_OT_generic_chart, CONST, Properties, DV_LabelPropertyGroup
+from data_vis.general import OBJECT_OT_generic_chart, CONST, Properties, DV_LabelPropertyGroup, DV_ColorPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import NodeShader
@@ -81,22 +81,8 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         default=0.1
     )
 
-    color_type: bpy.props.EnumProperty(
-        name='Shader color type',
-        items=(
-            ('0', 'Constant', 'One color'),
-            ('1', 'Random', 'Random colors'),
-            ('2', 'Gradient', 'Gradient')
-        ),
-        default='2'
-    )
-
-    color_shade: bpy.props.FloatVectorProperty(
-        name='Color',
-        subtype='COLOR',
-        default=(0.0, 0.0, 1.0),
-        min=0.0,
-        max=1.0
+    color_settings: bpy.props.PointerProperty(
+        type=DV_ColorPropertyGroup
     )
 
     label_settings: bpy.props.PointerProperty(
@@ -113,10 +99,6 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
         layout = self.layout
         row = layout.row()
         row.prop(self, 'bar_size')
-
-        row = layout.row()
-        row.prop(self, 'color_type')
-        row.prop(self, 'color_shade')
 
     def init_range(self, data):
         self.x_axis_range = find_axis_range(data, 0)
@@ -150,7 +132,7 @@ class OBJECT_OT_bar_chart(OBJECT_OT_generic_chart):
             data_max = max(self.data, key=lambda val: val[1])[1]
 
         #color_gen = ColorGen(self.color_shade, (data_min, data_max))
-        shader = NodeShader(self.color_shade, NodeShader.Type.str_to_type(self.color_type))
+        shader = NodeShader(self.color_settings.color_shade, NodeShader.Type.str_to_type(self.color_settings.color_type), 2.0, self.chart_origin[2])
 
         if self.dimensions == '2':
             value_index = 1

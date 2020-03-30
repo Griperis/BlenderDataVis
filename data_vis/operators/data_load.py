@@ -20,7 +20,6 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
-        bpy.data.scenes[0].dv_props.data.clear()
         data_manager = DataManager()
         line_n = data_manager.load_data(self.filepath)
 
