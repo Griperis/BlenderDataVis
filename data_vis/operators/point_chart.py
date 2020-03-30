@@ -2,17 +2,14 @@ import bpy
 from mathutils import Vector
 import math
 
-from data_vis.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
 from data_vis.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
 from data_vis.data_manager import DataManager, DataType
 
-from mathutils import Vector
-import math
 
-
-class OBJECT_OT_point_chart(OBJECT_OT_generic_chart):
+class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
     '''Creates point chart'''
     bl_idname = 'object.create_point_chart'
     bl_label = 'Point Chart'

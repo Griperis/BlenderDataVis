@@ -5,11 +5,11 @@ from mathutils import Vector
 
 from data_vis.utils.data_utils import find_data_range, find_axis_range, normalize_value, get_data_in_range
 from data_vis.operators.features.axis import AxisFactory
-from data_vis.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup
 from data_vis.data_manager import DataManager, DataType
 
 
-class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
+class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
     '''Creates line chart as a line or as curve'''
     bl_idname = 'object.create_line_chart'
     bl_label = 'Line Chart'

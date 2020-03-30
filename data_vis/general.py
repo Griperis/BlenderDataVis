@@ -3,8 +3,7 @@ import bpy
 import math
 
 from mathutils import Vector
-from data_vis.utils.data_utils import get_data_as_ll, DataType
-from data_vis.data_manager import DataManager
+from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import NodeShader
 
 
@@ -13,10 +12,14 @@ class CONST:
     HALF_PI = math.pi * 0.5
 
 
-# for future use
 class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
+    create: bpy.props.BoolProperty(
+        name='Create Axis',
+        default=True
+    )
+
     auto_ranges: bpy.props.BoolProperty(
-        name='Automatic axis ranges',
+        name='Automatic Axis Ranges',
         default=True
     )
 
@@ -31,7 +34,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
         default=(0.0, 1.0)
     )
 
-    _step: bpy.props.FloatProperty(
+    y_step: bpy.props.FloatProperty(
         name='Step of y axis',
         default=1.0
     )
@@ -48,13 +51,13 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     )
 
     thickness: bpy.props.FloatProperty(
-        name='Axis thickness',
+        name='Axis Thickness',
         default=0.01,
         description='How thick is the axis object'
     )
 
     tick_mark_height: bpy.props.FloatProperty(
-        name='Axis tick mark height',
+        name='Axis Tick Mark Height',
         default=0.03
     )
 
@@ -121,10 +124,6 @@ class Properties:
     Access to Blender properties related to addon, which are not in specific chart operators
     '''
     @staticmethod
-    def get_data():
-        return bpy.data.scenes[0].dv_props.data
-
-    @staticmethod
     def get_text_size():
         return bpy.data.scenes[0].dv_props.text_size
 
@@ -137,7 +136,7 @@ class Properties:
         return bpy.data.scenes[0].dv_props.axis_tick_mark_height
 
 
-class OBJECT_OT_generic_chart(bpy.types.Operator):
+class OBJECT_OT_GenericChart(bpy.types.Operator):
     '''Creates chart'''
     bl_idname = 'object.create_chart'
     bl_label = 'Generic chart operator'
@@ -248,15 +247,6 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
         # set default location for parent object
         self.container_object.location = self.chart_origin
 
-    def create_axis(self, spacing, x_vals, y_max=None, y_min=0, z_vals=None, padding=(0, 0, 0), offset=(0, 0, 0)):
-        self.axis_mat = self.new_mat((1, 1, 1), 1, name='Axis_Mat')
-        length = self.create_one_axis(spacing, x_vals, offset[0], padding[0])
-        if y_max:
-            cont = self.create_y_axis(y_min, y_max, offset[1], padding[1])
-            if z_vals:
-                cont.location.x += 2 * length
-        if z_vals:
-            self.create_one_axis(spacing, z_vals, offset[2], padding[2], dim='z')
 
     def data_type_as_enum(self):
         if not hasattr(self, 'data_type'):
@@ -266,94 +256,6 @@ class OBJECT_OT_generic_chart(bpy.types.Operator):
             return DataType.Numerical
         elif self.data_type == '1':
             return DataType.Categorical
-
-    def create_y_axis(self, min_val, max_val, offset, padding):
-        bpy.ops.object.empty_add()
-        axis_cont = bpy.context.object
-        axis_cont.name = 'Axis_Container'
-        axis_cont.location = (0, 0, 0)
-        axis_cont.parent = self.container_object
-
-        bpy.ops.mesh.primitive_cube_add()
-        line_obj = bpy.context.active_object
-        line_obj.location = (0, 0, 0)
-
-        line_obj.scale = (CONST.GRAPH_Z_SCALE + padding + offset * 0.5, 0.005, 0.005)
-        line_obj.location.x += CONST.GRAPH_Z_SCALE + padding + offset * 0.5
-        line_obj.parent = axis_cont
-
-        line_obj.active_material = self.axis_mat
-
-        spacing = 0.2 * CONST.GRAPH_Z_SCALE
-        val_inc = (abs(min_val) + max_val) * 0.1
-        val = min_val
-        for i in range(0, 11):
-            bpy.ops.mesh.primitive_cube_add()
-            obj = bpy.context.active_object
-            obj.scale = (0.005, 0.005, 0.02)
-            obj.location = (0, 0, 0)
-            obj.location.x += i * spacing + offset
-            obj.parent = axis_cont
-            obj.active_material = self.axis_mat
-
-            self.create_text_object(axis_cont, '{0:.3}'.format(float(val)), (i * spacing + offset, 0, 0.07), (CONST.HALF_PI, CONST.HALF_PI, 0))
-            val += val_inc
-
-        axis_cont.location += Vector((-padding, 0, -padding))
-        axis_cont.rotation_euler.y -= CONST.HALF_PI
-        return axis_cont
-
-    def create_one_axis(self, spacing, vals, offset, padding, dim='x'):
-        bpy.ops.object.empty_add()
-        axis_cont = bpy.context.object
-        axis_cont.name = 'Axis_Container'
-        axis_cont.location = (0, 0, 0)
-        axis_cont.parent = self.container_object
-        # TODO WHAT self.axis_containers.append(axis_cont)
-
-        v_len = ((len(vals) - 1) * spacing) * 0.5 + padding + offset * 0.5
-        bpy.ops.mesh.primitive_cube_add()
-        line_obj = bpy.context.active_object
-        line_obj.location = (0, 0, 0)
-
-        line_obj.scale = (v_len, 0.005, 0.005)
-        line_obj.location.x += v_len
-        line_obj.parent = axis_cont
-        line_obj.active_material = self.axis_mat
-
-        for i in range(0, len(vals)):
-            bpy.ops.mesh.primitive_cube_add()
-            obj = bpy.context.active_object
-            obj.scale = (0.005, 0.005, 0.02)
-            obj.location = (0, 0, 0)
-            obj.location.x += i * spacing + offset
-            obj.parent = axis_cont
-            obj.active_material = self.axis_mat
-
-            to_loc = (i * spacing + offset, 0, -0.07)
-            to_rot = (CONST.HALF_PI, 0, 0)
-            if dim == 'z':
-                to_rot = (CONST.HALF_PI, 0, math.pi)
-            self.create_text_object(axis_cont, vals[i], to_loc, to_rot)
-
-        axis_cont.location += Vector((-padding, 0, -padding))
-        if dim == 'z':
-            axis_cont.rotation_euler.z += CONST.HALF_PI
-
-        return v_len
-
-    def create_text_object(self, parent, text, location_offset, rotation_offset):
-        bpy.ops.object.text_add()
-        to = bpy.context.object
-        to.data.body = str(text)
-        to.data.align_x = 'CENTER'
-        to.scale *= 0.05
-        to.location = parent.location
-        to.location += Vector(location_offset)
-        to.rotation_euler.x += rotation_offset[0]
-        to.rotation_euler.y += rotation_offset[1]
-        to.rotation_euler.z += rotation_offset[2]
-        to.parent = parent
 
     def new_mat(self, color, alpha, name='Mat'):
         mat = bpy.data.materials.new(name=name)

@@ -4,11 +4,11 @@ from mathutils import Matrix, Vector
 
 from data_vis.utils.data_utils import get_data_as_ll, find_data_range
 from data_vis.utils.color_utils import sat_col_gen, ColorGen
-from data_vis.general import OBJECT_OT_generic_chart, CONST
+from data_vis.general import OBJECT_OT_GenericChart
 from data_vis.data_manager import DataManager, DataType
 
 
-class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
+class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
     '''Creates pie chart'''
     bl_idname = 'object.create_pie_chart'
     bl_label = 'Pie Chart'
