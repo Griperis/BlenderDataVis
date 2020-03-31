@@ -5,7 +5,7 @@ from mathutils import Vector
 
 from data_vis.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
 from data_vis.utils.color_utils import ColorGen
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_ColorPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import NodeShader
@@ -39,46 +39,8 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         default=(0.05, 0.05)
     )
 
-    auto_ranges: bpy.props.BoolProperty(
-        name='Automatic axis ranges',
-        default=True
-    )
-
-    auto_steps: bpy.props.BoolProperty(
-        name='Automatic axis steps',
-        default=True
-    )
-
-    x_axis_step: bpy.props.FloatProperty(
-        name='Step of x axis',
-        default=1.0
-    )
-
-    x_axis_range: bpy.props.FloatVectorProperty(
-        name='Range of x axis',
-        size=2,
-        default=(0.0, 1.0)
-    )
-
-    y_axis_step: bpy.props.FloatProperty(
-        name='Step of y axis',
-        default=1.0
-    )
-
-    y_axis_range: bpy.props.FloatVectorProperty(
-        name='Range of y axis',
-        size=2,
-        default=(0.0, 1.0)
-    )
-
-    z_axis_step: bpy.props.FloatProperty(
-        name='Step of z axis',
-        default=1.0
-    )
-
-    padding: bpy.props.FloatProperty(
-        name='Padding',
-        default=0.1
+    axis_settings: bpy.props.PointerProperty(
+        type=DV_AxisPropertyGroup
     )
 
     color_settings: bpy.props.PointerProperty(
@@ -91,6 +53,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
 
     @classmethod
     def poll(cls, context):
+        return True
         dm = DataManager()
         return dm.is_type(DataType.Numerical, 3) or dm.is_type(DataType.Categorical, 2)
 
@@ -101,8 +64,8 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         row.prop(self, 'bar_size')
 
     def init_range(self, data):
-        self.x_axis_range = find_axis_range(data, 0)
-        self.y_axis_range = find_axis_range(data, 1)
+        self.axis_settings.x_range = find_axis_range(data, 0)
+        self.axis_settings.y_range = find_axis_range(data, 1)
 
     def data_type_as_enum(self):
         if self.data_type == '0':
@@ -113,12 +76,12 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
     def execute(self, context):
         self.init_data()
         if self.data_type_as_enum() == DataType.Numerical:
-            if self.auto_ranges:
+            if self.axis_settings.auto_ranges:
                 self.init_range(self.data)
         else:
             self.dimensions = '2'
-            self.x_axis_range[0] = 0
-            self.x_axis_range[1] = len(self.data) - 1
+            self.axis_settings.x_range[0] = 0
+            self.axis_settings.x_range[1] = len(self.data) - 1
 
         if self.dimensions == '3' and len(self.data[0]) != 3:
             self.report({'ERROR'}, 'Data are only 2D!')
@@ -126,7 +89,11 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         tick_labels = []
         self.create_container()
         if self.data_type_as_enum() == DataType.Numerical:
-            data_min, data_max = find_data_range(self.data, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
+            try:
+                data_min, data_max = find_data_range(self.data, self.axis_settings.x_range, self.axis_settings.y_range if self.dimensions == '3' else None)
+            except Exception as e:
+                self.report({'ERROR'}, 'Cannot find data in this range!')
+                return {'CANCELLED'}
         else:
             data_min = min(self.data, key=lambda val: val[1])[1]
             data_max = max(self.data, key=lambda val: val[1])[1]
@@ -140,7 +107,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             value_index = 2
 
         for i, entry in enumerate(self.data):
-            if not self.in_axis_range_bounds(entry):
+            if not self.in_axis_range_bounds_new(entry):
                 continue
 
             bpy.ops.mesh.primitive_cube_add()
@@ -150,7 +117,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             else:
                 tick_labels.append(entry[0])
                 x_value = i
-            x_norm = normalize_value(x_value, self.x_axis_range[0], self.x_axis_range[1])
+            x_norm = normalize_value(x_value, self.axis_settings.x_range[0], self.axis_settings.x_range[1])
 
             z_norm = normalize_value(entry[value_index], data_min, data_max)
             if z_norm >= 0.0 and z_norm <= 0.0001:
@@ -159,7 +126,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 bar_obj.scale = (self.bar_size[0], self.bar_size[1], z_norm * 0.5)
                 bar_obj.location = (x_norm, 0.0, z_norm * 0.5)
             else:
-                y_norm = normalize_value(entry[1], self.y_axis_range[0], self.y_axis_range[1])
+                y_norm = normalize_value(entry[1], self.axis_settings.y_range[0], self.axis_settings.y_range[1])
                 bar_obj.scale = (self.bar_size[0], self.bar_size[1], z_norm * 0.5)
                 bar_obj.location = (x_norm, y_norm, z_norm * 0.5)
         
@@ -169,13 +136,13 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
 
         AxisFactory.create(
             self.container_object,
-            (self.x_axis_step, self.y_axis_step, self.z_axis_step),
-            (self.x_axis_range, self.y_axis_range, (data_min, data_max)),
+            (self.axis_settings.x_step, self.axis_settings.y_step, self.axis_settings.z_step),
+            (self.axis_settings.x_range, self.axis_settings.y_range, (data_min, data_max)),
             int(self.dimensions),
             tick_labels=(tick_labels, [], []),
             labels=self.labels,
-            padding=self.padding,
-            auto_steps=self.auto_steps,
+            padding=self.axis_settings.padding,
+            auto_steps=self.axis_settings.auto_steps,
             offset=0.0
         )
 

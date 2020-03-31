@@ -18,7 +18,7 @@ from .operators.bar_chart import OBJECT_OT_BarChart
 from .operators.line_chart import OBJECT_OT_LineChart
 from .operators.pie_chart import OBJECT_OT_PieChart
 from .operators.point_chart import OBJECT_OT_PointChart
-from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup
+from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup
 from .data_manager import DataManager
 
 
@@ -130,6 +130,7 @@ def register():
     bpy.utils.register_class(DV_PropertyGroup)
     bpy.utils.register_class(DV_LabelPropertyGroup)
     bpy.utils.register_class(DV_ColorPropertyGroup)
+    bpy.utils.register_class(DV_AxisPropertyGroup)
     bpy.utils.register_class(OBJECT_OT_BarChart)
     bpy.utils.register_class(OBJECT_OT_PieChart)
     bpy.utils.register_class(OBJECT_OT_LineChart)
@@ -154,6 +155,7 @@ def unregister():
     bpy.utils.unregister_class(FILE_OT_DVLoadFile)
     bpy.utils.unregister_class(DV_LabelPropertyGroup)
     bpy.utils.unregister_class(DV_ColorPropertyGroup)
+    bpy.utils.unregister_class(DV_AxisPropertyGroup)
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
 
 

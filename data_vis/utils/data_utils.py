@@ -144,4 +144,7 @@ def normalize_value(value, minimum, maximum):
     Normalizes value into <0, 1> interval, range of data where value is included
     is specified by minimum and maximum
     '''
+    if maximum - minimum == 0:
+        print('Division by zero in normalize value!')
+        return 1.0
     return (value - minimum) / (maximum - minimum)

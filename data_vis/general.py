@@ -13,57 +13,77 @@ class CONST:
 
 
 class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
+    def range_updated(self, context):
+        if self.x_range[0] == self.x_range[1]:
+            self.x_range[1] += 1.0
+        if self.y_range[0] == self.y_range[1]:
+            self.y_range[1] += 1.0
+
     create: bpy.props.BoolProperty(
         name='Create Axis',
-        default=True
+        default=True,
     )
 
     auto_ranges: bpy.props.BoolProperty(
-        name='Automatic Axis Ranges',
-        default=True
+        name='Automatic Ranges',
+        default=True,
+        description='Automatically displays all data'
+    )
+
+    auto_steps: bpy.props.BoolProperty(
+        name='Automatic Steps',
+        default=True,
+        description='Automatically calculates stepsize to display 10 marks'
     )
 
     x_step: bpy.props.FloatProperty(
         name='Step of x axis',
-        default=1.0
+        default=1.0,
+        min=0.05
     )
 
     x_range: bpy.props.FloatVectorProperty(
         name='Range of x axis',
         size=2,
-        default=(0.0, 1.0)
+        default=(0.0, 1.0),
+        update=range_updated
     )
 
     y_step: bpy.props.FloatProperty(
         name='Step of y axis',
-        default=1.0
+        default=1.0,
+        min=0.05
     )
 
     y_range: bpy.props.FloatVectorProperty(
         name='Range of y axis',
         size=2,
-        default=(0.0, 1.0)
+        default=(0.0, 1.0),
+        update=range_updated
     )
 
     z_step: bpy.props.FloatProperty(
         name='Step of z axis',
-        default=1.0
+        default=1.0,
+        min=0.05
     )
 
     thickness: bpy.props.FloatProperty(
-        name='Axis Thickness',
+        name='Thickness',
         default=0.01,
         description='How thick is the axis object'
     )
 
     tick_mark_height: bpy.props.FloatProperty(
-        name='Axis Tick Mark Height',
-        default=0.03
+        name='Tick Mark Height',
+        default=0.03,
+        description='Thickness of axis mark objects'
     )
 
     padding: bpy.props.FloatProperty(
         name='Padding',
-        default=0.1
+        default=0.1,
+        description='Axis distance from chart origin'
     )
 
 
@@ -174,49 +194,23 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             row = layout.row()
             row.prop(self, 'dimensions')
 
-        if numerical:
-            row = layout.row()
-            row.label(text='Axis ranges:')
-            row.prop(self, 'auto_ranges')
-
-        if not self.auto_ranges:
-            row = layout.row()
-            row.prop(self, 'x_axis_range')
-            if self.dm.dimensions == 3:
-                row = layout.row()
-                row.prop(self, 'y_axis_range')
-
-        row = layout.row()
-        row.label(text='Axis steps:')
-        row.prop(self, 'auto_steps')
-        if not self.auto_steps:
-            row = layout.row()
-            if numerical:
-                row.prop(self, 'x_axis_step', text='x')
-            if self.dm.dimensions == 3:
-                row.prop(self, 'y_axis_step', text='y')
-            row.prop(self, 'z_axis_step', text='z')
-
-        row = layout.row()
-        row.prop(self, 'padding')
-
-        self.draw_label_settings(layout)
+        self.draw_axis_settings(layout, numerical)
         self.draw_color_settings(layout)
 
-    def draw_label_settings(self, layout):
+    def draw_label_settings(self, box):
         if hasattr(self, 'label_settings'):
-            row = layout.row()
-            row.label(text='Label settings:')
+            row = box.row()
+            row.label(text='Label Settings:')
             row.prop(self.label_settings, 'create')
             if self.label_settings.create:
-                row.prop(self.label_settings, 'from_data')
+                box.prop(self.label_settings, 'from_data')
                 if not self.label_settings.from_data:
-                    row = layout.row()
+                    row = box.row()
                     row.prop(self.label_settings, 'x_label')
                     if self.dm.dimensions == 3:
                         row.prop(self.label_settings, 'y_label')
                     row.prop(self.label_settings, 'z_label')
-    
+
     def draw_color_settings(self, layout):
         if hasattr(self, 'color_settings'):
             box = layout.box()
@@ -226,6 +220,42 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
                 box.prop(self.color_settings, 'color_type')
             if not NodeShader.Type.str_to_type(self.color_settings.color_type) == NodeShader.Type.Random:
                 box.prop(self.color_settings, 'color_shade')
+ 
+    def draw_axis_settings(self, layout, numerical):
+        if not hasattr(self, 'axis_settings'):
+            return
+
+        box = layout.box()
+        row = box.row()
+        row.label(text='Axis Settings:')
+        row.prop(self.axis_settings, 'create')
+        if not self.axis_settings.create:
+            return
+
+        if numerical:
+            box.prop(self.axis_settings, 'auto_ranges')
+        if not self.axis_settings.auto_ranges:
+            row = box.row()
+            row.prop(self.axis_settings, 'x_range', text='x')
+            if self.dimensions == '3':
+                row = box.row()
+                row.prop(self.axis_settings, 'y_range', text='y')
+        box.prop(self.axis_settings, 'auto_steps')
+
+        if not self.axis_settings.auto_steps:
+            row = box.row()
+            if numerical:
+                row.prop(self.axis_settings, 'x_step', text='x')
+            if self.dimensions == '3':
+                row.prop(self.axis_settings, 'y_step', text='y')
+            row.prop(self.axis_settings, 'z_step', text='z')
+            
+        row = box.row()
+        row.prop(self.axis_settings, 'padding')
+        row.prop(self.axis_settings, 'thickness')
+        row.prop(self.axis_settings, 'tick_mark_height')
+        box.separator()
+        self.draw_label_settings(box)
 
     @classmethod
     def poll(cls, context):
@@ -303,3 +333,23 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
                 return False
 
         return True
+
+    def in_axis_range_bounds_new(self, entry):
+        '''
+        Checks whether the entry point defined as [x, y, z] is within user selected axis range
+        returns False if not in range, else True
+        '''
+        entry_dims = len(entry)
+        if entry_dims == 2 or entry_dims == 3:
+            if hasattr(self, 'data_type') and self.data_type != '0':
+                return True
+
+            if entry[0] < self.axis_settings.x_range[0] or entry[0] > self.axis_settings.x_range[1]:
+                return False
+
+        if entry_dims == 3:
+            if entry[1] < self.axis_settings.y_range[0] or entry[1] > self.axis_settings.y_range[1]:
+                return False
+
+        return True
+
