@@ -8,7 +8,7 @@ from data_vis.utils.color_utils import ColorGen
 from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
-from data_vis.colors import NodeShader
+from data_vis.colors import NodeShader, ColorType
 
 
 class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
@@ -53,7 +53,6 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
 
     @classmethod
     def poll(cls, context):
-        return True
         dm = DataManager()
         return dm.is_type(DataType.Numerical, 3) or dm.is_type(DataType.Categorical, 2)
 
@@ -99,7 +98,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             data_max = max(self.data, key=lambda val: val[1])[1]
 
         #color_gen = ColorGen(self.color_shade, (data_min, data_max))
-        shader = NodeShader(self.color_settings.color_shade, NodeShader.Type.str_to_type(self.color_settings.color_type), 2.0, self.chart_origin[2])
+        shader = NodeShader(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), 2.0, self.chart_origin[2])
 
         if self.dimensions == '2':
             value_index = 1
@@ -134,16 +133,17 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             bar_obj.active_material = shader.material  # self.new_mat(color_gen.next(entry[value_index]), 1)
             bar_obj.parent = self.container_object
 
-        AxisFactory.create(
-            self.container_object,
-            (self.axis_settings.x_step, self.axis_settings.y_step, self.axis_settings.z_step),
-            (self.axis_settings.x_range, self.axis_settings.y_range, (data_min, data_max)),
-            int(self.dimensions),
-            tick_labels=(tick_labels, [], []),
-            labels=self.labels,
-            padding=self.axis_settings.padding,
-            auto_steps=self.axis_settings.auto_steps,
-            offset=0.0
-        )
+        if self.axis_settings.create:
+            AxisFactory.create(
+                self.container_object,
+                (self.axis_settings.x_step, self.axis_settings.y_step, self.axis_settings.z_step),
+                (self.axis_settings.x_range, self.axis_settings.y_range, (data_min, data_max)),
+                int(self.dimensions),
+                tick_labels=(tick_labels, [], []),
+                labels=self.labels,
+                padding=self.axis_settings.padding,
+                auto_steps=self.axis_settings.auto_steps,
+                offset=0.0
+            )
 
         return {'FINISHED'}

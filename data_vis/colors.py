@@ -2,30 +2,32 @@ import bpy
 from enum import Enum
 
 
+class ColorType(Enum):
+    Constant = 0
+    Random = 1
+    Gradient = 2
+
+    def str_to_type(value):
+        if str(value) == '0' or value == 'Constant':
+            return ColorType.Constant
+        if str(value) == '1' or value == 'Random':
+            return ColorType.Random
+        if str(value) == '2' or value == 'Gradient':
+            return ColorType.Gradient
+
+
 class NodeShader:
-    class Type(Enum):
-        Constant = 0
-        Random = 1
-        Gradient = 2
-
-        def str_to_type(value):
-            if str(value) == '0' or value == 'Constant':
-                return NodeShader.Type.Constant
-            if str(value) == '1' or value == 'Random':
-                return NodeShader.Type.Random
-            if str(value) == '2' or value == 'Gradient':
-                return NodeShader.Type.Gradient
-
-    def __init__(self, base_color, shader_type=Type.Constant, scale=1.0, location_z=0):
+    
+    def __init__(self, base_color, shader_type=ColorType.Constant, scale=1.0, location_z=0):
         self.base_color = self.__add_alpha(base_color, 1)
         self.shader_type = shader_type
         self.scale = scale
 
-        if self.shader_type == NodeShader.Type.Random:
+        if self.shader_type == ColorType.Random:
             self.material = self.create_random_shader()
-        elif self.shader_type == NodeShader.Type.Constant:
+        elif self.shader_type == ColorType.Constant:
             self.material = self.create_const_shader()
-        elif self.shader_type == NodeShader.Type.Gradient:
+        elif self.shader_type == ColorType.Gradient:
             self.material = self.create_gradient_shader(location_z)
         else:
             raise AttributeError('Unsupported shader type!')

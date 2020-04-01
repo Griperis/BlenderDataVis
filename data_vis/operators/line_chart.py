@@ -5,7 +5,7 @@ from mathutils import Vector
 
 from data_vis.utils.data_utils import find_data_range, find_axis_range, normalize_value, get_data_in_range
 from data_vis.operators.features.axis import AxisFactory
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup
 from data_vis.data_manager import DataManager, DataType
 
 
@@ -71,6 +71,10 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         type=DV_LabelPropertyGroup
     )
 
+    axis_settings: bpy.props.PointerProperty(
+        type=DV_AxisPropertyGroup
+    )
+
     def __init__(self):
         super().__init__()
         self.only_2d = True
@@ -112,23 +116,23 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         self.create_container()
 
         if self.data_type_as_enum() == DataType.Numerical:
-            if self.auto_ranges:
-                self.x_axis_range = find_axis_range(self.data, 0)
-            data_min, data_max = find_data_range(self.data, self.x_axis_range)
-            self.data = get_data_in_range(self.data, self.x_axis_range)
+            if self.axis_settings.auto_ranges:
+                self.axis_settings.x_range = find_axis_range(self.data, 0)
+            data_min, data_max = find_data_range(self.data, self.axis_settings.x_range)
+            self.data = get_data_in_range(self.data, self.axis_settings.x_range)
             sorted_data = sorted(self.data, key=lambda x: x[0])
         else:
-            self.x_axis_range[0] = 0
-            self.x_axis_range[1] = len(self.data) - 1
+            self.axis_settings.x_range[0] = 0
+            self.axis_settings.x_range[1] = len(self.data) - 1
             data_min = min(self.data, key=lambda val: val[1])[1]
             data_max = max(self.data, key=lambda val: val[1])[1]
             sorted_data = self.data
 
         tick_labels = []
         if self.data_type_as_enum() == DataType.Numerical:
-            normalized_vert_list = [(normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for entry in sorted_data]
+            normalized_vert_list = [(normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for entry in sorted_data]
         else:
-            normalized_vert_list = [(normalize_value(i, self.x_axis_range[0], self.x_axis_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for i, entry in enumerate(sorted_data)]
+            normalized_vert_list = [(normalize_value(i, self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for i, entry in enumerate(sorted_data)]
             tick_labels = list(zip(*sorted_data))[0]
 
         edges = [[i - 1, i] for i in range(1, len(normalized_vert_list))]
@@ -136,17 +140,18 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         self.create_curve(normalized_vert_list, edges)
         self.add_bevel_obj()
 
-        AxisFactory.create(
-            self.container_object,
-            (self.x_axis_step, 0, self.z_axis_step),
-            (self.x_axis_range, [], (data_min, data_max)),
-            2,
-            tick_labels=(tick_labels, [], []),
-            labels=self.labels,
-            padding=self.padding,
-            auto_steps=self.auto_steps,
-            offset=0.0
-        )
+        if self.axis_settings.create:
+            AxisFactory.create(
+                self.container_object,
+                (self.axis_settings.x_step, 0, self.axis_settings.z_step),
+                (self.axis_settings.x_range, [], (data_min, data_max)),
+                2,
+                tick_labels=(tick_labels, [], []),
+                labels=self.labels,
+                padding=self.axis_settings.padding,
+                auto_steps=self.axis_settings.auto_steps,
+                offset=0.0
+            )
         return {'FINISHED'}
 
     def create_curve(self, verts, edges):

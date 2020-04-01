@@ -4,7 +4,7 @@ import math
 
 from mathutils import Vector
 from data_vis.data_manager import DataManager, DataType
-from data_vis.colors import NodeShader
+from data_vis.colors import ColorType
 
 
 class CONST:
@@ -83,6 +83,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     padding: bpy.props.FloatProperty(
         name='Padding',
         default=0.1,
+        min=0,
         description='Axis distance from chart origin'
     )
 
@@ -218,7 +219,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             box.prop(self.color_settings, 'use_shader')
             if self.color_settings.use_shader:
                 box.prop(self.color_settings, 'color_type')
-            if not NodeShader.Type.str_to_type(self.color_settings.color_type) == NodeShader.Type.Random:
+            if not ColorType.str_to_type(self.color_settings.color_type) == ColorType.Random:
                 box.prop(self.color_settings, 'color_shade')
  
     def draw_axis_settings(self, layout, numerical):
@@ -237,7 +238,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         if not self.axis_settings.auto_ranges:
             row = box.row()
             row.prop(self.axis_settings, 'x_range', text='x')
-            if self.dimensions == '3':
+            if hasattr(self, 'dimensions') and self.dimensions == '3':
                 row = box.row()
                 row.prop(self.axis_settings, 'y_range', text='y')
         box.prop(self.axis_settings, 'auto_steps')
@@ -246,7 +247,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             row = box.row()
             if numerical:
                 row.prop(self.axis_settings, 'x_step', text='x')
-            if self.dimensions == '3':
+            if hasattr(self, 'dimensions') and self.dimensions == '3':
                 row.prop(self.axis_settings, 'y_step', text='y')
             row.prop(self.axis_settings, 'z_step', text='z')
             

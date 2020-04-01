@@ -23,16 +23,8 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
         data_manager = DataManager()
         line_n = data_manager.load_data(self.filepath)
 
-        # with open(self.filepath, 'r') as file:
-        #     line_n = 0
-        #     for row in file:
-        #         line_n += 1
-        #         row_prop = bpy.data.scenes[0].dv_props.data.add()
-        #         row_prop.value = row
-
         report_type = {'INFO'}
         if line_n == 0:
             report_type = {'WARNING'}
         self.report(report_type, f'File: {self.filepath}, loaded {line_n} lines!')
         return {'FINISHED'}
-

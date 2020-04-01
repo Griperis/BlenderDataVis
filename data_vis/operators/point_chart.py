@@ -2,7 +2,7 @@ import bpy
 from mathutils import Vector
 import math
 
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
 from data_vis.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
@@ -83,6 +83,14 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
         type=DV_LabelPropertyGroup
     )
 
+    axis_settings: bpy.props.PointerProperty(
+        type=DV_AxisPropertyGroup
+    )
+
+    # color_settings: bpy.props.PointerProperty(
+    #     type=DV_ColorPropertyGroup
+    # )
+
     @classmethod
     def poll(cls, context):
         return DataManager().is_type(DataType.Numerical, 3)
@@ -97,12 +105,12 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
         row.prop(self, 'color_shade')
 
     def init_range(self, data):
-        self.x_axis_range = find_axis_range(data, 0)
-        self.y_axis_range = find_axis_range(data, 1)
+        self.axis_settings.x_range = find_axis_range(data, 0)
+        self.axis_settings.y_range = find_axis_range(data, 1)
 
     def execute(self, context):
         self.init_data()
-        if self.auto_ranges:
+        if self.axis_settings.auto_ranges:
             self.init_range(self.data)
 
         if self.dimensions == '2':
@@ -114,41 +122,40 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             value_index = 2
 
         self.create_container()
-        # fix length of data to parse
-        data_min, data_max = find_data_range(self.data, self.x_axis_range, self.y_axis_range if self.dimensions == '3' else None)
+        data_min, data_max = find_data_range(self.data, self.axis_settings.x_range, self.axis_settings.y_range if self.dimensions == '3' else None)
 
         color_gen = ColorGen(self.color_shade, (data_min, data_max))
         for i, entry in enumerate(self.data):
 
             # skip values outside defined axis range
-            if not self.in_axis_range_bounds(entry):
+            if not self.in_axis_range_bounds_new(entry):
                 continue
 
-            bpy.ops.mesh.primitive_ico_sphere_add()
+            bpy.ops.mesh.primitive_uv_sphere_add()
             point_obj = context.active_object
             point_obj.scale = Vector((self.point_scale, self.point_scale, self.point_scale))
             point_obj.active_material = self.new_mat(color_gen.next(entry[value_index]), 1)
 
             # normalize height
-
-            x_norm = normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1])
+            x_norm = normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1])
             z_norm = normalize_value(entry[value_index], data_min, data_max)
             if self.dimensions == '2':
                 point_obj.location = (x_norm, 0.0, z_norm)
             else:
-                y_norm = normalize_value(entry[1], self.y_axis_range[0], self.y_axis_range[1])
+                y_norm = normalize_value(entry[1], self.axis_settings.y_range[0], self.axis_settings.y_range[1])
                 point_obj.location = (x_norm, y_norm, z_norm)
 
             point_obj.parent = self.container_object
 
-        AxisFactory.create(
-            self.container_object,
-            (self.x_axis_step, self.y_axis_step, self.z_axis_step),
-            (self.x_axis_range, self.y_axis_range, (data_min, data_max)),
-            int(self.dimensions),
-            labels=self.labels,
-            padding=self.padding,
-            auto_steps=self.auto_steps,
-            offset=0.0
-        )
+        if self.axis_settings.create:
+            AxisFactory.create(
+                self.container_object,
+                (self.axis_settings.x_step, self.axis_settings.y_step, self.axis_settings.z_step),
+                (self.axis_settings.x_range, self.axis_settings.y_range, (data_min, data_max)),
+                int(self.dimensions),
+                labels=self.labels,
+                padding=self.axis_settings.padding,
+                auto_steps=self.axis_settings.auto_steps,
+                offset=0.0
+            )
         return {'FINISHED'}
