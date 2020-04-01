@@ -151,14 +151,6 @@ class Properties:
     def get_text_size():
         return bpy.data.scenes[0].dv_props.text_size
 
-    @staticmethod
-    def get_axis_thickness():
-        return bpy.data.scenes[0].dv_props.axis_thickness
-
-    @staticmethod
-    def get_axis_tick_mark_height():
-        return bpy.data.scenes[0].dv_props.axis_tick_mark_height
-
 
 class OBJECT_OT_GenericChart(bpy.types.Operator):
     '''Creates chart'''
@@ -172,7 +164,6 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def __init__(self):
         self.container_object = None
         self.labels = []
-        self.chart_origin = (0, 0, 0)
         self.dm = DataManager()
         if hasattr(self, 'dimensions'):
             self.dimensions = str(self.dm.dimensions)
@@ -269,7 +260,6 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         raise NotImplementedError('Execute method should be implemented in every chart operator!')
 
     def invoke(self, context, event):
-        self.chart_origin = context.scene.cursor.location
         return context.window_manager.invoke_props_dialog(self)
 
     def create_container(self):
@@ -277,7 +267,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         self.container_object = bpy.context.object
         self.container_object.empty_display_type = 'PLAIN_AXES'
         self.container_object.name = 'Chart_Container'
-        self.container_object.location = self.chart_origin
+        self.container_object.location = bpy.context.scene.cursor.location
 
     def data_type_as_enum(self):
         if not hasattr(self, 'data_type'):

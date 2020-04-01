@@ -4,7 +4,6 @@ from mathutils import Vector
 
 
 from data_vis.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
-from data_vis.utils.color_utils import ColorGen
 from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
@@ -86,7 +85,6 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             self.report({'ERROR'}, 'Data are only 2D!')
             return {'CANCELLED'}
         tick_labels = []
-        self.create_container()
         if self.data_type_as_enum() == DataType.Numerical:
             try:
                 data_min, data_max = find_data_range(self.data, self.axis_settings.x_range, self.axis_settings.y_range if self.dimensions == '3' else None)
@@ -97,8 +95,9 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             data_min = min(self.data, key=lambda val: val[1])[1]
             data_max = max(self.data, key=lambda val: val[1])[1]
 
+        self.create_container()
         color_factory = ColoringFactory(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
-        color_gen = color_factory.create((data_min, data_max), 2.0, self.chart_origin[2])
+        color_gen = color_factory.create((data_min, data_max), 2.0, self.container_object.location[2])
 
         if self.dimensions == '2':
             value_index = 1
@@ -140,6 +139,8 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 (self.axis_settings.x_step, self.axis_settings.y_step, self.axis_settings.z_step),
                 (self.axis_settings.x_range, self.axis_settings.y_range, (data_min, data_max)),
                 int(self.dimensions),
+                self.axis_settings.thickness,
+                self.axis_settings.tick_mark_height,
                 tick_labels=(tick_labels, [], []),
                 labels=self.labels,
                 padding=self.axis_settings.padding,

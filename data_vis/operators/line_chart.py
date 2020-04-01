@@ -146,6 +146,8 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
                 (self.axis_settings.x_step, 0, self.axis_settings.z_step),
                 (self.axis_settings.x_range, [], (data_min, data_max)),
                 2,
+                self.axis_settings.thickness,
+                self.axis_settings.tick_mark_height,
                 tick_labels=(tick_labels, [], []),
                 labels=self.labels,
                 padding=self.axis_settings.padding,

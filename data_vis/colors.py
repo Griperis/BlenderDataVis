@@ -34,7 +34,7 @@ class NodeShader:
             raise AttributeError('Unsupported shader type!')
 
     def create_random_shader(self):
-        material = bpy.data.materials.new(name='ChartMat')
+        material = bpy.data.materials.new(name='DV_ChartMat')
         material.use_nodes = True
 
         nodes = material.node_tree.nodes
@@ -61,7 +61,7 @@ class NodeShader:
         return material
 
     def create_const_shader(self):
-        material = bpy.data.materials.new(name='ChartMat')
+        material = bpy.data.materials.new(name='DV_ChartMat')
         material.use_nodes = True
 
         nodes = material.node_tree.nodes
@@ -96,7 +96,7 @@ class NodeShader:
         return material
 
     def create_gradient_shader(self, location_z):
-        material = bpy.data.materials.new(name='ChartMat')
+        material = bpy.data.materials.new(name='DV_ChartMat')
         material.use_nodes = True
 
         nodes = material.node_tree.nodes
@@ -150,21 +150,21 @@ class ColorGen:
         self.value_range = value_range
         self.color_type = color_type
         if self.color_type == ColorType.Constant:
-            self.material = bpy.data.materials.new(name='ChartMat')
+            self.material = bpy.data.materials.new(name='DV_ChartMat')
             self.material.diffuse_color = (*base_color, 1.0)
     
     def get_material(self, value=1.0):
         if self.color_type == ColorType.Constant:
             return self.material
         elif self.color_type == ColorType.Gradient:
-            material = bpy.data.materials.new(name='ChartMat')
+            material = bpy.data.materials.new(name='DV_ChartMat')
             norm = (value - self.value_range[0]) / (self.value_range[1] - self.value_range[0])
             color = hsv_to_rgb(self.base_color[0], self.base_color[1] * norm, self.base_color[2])
             material.diffuse_color = (*color, 1.0)
             return material
         elif self.color_type == ColorType.Random:
-            material = bpy.data.materials.new(name='ChartMat')
-            material.diffuse_color = (random.random(), random.random(), random.random(), 1.0)
+            material = bpy.data.materials.new(name='DV_ChartMat')
+            material.diffuse_color = (*hsv_to_rgb(random.random(), 1.0, 1.0), 1.0)
             return material
 
 

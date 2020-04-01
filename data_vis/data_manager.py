@@ -46,9 +46,8 @@ class DataManager:
             for i, col in enumerate(self.raw_data[0]):
                 try:
                     row = float(col)
-                    print(row)
                 except Exception as e:
-                    print(e)
+                    print('Labels analysis: ', e)
                     total += 1
             
             if total == len(self.raw_data[0]):

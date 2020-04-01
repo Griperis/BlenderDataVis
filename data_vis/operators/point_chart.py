@@ -6,7 +6,7 @@ from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_A
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
 from data_vis.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
-from data_vis.colors import ColoringFactory
+from data_vis.colors import ColoringFactory, ColorType
 from data_vis.data_manager import DataManager, DataType
 
 
@@ -27,57 +27,6 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
     point_scale: bpy.props.FloatProperty(
         name='Point scale',
         default=0.05
-    )
-
-    auto_ranges: bpy.props.BoolProperty(
-        name='Automatic axis ranges',
-        default=True
-    )
-
-    auto_steps: bpy.props.BoolProperty(
-        name='Automatic axis steps',
-        default=True
-    )
-
-    x_axis_step: bpy.props.FloatProperty(
-        name='Step of x axis',
-        default=1.0
-    )
-
-    x_axis_range: bpy.props.FloatVectorProperty(
-        name='Range of x axis',
-        size=2,
-        default=(0.0, 1.0)
-    )
-
-    y_axis_step: bpy.props.FloatProperty(
-        name='Step of y axis',
-        default=1.0
-    )
-
-    y_axis_range: bpy.props.FloatVectorProperty(
-        name='Range of y axis',
-        size=2,
-        default=(0.0, 1.0)
-    )
-
-    z_axis_step: bpy.props.FloatProperty(
-        name='Step of z axis',
-        default=1.0
-    )
-
-    color_shade: bpy.props.FloatVectorProperty(
-        name='Color',
-        subtype='COLOR',
-        default=(0.0, 0.0, 1.0),
-        min=0.0,
-        max=1.0
-    )
-
-    padding: bpy.props.FloatProperty(
-        name='Padding',
-        default=0.1,
-        min=0.0
     )
 
     label_settings: bpy.props.PointerProperty(
@@ -102,9 +51,6 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
         row = layout.row()
         row.prop(self, 'point_scale')
 
-        row = layout.row()
-        row.prop(self, 'color_shade')
-
     def init_range(self, data):
         self.axis_settings.x_range = find_axis_range(data, 0)
         self.axis_settings.y_range = find_axis_range(data, 1)
@@ -124,8 +70,9 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
 
         self.create_container()
         data_min, data_max = find_data_range(self.data, self.axis_settings.x_range, self.axis_settings.y_range if self.dimensions == '3' else None)
-
-        color_gen = ColorGen(self.color_settings.color_shade, (data_min, data_max), ColorType.str_to_type(self.color_settings.color_type))
+        color_factory = ColoringFactory(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
+        color_gen = color_factory.create((data_min, data_max), 1.0, self.container_object.location[2])
+        
         for i, entry in enumerate(self.data):
 
             # skip values outside defined axis range
@@ -135,7 +82,10 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             bpy.ops.mesh.primitive_uv_sphere_add()
             point_obj = context.active_object
             point_obj.scale = Vector((self.point_scale, self.point_scale, self.point_scale))
-            point_obj.active_material = self.new_mat(color_gen.next(entry[value_index]), 1)
+
+            mat = color_gen.get_material(entry[value_index])
+            point_obj.data.materials.append(mat)
+            point_obj.active_material = mat
 
             # normalize height
             x_norm = normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1])
@@ -154,6 +104,8 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
                 (self.axis_settings.x_step, self.axis_settings.y_step, self.axis_settings.z_step),
                 (self.axis_settings.x_range, self.axis_settings.y_range, (data_min, data_max)),
                 int(self.dimensions),
+                self.axis_settings.thickness,
+                self.axis_settings.tick_mark_height,
                 labels=self.labels,
                 padding=self.axis_settings.padding,
                 auto_steps=self.axis_settings.auto_steps,

@@ -15,7 +15,7 @@ class AxisDir(Enum):
 
 class AxisFactory:
     @staticmethod
-    def create(parent, axis_steps, axis_ranges, dim, labels=[], tick_labels=([], [], []), auto_steps=False, padding=0.0, offset=0.0):
+    def create(parent, axis_steps, axis_ranges, dim, thickness, tick_height, labels=[], tick_labels=([], [], []), auto_steps=False, padding=0.0, offset=0.0):
         '''
         Factory method that creates all axis with all values specified by parameters
         parent - parent object for axis containers
@@ -43,9 +43,9 @@ class AxisFactory:
             dir_idx = i
             if dim == 2 and i == 1:
                 dir_idx = 2
-                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx], auto_steps)
+                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx], thickness, tick_height, auto_steps)
             else:
-                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx], auto_steps)
+                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx], thickness, tick_height, auto_steps)
             axis.create(padding, offset, labels[dir_idx], True if dim == 2 else False)
 
 
@@ -58,15 +58,15 @@ class Axis:
     dir - direction of axis specified by AxisDir class
     hm - height multiplier to normalize chart height
     '''
-    def __init__(self, parent, step, ax_range, ax_dir, labels, auto_step=False):
+    def __init__(self, parent, step, ax_range, ax_dir, labels, thickness, tick_height, auto_step=False):
         self.range = ax_range
         if not auto_step or len(labels) > 0:
             self.step = step
         else:
             self.step = (self.range[1] - self.range[0]) / 10
         self.parent_object = parent
-        self.thickness = Properties.get_axis_thickness()
-        self.mark_height = Properties.get_axis_tick_mark_height()
+        self.thickness = thickness
+        self.mark_height = tick_height
         self.text_size = Properties.get_text_size()
         if isinstance(ax_dir, AxisDir):
             self.dir = ax_dir
@@ -75,6 +75,16 @@ class Axis:
 
         self.axis_cont = None
         self.labels = labels
+        self.create_materials()
+
+    def create_materials(self):
+        self.axis_mat = bpy.data.materials.get('DV_AxisMat')
+        if self.axis_mat is None:
+            self.axis_mat = bpy.data.materials.new(name='DV_AxisMat')
+    
+        self.tick_mat = bpy.data.materials.get('DV_TickMat')
+        if self.tick_mat is None:
+            self.tick_mat = bpy.data.materials.new(name='DV_TickMat')
 
     def create_container(self):
         '''
@@ -99,6 +109,8 @@ class Axis:
 
         obj.scale = (length, self.thickness, self.thickness)
         obj.location.x += length
+        obj.data.materials.append(self.axis_mat)
+        obj.active_material = self.axis_mat
         return obj
 
     def create_tick_mark(self, x_location):
@@ -113,6 +125,8 @@ class Axis:
         obj.location = (0, 0, 0)
         obj.location.x += x_location - self.thickness * 0.5
         obj.parent = self.axis_cont
+        obj.data.materials.append(self.tick_mat)
+        obj.active_material = self.tick_mat
 
     def create_ticks(self, start_pos):
         '''

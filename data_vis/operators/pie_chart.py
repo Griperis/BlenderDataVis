@@ -3,9 +3,9 @@ import math
 from mathutils import Matrix, Vector
 
 from data_vis.utils.data_utils import get_data_as_ll, find_data_range
-from data_vis.utils.color_utils import sat_col_gen, ColorGen
 from data_vis.general import OBJECT_OT_GenericChart
 from data_vis.data_manager import DataManager, DataType
+from data_vis.colors import ColorGen
 
 
 class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
@@ -83,7 +83,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
                 raise Exception('Error occurred, try to increase number of vertices, i_from" {}, i_to: {}, inc: {}, val: {}'.format(prev_i, portion_end_i, increment, self.data[i][1]))
                 break
 
-            slice_mat = self.new_mat(color_gen.next(data_len - i), 1)
+            slice_mat = color_gen.get_material(data_len - i)
             slice_obj.active_material = slice_mat
             slice_obj.parent = self.container_object
             label_rot_z = (((prev_i + portion_end_i) * 0.5) / self.vertices) * 2.0 * math.pi
