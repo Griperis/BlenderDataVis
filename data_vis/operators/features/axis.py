@@ -86,6 +86,10 @@ class Axis:
         if self.tick_mat is None:
             self.tick_mat = bpy.data.materials.new(name='DV_TickMat')
 
+        self.text_mat = bpy.data.materials.get('DV_TextMat')
+        if self.text_mat is None:
+            self.text_mat = bpy.data.materials.new(name='DV_TextMat')
+
     def create_container(self):
         '''
         Creates container for axis, with default name 'Axis_Container_DIM' where DIM is X, Y or Z
@@ -200,6 +204,8 @@ class Axis:
             obj.data.body = str(value)
         obj.data.align_x = 'CENTER'
         obj.scale *= self.text_size
+        obj.data.materials.append(self.text_mat)
+        obj.active_material = self.text_mat
         return obj
 
     def rotate_text_object(self, obj):

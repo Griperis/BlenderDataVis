@@ -34,7 +34,7 @@ class DV_AddonPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-   
+
         row = layout.row()
         row.label(text='Data', icon='WORLD_DATA')
 
