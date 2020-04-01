@@ -118,17 +118,19 @@ class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
 class DV_ColorPropertyGroup(bpy.types.PropertyGroup):
     use_shader: bpy.props.BoolProperty(
         name='Use Shader',
-        default=True
+        default=True,
+        description='Uses Node Shading to color created objects. Not using this option may create material for every chart object when not using constant color type'
     )
 
     color_type: bpy.props.EnumProperty(
-        name='Shader Type',
+        name='Coloring Type',
         items=(
             ('0', 'Constant', 'One color'),
             ('1', 'Random', 'Random colors'),
             ('2', 'Gradient', 'Gradient based on value')
         ),
-        default='2'
+        default='2',
+        description='Type of coloring for chart'
     )
 
     color_shade: bpy.props.FloatVectorProperty(
@@ -136,7 +138,8 @@ class DV_ColorPropertyGroup(bpy.types.PropertyGroup):
         subtype='COLOR',
         default=(0.0, 0.0, 1.0),
         min=0.0,
-        max=1.0
+        max=1.0,
+        description='Base color shade to work with'
     )
 
 
@@ -217,8 +220,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             box = layout.box()
             box.label(text='Color settings')
             box.prop(self.color_settings, 'use_shader')
-            if self.color_settings.use_shader:
-                box.prop(self.color_settings, 'color_type')
+            box.prop(self.color_settings, 'color_type')
             if not ColorType.str_to_type(self.color_settings.color_type) == ColorType.Random:
                 box.prop(self.color_settings, 'color_shade')
  
@@ -275,7 +277,6 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         self.container_object = bpy.context.object
         self.container_object.empty_display_type = 'PLAIN_AXES'
         self.container_object.name = 'Chart_Container'
-        # set default location for parent object
         self.container_object.location = self.chart_origin
 
     def data_type_as_enum(self):

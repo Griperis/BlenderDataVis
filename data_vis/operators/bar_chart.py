@@ -8,7 +8,7 @@ from data_vis.utils.color_utils import ColorGen
 from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
-from data_vis.colors import NodeShader, ColorType
+from data_vis.colors import ColoringFactory, ColorType
 
 
 class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
@@ -97,8 +97,8 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             data_min = min(self.data, key=lambda val: val[1])[1]
             data_max = max(self.data, key=lambda val: val[1])[1]
 
-        #color_gen = ColorGen(self.color_shade, (data_min, data_max))
-        shader = NodeShader(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), 2.0, self.chart_origin[2])
+        color_factory = ColoringFactory(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
+        color_gen = color_factory.create((data_min, data_max), 2.0, self.chart_origin[2])
 
         if self.dimensions == '2':
             value_index = 1
@@ -128,9 +128,10 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 y_norm = normalize_value(entry[1], self.axis_settings.y_range[0], self.axis_settings.y_range[1])
                 bar_obj.scale = (self.bar_size[0], self.bar_size[1], z_norm * 0.5)
                 bar_obj.location = (x_norm, y_norm, z_norm * 0.5)
-        
-            bar_obj.data.materials.append(shader.material)
-            bar_obj.active_material = shader.material  # self.new_mat(color_gen.next(entry[value_index]), 1)
+
+            mat = color_gen.get_material(entry[value_index])
+            bar_obj.data.materials.append(mat)
+            bar_obj.active_material = mat
             bar_obj.parent = self.container_object
 
         if self.axis_settings.create:

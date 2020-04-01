@@ -1,5 +1,7 @@
 import bpy
+import random
 from enum import Enum
+from colorsys import rgb_to_hsv, hsv_to_rgb
 
 
 class ColorType(Enum):
@@ -17,8 +19,7 @@ class ColorType(Enum):
 
 
 class NodeShader:
-    
-    def __init__(self, base_color, shader_type=ColorType.Constant, scale=1.0, location_z=0):
+    def __init__(self, base_color, shader_type, scale=1.0, location_z=0):
         self.base_color = self.__add_alpha(base_color, 1)
         self.shader_type = shader_type
         self.scale = scale
@@ -136,6 +137,45 @@ class NodeShader:
 
         return material
 
+    def get_material(self, *args):
+        return self.material
+
     def __add_alpha(self, color, alpha):
         return (color[0], color[1], color[2], alpha)
 
+
+class ColorGen:
+    def __init__(self, base_color, color_type, value_range):
+        self.base_color = rgb_to_hsv(*base_color)
+        self.value_range = value_range
+        self.color_type = color_type
+        if self.color_type == ColorType.Constant:
+            self.material = bpy.data.materials.new(name='ChartMat')
+            self.material.diffuse_color = (*base_color, 1.0)
+    
+    def get_material(self, value=1.0):
+        if self.color_type == ColorType.Constant:
+            return self.material
+        elif self.color_type == ColorType.Gradient:
+            material = bpy.data.materials.new(name='ChartMat')
+            norm = (value - self.value_range[0]) / (self.value_range[1] - self.value_range[0])
+            color = hsv_to_rgb(self.base_color[0], self.base_color[1] * norm, self.base_color[2])
+            material.diffuse_color = (*color, 1.0)
+            return material
+        elif self.color_type == ColorType.Random:
+            material = bpy.data.materials.new(name='ChartMat')
+            material.diffuse_color = (random.random(), random.random(), random.random(), 1.0)
+            return material
+
+
+class ColoringFactory:
+    def __init__(self, base_color, color_type, use_shader):
+        self.base_color = base_color
+        self.color_type = color_type
+        self.use_shader = use_shader
+
+    def create(self, value_range=(0, 1), scale=1.0, location_z=0):
+        if self.use_shader:
+            return NodeShader(self.base_color, self.color_type, scale, location_z)
+        else:
+            return ColorGen(self.base_color, self.color_type, value_range)

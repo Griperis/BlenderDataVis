@@ -6,6 +6,7 @@ from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_A
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
 from data_vis.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
+from data_vis.colors import ColoringFactory
 from data_vis.data_manager import DataManager, DataType
 
 
@@ -87,9 +88,9 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
         type=DV_AxisPropertyGroup
     )
 
-    # color_settings: bpy.props.PointerProperty(
-    #     type=DV_ColorPropertyGroup
-    # )
+    color_settings: bpy.props.PointerProperty(
+        type=DV_ColorPropertyGroup
+    )
 
     @classmethod
     def poll(cls, context):
@@ -124,7 +125,7 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
         self.create_container()
         data_min, data_max = find_data_range(self.data, self.axis_settings.x_range, self.axis_settings.y_range if self.dimensions == '3' else None)
 
-        color_gen = ColorGen(self.color_shade, (data_min, data_max))
+        color_gen = ColorGen(self.color_settings.color_shade, (data_min, data_max), ColorType.str_to_type(self.color_settings.color_type))
         for i, entry in enumerate(self.data):
 
             # skip values outside defined axis range
