@@ -1,17 +1,16 @@
 import bpy
 import math
-from itertools import zip_longest
 from mathutils import Vector
 
 
-from data_vis.utils.data_utils import get_data_as_ll, find_data_range, find_axis_range, normalize_value, get_data_in_range, DataType
+from data_vis.utils.data_utils import find_data_range, find_axis_range, normalize_value, get_data_in_range
 from data_vis.operators.features.axis import AxisFactory
-from data_vis.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
-from data_vis.general import CONST
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup
+from data_vis.data_manager import DataManager, DataType
 
 
-class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
-    '''Creates line chart as a line or as curve'''
+class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
+    '''Creates Line Chart, supports 2D Numerical or Categorical values with or w/o labels'''
     bl_idname = 'object.create_line_chart'
     bl_label = 'Line Chart'
     bl_options = {'REGISTER', 'UNDO'}
@@ -72,7 +71,12 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         type=DV_LabelPropertyGroup
     )
 
+    axis_settings: bpy.props.PointerProperty(
+        type=DV_AxisPropertyGroup
+    )
+
     def __init__(self):
+        super().__init__()
         self.only_2d = True
         self.x_delta = 0.2
         self.bevel_obj_size = (0.01, 0.01, 0.01)
@@ -89,12 +93,17 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
             },
         }
 
+    @classmethod
+    def poll(cls, context):
+        dm = DataManager()
+        return dm.is_type(DataType.Numerical, 2) or dm.is_type(DataType.Categorical, 2)
+
     def draw(self, context):
         super().draw(context)
+        layout = self.layout
         if self.bevel_edges:
             row = layout.row()
             row.prop(self, 'rounded')
-        layout = self.layout
         row = layout.row()
         row.prop(self, 'bevel_edges')
         if self.bevel_edges:
@@ -102,31 +111,28 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
             row.prop(self, 'rounded')
 
     def execute(self, context):
-        if not self.init_data(self.data_type_as_enum()):
-            return {'CANCELLED'}
-        if len(self.data[0]) > 2:
-            self.report({'ERROR'}, 'Line chart supports X Y values only')
-            return {'CANCELLED'}
+        self.init_data()
+
         self.create_container()
 
         if self.data_type_as_enum() == DataType.Numerical:
-            if self.auto_ranges:
-                self.x_axis_range = find_axis_range(self.data, 0)
-            data_min, data_max = find_data_range(self.data, self.x_axis_range)
-            self.data = get_data_in_range(self.data, self.x_axis_range)
+            if self.axis_settings.auto_ranges:
+                self.axis_settings.x_range = find_axis_range(self.data, 0)
+            data_min, data_max = find_data_range(self.data, self.axis_settings.x_range)
+            self.data = get_data_in_range(self.data, self.axis_settings.x_range)
             sorted_data = sorted(self.data, key=lambda x: x[0])
         else:
-            self.x_axis_range[0] = 0
-            self.x_axis_range[1] = len(self.data) - 1
+            self.axis_settings.x_range[0] = 0
+            self.axis_settings.x_range[1] = len(self.data) - 1
             data_min = min(self.data, key=lambda val: val[1])[1]
             data_max = max(self.data, key=lambda val: val[1])[1]
             sorted_data = self.data
 
         tick_labels = []
         if self.data_type_as_enum() == DataType.Numerical:
-            normalized_vert_list = [(normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for entry in sorted_data]
+            normalized_vert_list = [(normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for entry in sorted_data]
         else:
-            normalized_vert_list = [(normalize_value(i, self.x_axis_range[0], self.x_axis_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for i, entry in enumerate(sorted_data)]
+            normalized_vert_list = [(normalize_value(i, self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for i, entry in enumerate(sorted_data)]
             tick_labels = list(zip(*sorted_data))[0]
 
         edges = [[i - 1, i] for i in range(1, len(normalized_vert_list))]
@@ -134,17 +140,20 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         self.create_curve(normalized_vert_list, edges)
         self.add_bevel_obj()
 
-        AxisFactory.create(
-            self.container_object,
-            (self.x_axis_step, 0, self.z_axis_step),
-            (self.x_axis_range, [], (data_min, data_max)),
-            2,
-            tick_labels=(tick_labels, [], []),
-            labels=self.labels,
-            padding=self.padding,
-            auto_steps=self.auto_steps,
-            offset=0.0
-        )
+        if self.axis_settings.create:
+            AxisFactory.create(
+                self.container_object,
+                (self.axis_settings.x_step, 0, self.axis_settings.z_step),
+                (self.axis_settings.x_range, [], (data_min, data_max)),
+                2,
+                self.axis_settings.thickness,
+                self.axis_settings.tick_mark_height,
+                tick_labels=(tick_labels, [], []),
+                labels=self.labels,
+                padding=self.axis_settings.padding,
+                auto_steps=self.axis_settings.auto_steps,
+                offset=0.0
+            )
         return {'FINISHED'}
 
     def create_curve(self, verts, edges):
