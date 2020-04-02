@@ -3,8 +3,10 @@ from scipy.interpolate import griddata
 import numpy as np
 import math
 
-from data_vis.general import OBJECT_OT_GenericChart, DV_AxisPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_ColorPropertyGroup
 from data_vis.utils.data_utils import find_data_range, normalize_value
+from data_vis.colors import ColoringFactory, ColorType
+from data_vis.operators.features.axis import AxisFactory 
 
 
 class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
@@ -16,11 +18,28 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
     density: bpy.props.IntProperty(
         name='Density of grid',
         min=1,
-        default=50,
+        default=10,
+    )
+
+    interpolation_method: bpy.props.EnumProperty(
+        name='Interpolation method',
+        items=(
+            ('nearest', 'Nearest', 'nearest'),
+            ('linear', 'Linear', 'linear'),
+            ('cubic', 'Cubic', 'cubic'),
+        )
     )
 
     axis_settings: bpy.props.PointerProperty(
         type=DV_AxisPropertyGroup
+    )
+
+    label_settings: bpy.props.PointerProperty(
+        type=DV_LabelPropertyGroup
+    )
+
+    color_settings: bpy.props.PointerProperty(
+        type=DV_ColorPropertyGroup
     )
 
     @classmethod
@@ -31,13 +50,15 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         super().draw(context)
         layout = self.layout
         row = layout.row()
+        row.prop(self, 'interpolation_method')
+        row = layout.row()
         row.prop(self, 'density')
 
     def face(self, column, row):
-        return (column* self.density + row,
-        (column + 1) * self.density + row,
-        (column + 1) * self.density + 1 + row,
-        column * self.density + 1 + row)
+        return (column * self.density + row,
+                (column + 1) * self.density + row,
+                (column + 1) * self.density + 1 + row,
+                column * self.density + 1 + row)
 
     def execute(self, context):
         self.init_data()
@@ -54,31 +75,46 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
 
         px = [entry[0] for entry in self.data]
         py = [entry[1] for entry in self.data]
-        f = [entry[2] for entry in self.data]
-
-        res = griddata((px, py), f, (X, Y))
+        f = [normalize_value(entry[2], data_min, data_max) for entry in self.data]
+        res = griddata((px, py), f, (X, Y), self.interpolation_method, 0.0  )
 
         faces = []
         verts = []
-        for x in range(self.density):
-            for y in range(self.density):
-                x_norm = x / self.density
-                y_norm = y / self.density
-                value = res[x][y]
-                if math.isnan(value):
-                    value = 0.0
+        for row in range(self.density):
+            for col in range(self.density):
+                x_norm = row / self.density
+                y_norm = col / self.density
+                value = res[row][col]
                 z_norm = normalize_value(value, data_min, data_max)
-                # bpy.ops.mesh.primitive_uv_sphere_add()
-                # obj = context.active_object
-                # obj.scale = (0.02, 0.02, 0.02)
-                # obj.location = (, y / nof_points, res[x][y])
                 verts.append((x_norm, y_norm, z_norm))
+                if row < self.density - 1 and col < self.density - 1:
+                    fac = self.face(col, row)
+                    faces.append(fac)
 
         mesh = bpy.data.meshes.new('DV_SurfaceChart_Mesh')
         mesh.from_pydata(verts, [], faces)
 
-        obj = bpy.data.objects.new('SurfaceChart', mesh)
+        obj = bpy.data.objects.new('SurfaceChart_Mesh_Obj', mesh)
         bpy.context.scene.collection.objects.link(obj)
+        obj.parent = self.container_object
+
+        cf = ColoringFactory(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
+        mat = cf.create((data_min, data_max)).get_material(1.0)
+        obj.data.materials.append(mat)
+        obj.active_material = mat
+
+        if self.axis_settings.create:
+            AxisFactory.create(
+                self.container_object,
+                (self.axis_settings.x_step, self.axis_settings.y_step, self.axis_settings.z_step),
+                (self.axis_settings.x_range, self.axis_settings.y_range, (data_min, data_max)),
+                3,
+                self.axis_settings.thickness,
+                self.axis_settings.tick_mark_height,
+                padding=self.axis_settings.padding,
+                auto_steps=self.axis_settings.auto_steps,
+                offset=0.0
+            )
 
         return {'FINISHED'}
 
