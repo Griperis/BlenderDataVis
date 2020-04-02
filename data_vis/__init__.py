@@ -18,6 +18,7 @@ from .operators.bar_chart import OBJECT_OT_BarChart
 from .operators.line_chart import OBJECT_OT_LineChart
 from .operators.pie_chart import OBJECT_OT_PieChart
 from .operators.point_chart import OBJECT_OT_PointChart
+from .operators.surface_chart import OBJECT_OT_SurfaceChart
 from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup
 from .data_manager import DataManager
 
@@ -77,6 +78,7 @@ class OBJECT_MT_AddChart(bpy.types.Menu):
         layout.operator(OBJECT_OT_LineChart.bl_idname, icon_value=main_icons['line_chart'].icon_id)
         layout.operator(OBJECT_OT_PieChart.bl_idname, icon_value=main_icons['pie_chart'].icon_id)
         layout.operator(OBJECT_OT_PointChart.bl_idname, icon_value=main_icons['point_chart'].icon_id)
+        layout.operator(OBJECT_OT_SurfaceChart.bl_idname)
 
 
 preview_collections = {}
@@ -116,6 +118,7 @@ def register():
     bpy.utils.register_class(OBJECT_OT_PieChart)
     bpy.utils.register_class(OBJECT_OT_LineChart)
     bpy.utils.register_class(OBJECT_OT_PointChart)
+    bpy.utils.register_class(OBJECT_OT_SurfaceChart)
     bpy.utils.register_class(FILE_OT_DVLoadFile)
     bpy.utils.register_class(DV_AddonPanel)
     bpy.utils.register_class(OBJECT_MT_AddChart)
@@ -133,6 +136,7 @@ def unregister():
     bpy.utils.unregister_class(OBJECT_OT_PieChart)
     bpy.utils.unregister_class(OBJECT_OT_LineChart)
     bpy.utils.unregister_class(OBJECT_OT_PointChart)
+    bpy.utils.unregister_class(OBJECT_OT_SurfaceChart)
     bpy.utils.unregister_class(FILE_OT_DVLoadFile)
     bpy.utils.unregister_class(DV_LabelPropertyGroup)
     bpy.utils.unregister_class(DV_ColorPropertyGroup)

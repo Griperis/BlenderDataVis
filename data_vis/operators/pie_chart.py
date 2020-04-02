@@ -2,7 +2,7 @@ import bpy
 import math
 from mathutils import Matrix, Vector
 
-from data_vis.utils.data_utils import get_data_as_ll, find_data_range
+from data_vis.utils.data_utils import find_data_range
 from data_vis.general import OBJECT_OT_GenericChart
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import ColorGen
