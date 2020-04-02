@@ -5,8 +5,8 @@ import math
 
 from data_vis.general import OBJECT_OT_GenericChart, DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_ColorPropertyGroup
 from data_vis.utils.data_utils import find_data_range, normalize_value
-from data_vis.colors import ColoringFactory, ColorType
-from data_vis.operators.features.axis import AxisFactory 
+from data_vis.colors import NodeShader
+from data_vis.operators.features.axis import AxisFactory
 
 
 class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
@@ -38,8 +38,13 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         type=DV_LabelPropertyGroup
     )
 
-    color_settings: bpy.props.PointerProperty(
-        type=DV_ColorPropertyGroup
+    color_shade: bpy.props.FloatVectorProperty(
+        name='Base Color',
+        subtype='COLOR',
+        default=(0.0, 0.0, 1.0),
+        min=0.0,
+        max=1.0,
+        description='Base color shade to work with'
     )
 
     @classmethod
@@ -49,10 +54,15 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
+        
         row = layout.row()
         row.prop(self, 'interpolation_method')
+        
         row = layout.row()
         row.prop(self, 'density')
+
+        row = layout.row()
+        row.prop(self, 'color_shade')
 
     def face(self, column, row):
         return (column * self.density + row,
@@ -76,7 +86,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         px = [entry[0] for entry in self.data]
         py = [entry[1] for entry in self.data]
         f = [normalize_value(entry[2], data_min, data_max) for entry in self.data]
-        res = griddata((px, py), f, (X, Y), self.interpolation_method, 0.0  )
+        res = griddata((px, py), f, (X, Y), self.interpolation_method, 0.0)
 
         faces = []
         verts = []
@@ -84,8 +94,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
             for col in range(self.density):
                 x_norm = row / self.density
                 y_norm = col / self.density
-                value = res[row][col]
-                z_norm = normalize_value(value, data_min, data_max)
+                z_norm = res[row][col]
                 verts.append((x_norm, y_norm, z_norm))
                 if row < self.density - 1 and col < self.density - 1:
                     fac = self.face(col, row)
@@ -98,8 +107,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         bpy.context.scene.collection.objects.link(obj)
         obj.parent = self.container_object
 
-        cf = ColoringFactory(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
-        mat = cf.create((data_min, data_max)).get_material(1.0)
+        mat = NodeShader(self.color_shade, location_z=self.container_object.location[2]).create_geometry_shader()
         obj.data.materials.append(mat)
         obj.active_material = mat
 
