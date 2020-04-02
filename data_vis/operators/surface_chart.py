@@ -1,5 +1,5 @@
 import bpy
-from scipy.interpolate import griddata
+from scipy import interpolate
 import numpy as np
 import math
 
@@ -15,19 +15,32 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
     bl_label = 'Surface Chart'
     bl_options = {'REGISTER', 'UNDO'}
 
+    dimensions: bpy.props.EnumProperty(
+        name='Dimensions',
+        items=(
+            ('3', '3D', 'X, Y, Z'),
+        ),
+        options={'HIDDEN'}
+    )
+
     density: bpy.props.IntProperty(
         name='Density of grid',
         min=1,
-        default=10,
+        default=100,
     )
 
-    interpolation_method: bpy.props.EnumProperty(
-        name='Interpolation method',
+    rbf_function: bpy.props.EnumProperty(
+        name='RBF Method',
         items=(
-            ('nearest', 'Nearest', 'nearest'),
-            ('linear', 'Linear', 'linear'),
-            ('cubic', 'Cubic', 'cubic'),
-        )
+            ('multiquadric', 'Multiquadric', '[DEFAULT] sqrt((r/self.epsilon)**2 + 1'),
+            ('inverse', 'Inverse', '1.0/sqrt((r/self.epsilon)**2 + 1'),
+            ('gaussian', 'Gaussian', 'exp(-(r/self.epsilon)**2'),
+            ('linear', 'Linear', 'r'),
+            ('cubic', 'Cubic', 'r**3'),
+            ('quintic', 'Quintic', 'r**5'),
+            ('thin_plate', 'Thin Plate', 'r**2 * log(r)'),
+        ),
+        description='See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html',
     )
 
     axis_settings: bpy.props.PointerProperty(
@@ -56,7 +69,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         layout = self.layout
         
         row = layout.row()
-        row.prop(self, 'interpolation_method')
+        row.prop(self, 'rbf_function')
         
         row = layout.row()
         row.prop(self, 'density')
@@ -77,16 +90,20 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
 
         self.create_container()
 
-        x = np.linspace(0, 1, self.density)
-        y = np.linspace(0, 1, self.density)
+        x = np.linspace(self.axis_settings.x_range[0], self.axis_settings.x_range[1], self.density)
+        y = np.linspace(self.axis_settings.x_range[0], self.axis_settings.y_range[1], self.density)
         X, Y = np.meshgrid(x, y)
 
         data_min, data_max = find_data_range(self.data, self.axis_settings.x_range, self.axis_settings.y_range)
 
         px = [entry[0] for entry in self.data]
         py = [entry[1] for entry in self.data]
-        f = [normalize_value(entry[2], data_min, data_max) for entry in self.data]
-        res = griddata((px, py), f, (X, Y), self.interpolation_method, 0.0)
+        f = [entry[2] for entry in self.data]
+
+        rbfi = interpolate.Rbf(px, py, f, function=self.rbf_function)
+        res = rbfi(X, Y)
+
+#        res = griddata((px, py), f, (X, Y), self.interpolation_method, 0.0)
 
         faces = []
         verts = []
@@ -94,7 +111,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
             for col in range(self.density):
                 x_norm = row / self.density
                 y_norm = col / self.density
-                z_norm = res[row][col]
+                z_norm = normalize_value(res[row][col], data_min, data_max)
                 verts.append((x_norm, y_norm, z_norm))
                 if row < self.density - 1 and col < self.density - 1:
                     fac = self.face(col, row)
