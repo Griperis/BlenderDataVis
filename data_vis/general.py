@@ -4,6 +4,7 @@ import math
 
 from mathutils import Vector
 from data_vis.data_manager import DataManager, DataType
+from data_vis.utils.data_utils import find_axis_range
 from data_vis.colors import ColorType
 
 
@@ -306,6 +307,10 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
                 self.report({'ERROR'}, 'Unsupported number of labels on first line')
         else:
             self.labels = [self.label_settings.x_label, self.label_settings.y_label, self.label_settings.z_label]
+
+    def init_range(self, data):
+        self.axis_settings.x_range = find_axis_range(data, 0)
+        self.axis_settings.y_range = find_axis_range(data, 1)
 
     def in_axis_range_bounds(self, entry):
         '''

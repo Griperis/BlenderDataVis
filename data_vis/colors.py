@@ -7,7 +7,8 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 class ColorType(Enum):
     Constant = 0
     Random = 1
-    Gradient = 2
+    Gradient = 2,
+    Custom = 3
 
     def str_to_type(value):
         if str(value) == '0' or value == 'Constant':
@@ -19,18 +20,19 @@ class ColorType(Enum):
 
 
 class NodeShader:
-    def __init__(self, base_color, shader_type, scale=1.0, location_z=0):
+    def __init__(self, base_color, shader_type=ColorType.Custom, scale=1.0, location_z=0):
         self.base_color = self.__add_alpha(base_color, 1)
         self.shader_type = shader_type
         self.scale = scale
+        self.location_z = location_z
 
         if self.shader_type == ColorType.Random:
             self.material = self.create_random_shader()
         elif self.shader_type == ColorType.Constant:
             self.material = self.create_const_shader()
         elif self.shader_type == ColorType.Gradient:
-            self.material = self.create_gradient_shader(location_z)
-        else:
+            self.material = self.create_gradient_shader()
+        elif self.shader_type != ColorType.Custom:
             raise AttributeError('Unsupported shader type!')
 
     def create_random_shader(self):
@@ -95,7 +97,7 @@ class NodeShader:
 
         return material
 
-    def create_gradient_shader(self, location_z):
+    def create_gradient_shader(self):
         material = bpy.data.materials.new(name='DV_ChartMat')
         material.use_nodes = True
 
@@ -120,7 +122,7 @@ class NodeShader:
         sub_node = nodes.new('ShaderNodeMath')
         sub_node.location = (-700, 0)
         sub_node.operation = 'SUBTRACT'
-        sub_node.inputs[1].default_value = location_z
+        sub_node.inputs[1].default_value = self.location_z
 
         xyz_sep_node = nodes.new('ShaderNodeSeparateXYZ')
         xyz_sep_node.location = (-900, 0)
@@ -133,6 +135,40 @@ class NodeShader:
         links.new(xyz_sep_node.outputs[2], sub_node.inputs[0])
         links.new(sub_node.outputs[0], mul_node.inputs[0])
         links.new(mul_node.outputs[0], cr_node.inputs[0])
+        links.new(cr_node.outputs[0], bsdf_node.inputs[0])
+
+        return material
+
+    def create_geometry_shader(self):
+        material = bpy.data.materials.new(name='DV_ChartMat')
+        material.use_nodes = True
+
+        nodes = material.node_tree.nodes
+
+        bsdf_node = nodes.get('Principled BSDF')
+
+        cr_node = nodes.new('ShaderNodeValToRGB')
+        cr_node.location = (-300, 0)
+    
+        cr_node.color_ramp.elements[0].color = (1, 1, 1, 1)
+        cr_node.color_ramp.elements[1].color = self.base_color
+
+        # Normalize the position when creating shader
+        sub_node = nodes.new('ShaderNodeMath')
+        sub_node.location = (-500, 0)
+        sub_node.operation = 'SUBTRACT'
+        sub_node.inputs[1].default_value = self.location_z
+
+        xyz_sep_node = nodes.new('ShaderNodeSeparateXYZ')
+        xyz_sep_node.location = (-700, 0)
+
+        geometry_node = nodes.new('ShaderNodeNewGeometry')
+        geometry_node.location = (-900, 0)
+
+        links = material.node_tree.links
+        links.new(geometry_node.outputs[0], xyz_sep_node.inputs[0])
+        links.new(xyz_sep_node.outputs[2], sub_node.inputs[0])
+        links.new(sub_node.outputs[0], cr_node.inputs[0])
         links.new(cr_node.outputs[0], bsdf_node.inputs[0])
 
         return material

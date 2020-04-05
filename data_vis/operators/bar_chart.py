@@ -3,7 +3,7 @@ import math
 from mathutils import Vector
 
 
-from data_vis.utils.data_utils import get_data_as_ll, find_data_range, normalize_value, find_axis_range
+from data_vis.utils.data_utils import find_data_range, normalize_value, find_axis_range
 from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
@@ -60,10 +60,6 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         layout = self.layout
         row = layout.row()
         row.prop(self, 'bar_size')
-
-    def init_range(self, data):
-        self.axis_settings.x_range = find_axis_range(data, 0)
-        self.axis_settings.y_range = find_axis_range(data, 1)
 
     def data_type_as_enum(self):
         if self.data_type == '0':

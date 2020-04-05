@@ -15,7 +15,7 @@ class AxisDir(Enum):
 
 class AxisFactory:
     @staticmethod
-    def create(parent, axis_steps, axis_ranges, dim, thickness, tick_height, labels=[], tick_labels=([], [], []), auto_steps=False, padding=0.0, offset=0.0):
+    def create(parent, axis_steps, axis_ranges, dim, thickness, tick_height, labels=(None, None, None), tick_labels=([], [], []), auto_steps=False, padding=0.0, offset=0.0):
         '''
         Factory method that creates all axis with all values specified by parameters
         parent - parent object for axis containers
