@@ -74,10 +74,10 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        
+
         row = layout.row()
         row.prop(self, 'rbf_function')
-        
+   
         row = layout.row()
         row.prop(self, 'density')
 

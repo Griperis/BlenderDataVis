@@ -1,5 +1,5 @@
 bl_info = {
-    'name': 'DataVis',
+    'name': 'Data Vis',
     'author': 'Zdenek Dolezal',
     'description': '',
     'blender': (2, 80, 0),
@@ -26,35 +26,52 @@ from .data_manager import DataManager
 
 
 class DV_Preferences(bpy.types.AddonPreferences):
-    '''
-    Preferences for data visualisation addon
-    '''
+    '''Preferences for data visualisation addon'''
     bl_idname = 'data_vis'
 
     def draw(self, context):
         layout = self.layout
         row = layout.row()
         row.scale_y = 2.0
-        row.operator('object.install_modules')
-
+        try:
+            import scipy
+            import numpy
+            row.label(text='Dependencies already installed...')
+        except ImportError:
+            row.operator('object.install_modules')
+            row = layout.row()
+            version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
+            row.label(text='Or in {} use command: python -m pip install scipy'.format(os.path.join(os.getcwd(), version, 'python', 'bin', 'python')))
+            row = layout.row()
+            row.label(text='Blender has to be restarted after this process!')
 
 class OBJECT_OT_InstallModules(bpy.types.Operator):
-    '''
-    Operator that tries to install scipy and numpy using pip into blender python
-    '''
-    bl_label = "Install Python Dependencies"
-    bl_idname = "object.install_modules"
+    '''Operator that tries to install scipy and numpy using pip into blender python'''
+    bl_label = 'Install addon dependencies'
+    bl_idname = 'object.install_modules'
     bl_options = {'REGISTER'}
 
     def execute(self, context):
         version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
-        python_path = os.path.join(cwd, version, 'python', 'bin', 'python')
-        self.install(python_path)
 
+        python_path = os.path.join(os.getcwd(), version, 'python', 'bin', 'python')
+        try:
+            self.install(python_path)
+        except Exception as e:
+            self.report({'ERROR'}, 'Try to run Blender as administrator or install dependencies manually! :(\n Exception: {}'.format(str(e)))
         return {'FINISHED'}
 
     def install(self, python_path):
-        subprocess.check_call([python_path, '-m', 'pip', 'install', 'scipy'])
+        import platform
+
+        if platform.system() == 'Windows':
+            result = subprocess.check_call([python_path, '-m', 'pip', 'install', '--user', 'scipy'])
+        elif platform.system() == 'Linux':
+            result = subprocess.check_call(['sudo', python_path, '-m', 'pip', 'install', '--user', 'scipy'])
+
+        if result == 0:
+            bpy.utils.unregister_class(OBJECT_OT_SurfaceChart)
+            bpy.utils.register_class(OBJECT_OT_SurfaceChart)
 
 
 class DV_AddonPanel(bpy.types.Panel):
@@ -158,6 +175,11 @@ classes = [
     FILE_OT_DVLoadFile,
     DV_AddonPanel,
 ]
+
+
+def reload():
+    unregister()
+    register()
 
 
 def register():
