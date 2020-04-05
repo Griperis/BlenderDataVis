@@ -3,7 +3,7 @@ bl_info = {
     'author': 'Zdenek Dolezal',
     'description': '',
     'blender': (2, 80, 0),
-    'version': (1, 0, 0),
+    'version': (1, 1, 0),
     'location': 'Object -> Add Mesh',
     'warning': '',
     'category': 'Generic'
@@ -12,6 +12,8 @@ bl_info = {
 import bpy
 import bpy.utils.previews
 import os
+import subprocess
+import sys
 
 from .operators.data_load import FILE_OT_DVLoadFile
 from .operators.bar_chart import OBJECT_OT_BarChart
@@ -21,6 +23,38 @@ from .operators.point_chart import OBJECT_OT_PointChart
 from .operators.surface_chart import OBJECT_OT_SurfaceChart
 from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup
 from .data_manager import DataManager
+
+
+class DV_Preferences(bpy.types.AddonPreferences):
+    '''
+    Preferences for data visualisation addon
+    '''
+    bl_idname = 'data_vis'
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.scale_y = 2.0
+        row.operator('object.install_modules')
+
+
+class OBJECT_OT_InstallModules(bpy.types.Operator):
+    '''
+    Operator that tries to install scipy and numpy using pip into blender python
+    '''
+    bl_label = "Install Python Dependencies"
+    bl_idname = "object.install_modules"
+    bl_options = {'REGISTER'}
+
+    def execute(self, context):
+        version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
+        python_path = os.path.join(cwd, version, 'python', 'bin', 'python')
+        self.install(python_path)
+
+        return {'FINISHED'}
+
+    def install(self, python_path):
+        subprocess.check_call([python_path, '-m', 'pip', 'install', 'scipy'])
 
 
 class DV_AddonPanel(bpy.types.Panel):
@@ -64,7 +98,7 @@ class DV_PropertyGroup(bpy.types.PropertyGroup):
     )
 
 
-class OBJECT_MT_AddChart(bpy.types.Menu):
+class OBJECT_OT_AddChart(bpy.types.Menu):
     '''
     Menu panel grouping chart related operators in Blender AddObject panel
     '''
@@ -87,7 +121,7 @@ data_manager = DataManager()
 
 def chart_ops(self, context):
     icon = preview_collections['main']['addon_icon']
-    self.layout.menu(OBJECT_MT_AddChart.bl_idname, icon_value=icon.icon_id)
+    self.layout.menu(OBJECT_OT_AddChart.bl_idname, icon_value=icon.icon_id)
 
 
 def load_icons():
@@ -108,20 +142,29 @@ def remove_icons():
     preview_collections.clear()
 
 
+classes = [
+    DV_Preferences,
+    OBJECT_OT_InstallModules,
+    DV_PropertyGroup,
+    DV_LabelPropertyGroup,
+    DV_ColorPropertyGroup,
+    DV_AxisPropertyGroup,
+    OBJECT_OT_AddChart,
+    OBJECT_OT_BarChart,
+    OBJECT_OT_PieChart,
+    OBJECT_OT_PointChart,
+    OBJECT_OT_LineChart,
+    OBJECT_OT_SurfaceChart,
+    FILE_OT_DVLoadFile,
+    DV_AddonPanel,
+]
+
+
 def register():
     load_icons()
-    bpy.utils.register_class(DV_PropertyGroup)
-    bpy.utils.register_class(DV_LabelPropertyGroup)
-    bpy.utils.register_class(DV_ColorPropertyGroup)
-    bpy.utils.register_class(DV_AxisPropertyGroup)
-    bpy.utils.register_class(OBJECT_OT_BarChart)
-    bpy.utils.register_class(OBJECT_OT_PieChart)
-    bpy.utils.register_class(OBJECT_OT_LineChart)
-    bpy.utils.register_class(OBJECT_OT_PointChart)
-    bpy.utils.register_class(OBJECT_OT_SurfaceChart)
-    bpy.utils.register_class(FILE_OT_DVLoadFile)
-    bpy.utils.register_class(DV_AddonPanel)
-    bpy.utils.register_class(OBJECT_MT_AddChart)
+    for c in classes:
+        bpy.utils.register_class(c)
+
     bpy.types.VIEW3D_MT_add.append(chart_ops)
 
     bpy.types.Scene.dv_props = bpy.props.PointerProperty(type=DV_PropertyGroup)
@@ -129,18 +172,8 @@ def register():
 
 def unregister():
     remove_icons()
-    bpy.utils.unregister_class(DV_PropertyGroup)
-    bpy.utils.unregister_class(OBJECT_MT_AddChart)
-    bpy.utils.unregister_class(DV_AddonPanel)
-    bpy.utils.unregister_class(OBJECT_OT_BarChart)
-    bpy.utils.unregister_class(OBJECT_OT_PieChart)
-    bpy.utils.unregister_class(OBJECT_OT_LineChart)
-    bpy.utils.unregister_class(OBJECT_OT_PointChart)
-    bpy.utils.unregister_class(OBJECT_OT_SurfaceChart)
-    bpy.utils.unregister_class(FILE_OT_DVLoadFile)
-    bpy.utils.unregister_class(DV_LabelPropertyGroup)
-    bpy.utils.unregister_class(DV_ColorPropertyGroup)
-    bpy.utils.unregister_class(DV_AxisPropertyGroup)
+    for c in reversed(classes):
+        bpy.utils.unregister_class(c)
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
 
 

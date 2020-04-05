@@ -1,12 +1,19 @@
 import bpy
-from scipy import interpolate
-import numpy as np
 import math
 
 from data_vis.general import OBJECT_OT_GenericChart, DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_ColorPropertyGroup
 from data_vis.utils.data_utils import find_data_range, normalize_value
 from data_vis.colors import NodeShader
 from data_vis.operators.features.axis import AxisFactory
+from data_vis.data_manager import DataManager, DataType
+
+try:
+    import numpy as np
+    from scipy import interpolate
+    modules_available = True
+except ImportError as e:
+    print('Warning: Modules not installed in blender python: numpy, scipy')
+    modules_available = False
 
 
 class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
@@ -62,7 +69,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
 
     @classmethod
     def poll(cls, context):
-        return True
+        return modules_available and DataManager().is_type(DataType.Numerical, 3)
 
     def draw(self, context):
         super().draw(context)
@@ -102,8 +109,6 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
 
         rbfi = interpolate.Rbf(px, py, f, function=self.rbf_function)
         res = rbfi(X, Y)
-
-#        res = griddata((px, py), f, (X, Y), self.interpolation_method, 0.0)
 
         faces = []
         verts = []
