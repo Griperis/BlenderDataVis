@@ -19,6 +19,8 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
             self.x_range[1] += 1.0
         if self.y_range[0] == self.y_range[1]:
             self.y_range[1] += 1.0
+        if self.z_range[0] == self.z_range[1]:
+            self.z_range += 1
 
     create: bpy.props.BoolProperty(
         name='Create Axis',
@@ -46,8 +48,8 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     x_range: bpy.props.FloatVectorProperty(
         name='Range of x axis',
         size=2,
-        default=(0.0, 1.0),
-        update=range_updated
+        update=range_updated,
+        default=DataManager().get_range('x')
     )
 
     y_step: bpy.props.FloatProperty(
@@ -59,8 +61,15 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     y_range: bpy.props.FloatVectorProperty(
         name='Range of y axis',
         size=2,
-        default=(0.0, 1.0),
-        update=range_updated
+        update=range_updated,
+        default=DataManager().get_range('y')
+    )
+
+    z_range: bpy.props.FloatVectorProperty(
+        name='Range of y axis',
+        size=2,
+        update=range_updated,
+        default=DataManager().get_range('z'),
     )
 
     z_step: bpy.props.FloatProperty(
@@ -258,7 +267,15 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def execute(self, context):
         raise NotImplementedError('Execute method should be implemented in every chart operator!')
 
+    def init_ranges(self):
+        self.axis_settings.x_range = self.dm.get_range('x')
+        self.axis_settings.y_range = self.dm.get_range('y')
+        self.axis_settings.z_range = self.dm.get_range('z')
+
     def invoke(self, context, event):
+        if hasattr(self, 'axis_settings'):
+            self.init_ranges()
+
         return context.window_manager.invoke_props_dialog(self)
 
     def create_container(self):

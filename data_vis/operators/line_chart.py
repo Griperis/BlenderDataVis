@@ -35,36 +35,9 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         )
     )
 
-    auto_steps: bpy.props.BoolProperty(
-        name='Automatic axis steps',
+    z_auto: bpy.props.BoolProperty(
+        name='Z',
         default=True
-    )
-
-    auto_ranges: bpy.props.BoolProperty(
-        name='Automatic axis ranges',
-        default=True
-    )
-
-    x_axis_step: bpy.props.FloatProperty(
-        name='Step of x axis',
-        default=1.0
-    )
-
-    x_axis_range: bpy.props.FloatVectorProperty(
-        name='Range of x axis',
-        size=2,
-        default=(0.0, 1.0)
-    )
-
-    z_axis_step: bpy.props.FloatProperty(
-        name='Step of z axis',
-        default=1.0
-    )
-
-    padding: bpy.props.FloatProperty(
-        name='Padding',
-        default=0.1,
-        min=0.0
     )
 
     label_settings: bpy.props.PointerProperty(
@@ -72,13 +45,13 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
     )
 
     axis_settings: bpy.props.PointerProperty(
-        type=DV_AxisPropertyGroup
+        type=DV_AxisPropertyGroup,
+        options={'SKIP_SAVE'}
     )
 
     def __init__(self):
         super().__init__()
         self.only_2d = True
-        self.x_delta = 0.2
         self.bevel_obj_size = (0.01, 0.01, 0.01)
         self.bevel_settings = {
             'rounded': {
@@ -101,6 +74,10 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
+        row = layout.row()
+        row.prop(self, 'z_auto')
+        if not self.z_auto:
+            row.prop(self.axis_settings, 'z_range')
         if self.bevel_edges:
             row = layout.row()
             row.prop(self, 'rounded')
@@ -116,23 +93,16 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         self.create_container()
 
         if self.data_type_as_enum() == DataType.Numerical:
-            if self.axis_settings.auto_ranges:
-                self.axis_settings.x_range = find_axis_range(self.data, 0)
-            data_min, data_max = find_data_range(self.data, self.axis_settings.x_range)
             self.data = get_data_in_range(self.data, self.axis_settings.x_range)
             sorted_data = sorted(self.data, key=lambda x: x[0])
         else:
-            self.axis_settings.x_range[0] = 0
-            self.axis_settings.x_range[1] = len(self.data) - 1
-            data_min = min(self.data, key=lambda val: val[1])[1]
-            data_max = max(self.data, key=lambda val: val[1])[1]
             sorted_data = self.data
 
         tick_labels = []
         if self.data_type_as_enum() == DataType.Numerical:
-            normalized_vert_list = [(normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for entry in sorted_data]
+            normalized_vert_list = [(normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], self.axis_settings.z_range[0], self.axis_settings.z_range[1])) for entry in sorted_data]
         else:
-            normalized_vert_list = [(normalize_value(i, self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for i, entry in enumerate(sorted_data)]
+            normalized_vert_list = [(normalize_value(i, self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], self.axis_settings.z_range[0], self.axis_settings.z_range[1])) for i, entry in enumerate(sorted_data)]
             tick_labels = list(zip(*sorted_data))[0]
 
         edges = [[i - 1, i] for i in range(1, len(normalized_vert_list))]
@@ -144,7 +114,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
             AxisFactory.create(
                 self.container_object,
                 (self.axis_settings.x_step, 0, self.axis_settings.z_step),
-                (self.axis_settings.x_range, [], (data_min, data_max)),
+                (self.axis_settings.x_range, [], self.axis_settings.z_range),
                 2,
                 self.axis_settings.thickness,
                 self.axis_settings.tick_mark_height,

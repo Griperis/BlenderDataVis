@@ -22,6 +22,7 @@ class DataManager:
             self.has_labels = False
             self.labels = ()
             self.dimensions = 0
+            self.ranges = {}
 
         def set_data(self, data):
             self.raw_data = data
@@ -54,7 +55,7 @@ class DataManager:
                 except Exception as e:
                     print('Labels analysis: ', e)
                     total += 1
-            
+
             if total == len(self.raw_data[0]):
                 self.has_labels = True
 
@@ -102,14 +103,43 @@ class DataManager:
                 start_idx = 1
             else:
                 start_idx = 0
+
+            min_max = []
             for i in range(start_idx, len(data)):
-                self.parsed_data.append(self.__get_row_list(self.raw_data[i]))  
+                row_list = self.__get_row_list(self.raw_data[i])
+                if i == start_idx:
+                    min_max = [[val, val] for val in row_list]
+                else:
+                    for j, val in enumerate(row_list):
+                        if val < min_max[j][0]:
+                            min_max[j][0] = val
+
+                        if val > min_max[j][1]:
+                            min_max[j][1] = val
+                        
+                self.parsed_data.append(row_list)  
+
+            self.ranges['x'] = min_max[0]
+            if len(min_max) == 2:
+                self.ranges['z'] = min_max[1]
+            if len(min_max) > 2:
+                self.ranges['y'] = min_max[1]
+                self.ranges['z'] = min_max[2]
+            
+            if self.predicted_data_type == DataType.Categorical:
+                self.ranges['x'] = (0, len(self.parsed_data) - 1)
 
         def get_parsed_data(self):
             return self.parsed_data
 
         def get_labels(self):
             return self.labels
+
+        def get_range(self, axis):
+            if axis in self.ranges:
+                return tuple(self.ranges[axis])
+            else:
+                return (0.0, 1.0)
 
         def is_type(self, data_type, dims):
             return data_type == self.predicted_data_type and self.dimensions <= dims and dims > 1 and dims <= 3
