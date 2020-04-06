@@ -5,7 +5,7 @@ from mathutils import Matrix, Vector
 from data_vis.utils.data_utils import find_data_range
 from data_vis.general import OBJECT_OT_GenericChart
 from data_vis.data_manager import DataManager, DataType
-from data_vis.colors import ColorGen
+from data_vis.colors import ColorGen, ColorType
 
 
 class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
@@ -28,6 +28,17 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         max=1.0
     )
 
+    color_type: bpy.props.EnumProperty(
+        name='Coloring Type',
+        items=(
+            ('0', 'Constant', 'One color'),
+            ('1', 'Random', 'Random colors'),
+            ('2', 'Gradient', 'Gradient based on value')
+        ),
+        default='2',
+        description='Type of coloring for chart'
+    )
+
     @classmethod
     def poll(cls, context):
         dm = DataManager()
@@ -37,8 +48,9 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         layout = self.layout
         row = layout.row()
         row.prop(self, 'vertices')
-        row = layout.row()
-        row.prop(self, 'color_shade')
+        box = layout.box()
+        box.prop(self, 'color_shade')
+        box.prop(self, 'color_type')
 
     def execute(self, context):
         self.slices = []
@@ -64,10 +76,10 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
 
         values_sum = sum(int(entry[1]) for entry in self.data)
         data_len = len(self.data)
-        color_gen = ColorGen(self.color_shade, (0, data_len))
+        color_gen = ColorGen(self.color_shade, ColorType.str_to_type(self.color_type), (0, data_len))
 
         prev_i = 0
-        for i in range(len(self.data)):
+        for i in range(data_len):
 
             portion = self.data[i][1] / values_sum
 
@@ -139,4 +151,11 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         to.location.x *= -1
         to.scale *= scale_multiplier
         to.parent = self.container_object
+
+        mat = bpy.data.materials.get('DV_TextMat')
+        if mat is None:
+            mat = bpy.data.materials.new(name='DV_TextMat')
+
+        to.data.materials.append(mat)
+        to.active_material = mat
         return to
