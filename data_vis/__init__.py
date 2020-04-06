@@ -59,16 +59,15 @@ class OBJECT_OT_InstallModules(bpy.types.Operator):
         try:
             self.install(python_path)
         except Exception as e:
-            self.report({'ERROR'}, 'Try to run Blender as administrator or install dependencies manually! :(\n Exception: {}'.format(str(e)))
+            self.report({'ERROR'}, 'Error ocurred, try to install dependencies manually. \n Exception: {}'.format(str(e)))
         return {'FINISHED'}
 
     def install(self, python_path):
-        import platform
+        pip_result = subprocess.check_call([python_path, '-m', 'ensurepip', '--user'])
+        if pip_result != 0:
+            raise Exception('Failed to install pip!')
 
-        if platform.system() == 'Windows':
-            result = subprocess.check_call([python_path, '-m', 'pip', 'install', '--user', 'scipy'])
-        elif platform.system() == 'Linux':
-            result = subprocess.check_call(['sudo', python_path, '-m', 'pip', 'install', '--user', 'scipy'])
+        result = subprocess.check_call([python_path, '-m', 'pip', 'install', '--user', 'scipy'])
 
         if result == 0:
             bpy.utils.unregister_class(OBJECT_OT_SurfaceChart)
@@ -89,12 +88,10 @@ class DV_AddonPanel(bpy.types.Panel):
         layout = self.layout
 
         row = layout.row()
-        row.label(text='Data', icon='WORLD_DATA')
-
-        row = layout.row()
         row.operator('ui.dv_load_data')
 
         box = layout.box()
+        box.label(icon='WORLD_DATA', text='Data Information:')
         box.label(text='Dims: ' + str(data_manager.dimensions))
         box.label(text='Labels: ' + str(data_manager.has_labels))
         box.label(text='Type: ' + str(data_manager.predicted_data_type))

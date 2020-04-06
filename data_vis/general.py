@@ -42,7 +42,6 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     x_step: bpy.props.FloatProperty(
         name='Step of x axis',
         default=1.0,
-        min=0.05
     )
 
     x_range: bpy.props.FloatVectorProperty(
@@ -55,7 +54,6 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     y_step: bpy.props.FloatProperty(
         name='Step of y axis',
         default=1.0,
-        min=0.05
     )
 
     y_range: bpy.props.FloatVectorProperty(
@@ -75,18 +73,21 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     z_step: bpy.props.FloatProperty(
         name='Step of z axis',
         default=1.0,
-        min=0.05
     )
 
     thickness: bpy.props.FloatProperty(
         name='Thickness',
-        default=0.01,
+        min=0.001,
+        max=0.02,
+        default=0.005,
         description='How thick is the axis object'
     )
 
     tick_mark_height: bpy.props.FloatProperty(
         name='Tick Mark Height',
-        default=0.03,
+        default=0.015,
+        min=0.001,
+        max=0.02,
         description='Thickness of axis mark objects'
     )
 
@@ -133,11 +134,11 @@ class DV_ColorPropertyGroup(bpy.types.PropertyGroup):
     )
 
     color_type: bpy.props.EnumProperty(
-        name='Coloring Type',
+        name='Color Type',
         items=(
-            ('0', 'Constant', 'One color'),
-            ('1', 'Random', 'Random colors'),
-            ('2', 'Gradient', 'Gradient based on value')
+            ('0', 'Gradient', 'Gradient based on value'),
+            ('1', 'Constant', 'One color'),
+            ('2', 'Random', 'Random colors'),
         ),
         default='2',
         description='Type of coloring for chart'
@@ -183,8 +184,10 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
+        box = layout.box()
+        box.label(icon='WORLD_DATA', text='Chart settings:')
         if hasattr(self, 'data_type'):
-            row = layout.row()
+            row = box.row()
             row.prop(self, 'data_type')
 
         only_2d = hasattr(self, 'dimensions')
@@ -197,7 +200,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
         if hasattr(self, 'dimensions') and self.dm.predicted_data_type != DataType.Categorical:
             if numerical:
-                row = layout.row()
+                row = box.row()
                 row.prop(self, 'dimensions')
             else:
                 self.dimensions = '2'
@@ -208,7 +211,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def draw_label_settings(self, box):
         if hasattr(self, 'label_settings'):
             row = box.row()
-            row.label(text='Label Settings:')
+            row.label(icon='FILE_FONT', text='Label Settings:')
             row.prop(self.label_settings, 'create')
             if self.label_settings.create:
                 box.prop(self.label_settings, 'from_data')
@@ -219,9 +222,10 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
                         row.prop(self.label_settings, 'y_label')
                     row.prop(self.label_settings, 'z_label')
 
-    def draw_color_settings(self, box):
+    def draw_color_settings(self, layout):
         if hasattr(self, 'color_settings'):
-            box.label(text='Color settings')
+            box = layout.box()
+            box.label(icon='COLOR', text='Color settings')
             box.prop(self.color_settings, 'use_shader')
             box.prop(self.color_settings, 'color_type')
             if not ColorType.str_to_type(self.color_settings.color_type) == ColorType.Random:
@@ -232,24 +236,26 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             return
 
         box = layout.box()
-        box.label(text='Axis Settings:')
+        box.label(icon='ORIENTATION_VIEW', text='Axis Settings:')
 
         row = box.row()
-        row.prop(self.axis_settings, 'x_range', text='x')
+        row.label(text='Range settings:')
+        row = box.row()
+        row.prop(self.axis_settings, 'x_range', text='X')
         if hasattr(self, 'dimensions') and self.dimensions == '3':
             row = box.row()
-            row.prop(self.axis_settings, 'y_range', text='y')
+            row.prop(self.axis_settings, 'y_range', text='Y')
         row = box.row()
-        row.prop(self.axis_settings, 'z_range', text='z')
+        row.prop(self.axis_settings, 'z_range', text='Z')
         box.prop(self.axis_settings, 'auto_steps')
 
         if not self.axis_settings.auto_steps:
             row = box.row()
             if numerical:
-                row.prop(self.axis_settings, 'x_step', text='x')
+                row.prop(self.axis_settings, 'x_step', text='X')
             if hasattr(self, 'dimensions') and self.dimensions == '3':
-                row.prop(self.axis_settings, 'y_step', text='y')
-            row.prop(self.axis_settings, 'z_step', text='z')
+                row.prop(self.axis_settings, 'y_step', text='Y')
+            row.prop(self.axis_settings, 'z_step', text='Z')
 
         row = box.row()
         row.prop(self.axis_settings, 'create')
@@ -368,3 +374,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
         return True
 
+    def select_container(self):
+        '''Makes container object active and selects it'''
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.context.view_layer.objects.active = self.container_object
+        self.container_object.select_set(True)
