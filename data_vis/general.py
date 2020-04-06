@@ -127,7 +127,7 @@ class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
 
 class DV_ColorPropertyGroup(bpy.types.PropertyGroup):
     use_shader: bpy.props.BoolProperty(
-        name='Use Shader',
+        name='Use Nodes',
         default=True,
         description='Uses Node Shading to color created objects. Not using this option may create material for every chart object when not using constant color type'
     )

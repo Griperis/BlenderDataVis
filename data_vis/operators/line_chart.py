@@ -7,6 +7,7 @@ from data_vis.utils.data_utils import find_data_range, find_axis_range, normaliz
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup
 from data_vis.data_manager import DataManager, DataType
+from data_vis.colors import NodeShader, ColorGen, ColorType
 
 
 class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
@@ -44,6 +45,20 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         options={'SKIP_SAVE'}
     )
 
+    color_shade: bpy.props.FloatVectorProperty(
+        name='Base Color',
+        subtype='COLOR',
+        default=(0.0, 0.0, 1.0),
+        min=0.0,
+        max=1.0,
+        description='Base color shade to work with'
+    )
+
+    use_shader: bpy.props.BoolProperty(
+        name='Use Nodes',
+        default=False,
+    )
+
     def __init__(self):
         super().__init__()
         self.only_2d = True
@@ -69,14 +84,14 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
+        box = layout.box()
         if self.bevel_edges:
-            row = layout.row()
-            row.prop(self, 'rounded')
-        row = layout.row()
-        row.prop(self, 'bevel_edges')
-        if self.bevel_edges:
-            row = layout.row()
-            row.prop(self, 'rounded')
+            box.prop(self, 'rounded')
+        box.prop(self, 'bevel_edges')
+
+        box = layout.box()
+        box.prop(self, 'use_shader')
+        box.prop(self, 'color_shade')
 
     def execute(self, context):
         self.init_data()
@@ -100,6 +115,13 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
 
         self.create_curve(normalized_vert_list, edges)
         self.add_bevel_obj()
+        if self.use_shader:
+            mat = NodeShader(self.color_shade, location_z=self.container_object.location[2]).create_geometry_shader()
+        else:
+            mat = ColorGen(self.color_shade, ColorType.Constant, self.axis_settings.z_range).get_material()
+
+        self.curve_obj.data.materials.append(mat)
+        self.curve_obj.active_material = mat
 
         if self.axis_settings.create:
             AxisFactory.create(
