@@ -6,7 +6,7 @@
     Data visualisation addon for blender
 </h3>
 <p align="center">
-Addon allows users to load data into Blender and create simple customizable visualisations from it.
+Load data into Blender and create visualisations!
 </p>
 
 ## Quickstart
@@ -20,7 +20,7 @@ Brief section about how to use the addon and what principles are applied to data
 - Add Object Menu - Create new visualisations under Chart subgroup (Shift + A)
 - View3D Tools - Manipulate with data and some properties (N)
 
-Addon uses Blender coordinate system, 2D chart is generated along X and Z axis, 3D charts extend along Y axis. Form of chart creation and parametrization is inspired by matplotlib. I tried to make chart creation simple but customizable. 
+Addon uses Blender coordinate system, 2D chart is generated along X and Z axis, 3D charts extend along Y axis. Form of chart creation and parametrization is inspired by matplotlib. I tried to make chart creation simple but customizable.
 
 ### CSV Format
 Addon supports values separated by `, (commas)`
@@ -53,26 +53,29 @@ x, y, x + y
 
 ### Creating chart
 Use add object menu and select chart which suits your needs. If you set data type and dimensions correctly, chart should create with automatic axis ranges and steps and default coloring. You can try to play with parameters and if you can come up with something cool.
-All charts sizes are normalized to 1, e. g. you can create stem chart by using bar and point chart.   
+All charts sizes are normalized to 1, e. g. you can create stem chart by using bar and point chart or dual-line chart by creating two line charts with proper settings.
+
+Surface chart is supported only if you install scipy and numpy into Blenders python.
+This can be done in addon preferences (experimental) or in system console using pip.
 
 ## Status
-Currently supported visualisations:
+Currently supported features:
 - Pie chart (Categorical)
 - Line chart (Categorical, Numeric)
 - Bar chart (Categorical, 2D Numeric, 3D Numeric)
 - Point chart (2D Numeric, 3D Numeric)
+- Surface chart (Using scipy)
+- Creating axis with labels from charts
+- Ranges of data to visualise can be set
+- Materials and 3 types of coloring of charts (Including default Node Shader for gradients and random colors)
 
 
 Known issues:
-- Redo action can mess up loaded data and chart origin
-- Charts from larger files (>200 entries) take long time to generate
+- Charts from larger files (>200 entries) take long time to generate (except surface chart), because of large numbers of manipulations with objects instead of meshes
 
 Planned features:
-- Data analysis, so charts and their features are enabled automatically, not by user
-- Surface chart
-- Material shaders
 - Muliple categories for categorical charts
-- Animations
+- Animations between timestamps in data
 - Label alignment to camera for render
 
 Feel free to submit any issues or ideas!
@@ -81,3 +84,5 @@ Feel free to submit any issues or ideas!
 Zdeněk Doležal - Bachelor Thesis
 
 Faculty of information technology BUT
+
+Version 1.1
