@@ -49,6 +49,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         row = layout.row()
         row.prop(self, 'vertices')
         box = layout.box()
+        box.label(icon='COLOR', text='Color settings:')
         box.prop(self, 'color_shade')
         box.prop(self, 'color_type')
 
@@ -103,6 +104,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             label_obj.rotation_euler = (0, 0, 0)
             prev_i += increment
 
+        self.select_container()
         return {'FINISHED'}
 
     def join_slices(self, i_from, i_to):

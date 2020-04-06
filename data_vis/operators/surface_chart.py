@@ -31,9 +31,10 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
     )
 
     density: bpy.props.IntProperty(
-        name='Density of grid',
+        name='Grid size',
         min=1,
-        default=100,
+        max=200,
+        default=20,
     )
 
     rbf_function: bpy.props.EnumProperty(
@@ -75,14 +76,15 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         super().draw(context)
         layout = self.layout
 
+        box = layout.box()
+        box.label(icon='COLOR', text='Color Settings:')
+        box.prop(self, 'color_shade')
+
         row = layout.row()
         row.prop(self, 'rbf_function')
    
         row = layout.row()
         row.prop(self, 'density')
-
-        row = layout.row()
-        row.prop(self, 'color_shade')
 
     def face(self, column, row):
         return (column * self.density + row,
@@ -142,6 +144,6 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
                 auto_steps=self.axis_settings.auto_steps,
                 offset=0.0
             )
-
+        self.select_container()
         return {'FINISHED'}
 
