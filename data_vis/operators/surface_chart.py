@@ -92,16 +92,12 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
 
     def execute(self, context):
         self.init_data()
-        if self.axis_settings.auto_ranges:
-            self.init_range(self.data)
 
         self.create_container()
 
         x = np.linspace(self.axis_settings.x_range[0], self.axis_settings.x_range[1], self.density)
         y = np.linspace(self.axis_settings.x_range[0], self.axis_settings.y_range[1], self.density)
         X, Y = np.meshgrid(x, y)
-
-        data_min, data_max = find_data_range(self.data, self.axis_settings.x_range, self.axis_settings.y_range)
 
         px = [entry[0] for entry in self.data]
         py = [entry[1] for entry in self.data]
@@ -116,7 +112,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
             for col in range(self.density):
                 x_norm = row / self.density
                 y_norm = col / self.density
-                z_norm = normalize_value(res[row][col], data_min, data_max)
+                z_norm = normalize_value(res[row][col], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
                 verts.append((x_norm, y_norm, z_norm))
                 if row < self.density - 1 and col < self.density - 1:
                     fac = self.face(col, row)
@@ -137,7 +133,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
             AxisFactory.create(
                 self.container_object,
                 (self.axis_settings.x_step, self.axis_settings.y_step, self.axis_settings.z_step),
-                (self.axis_settings.x_range, self.axis_settings.y_range, (data_min, data_max)),
+                (self.axis_settings.x_range, self.axis_settings.y_range, self.axis_settings.z_range),
                 3,
                 self.axis_settings.thickness,
                 self.axis_settings.tick_mark_height,

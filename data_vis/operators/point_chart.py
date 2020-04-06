@@ -43,7 +43,7 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
 
     @classmethod
     def poll(cls, context):
-        return DataManager().is_type(DataType.Numerical, [3])
+        return DataManager().is_type(DataType.Numerical, [2, 3])
 
     def draw(self, context):
         super().draw(context)
@@ -53,8 +53,6 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
 
     def execute(self, context):
         self.init_data()
-        if self.axis_settings.auto_ranges:
-            self.init_range(self.data)
 
         if self.dimensions == '2':
             value_index = 1
@@ -65,9 +63,8 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             value_index = 2
 
         self.create_container()
-        data_min, data_max = find_data_range(self.data, self.axis_settings.x_range, self.axis_settings.y_range if self.dimensions == '3' else None)
         color_factory = ColoringFactory(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
-        color_gen = color_factory.create((data_min, data_max), 1.0, self.container_object.location[2])
+        color_gen = color_factory.create(self.axis_settings.z_range, 1.0, self.container_object.location[2])
         
         for i, entry in enumerate(self.data):
 
@@ -85,7 +82,7 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
 
             # normalize height
             x_norm = normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1])
-            z_norm = normalize_value(entry[value_index], data_min, data_max)
+            z_norm = normalize_value(entry[value_index], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
             if self.dimensions == '2':
                 point_obj.location = (x_norm, 0.0, z_norm)
             else:
@@ -98,7 +95,7 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             AxisFactory.create(
                 self.container_object,
                 (self.axis_settings.x_step, self.axis_settings.y_step, self.axis_settings.z_step),
-                (self.axis_settings.x_range, self.axis_settings.y_range, (data_min, data_max)),
+                (self.axis_settings.x_range, self.axis_settings.y_range, self.axis_settings.z_range),
                 int(self.dimensions),
                 self.axis_settings.thickness,
                 self.axis_settings.tick_mark_height,

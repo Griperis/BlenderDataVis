@@ -71,7 +71,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
 
         self.create_container()
         color_factory = ColoringFactory(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
-        color_gen = color_factory.create((self.axis_settings.z_range[0], self.axis_settings.z_range[1]), 2.0, self.container_object.location[2])
+        color_gen = color_factory.create(self.axis_settings.z_range, 2.0, self.container_object.location[2])
 
         if self.dimensions == '2':
             value_index = 1
