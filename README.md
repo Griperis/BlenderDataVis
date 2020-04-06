@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="media/logo.png" alt="Addon logo" height="100px" style="padding-right: 20px;">
+    <img src="media/logo.png" alt="Addon logo" height="60px" style="padding-right: 20px;">
     <img src="https://download.blender.org/branding/blender_logo_socket.png" alt="Blender logo" width="200px" style="padding-left: 20px; padding-bottom: 20px;">
 </p>
 <h3 align="center">
