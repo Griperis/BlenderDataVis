@@ -29,7 +29,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         items=(
             ('0', 'Numerical', 'X relative to Z or Y'),
             ('1', 'Categorical', 'Label and value'),
-        )
+        ),
     )
 
     bar_size: bpy.props.FloatVectorProperty(
@@ -53,7 +53,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
     @classmethod
     def poll(cls, context):
         dm = DataManager()
-        return dm.is_type(DataType.Numerical, 3) or dm.is_type(DataType.Categorical, 2)
+        return dm.is_type(DataType.Numerical, [2, 3]) or dm.is_type(DataType.Categorical, [2])
 
     def draw(self, context):
         super().draw(context)
@@ -61,39 +61,17 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         row = layout.row()
         row.prop(self, 'bar_size')
 
-    def data_type_as_enum(self):
-        if self.data_type == '0':
-            return DataType.Numerical
-        elif self.data_type == '1':
-            return DataType.Categorical
-
     def execute(self, context):
         self.init_data()
-        if self.data_type_as_enum() == DataType.Numerical:
-            if self.axis_settings.auto_ranges:
-                self.init_range(self.data)
-        else:
-            self.dimensions = '2'
-            self.axis_settings.x_range[0] = 0
-            self.axis_settings.x_range[1] = len(self.data) - 1
 
-        if self.dimensions == '3' and len(self.data[0]) != 3:
-            self.report({'ERROR'}, 'Data are only 2D!')
-            return {'CANCELLED'}
         tick_labels = []
-        if self.data_type_as_enum() == DataType.Numerical:
-            try:
-                data_min, data_max = find_data_range(self.data, self.axis_settings.x_range, self.axis_settings.y_range if self.dimensions == '3' else None)
-            except Exception as e:
-                self.report({'ERROR'}, 'Cannot find data in this range!')
-                return {'CANCELLED'}
-        else:
-            data_min = min(self.data, key=lambda val: val[1])[1]
-            data_max = max(self.data, key=lambda val: val[1])[1]
+
+        if self.dm.override(self.data_type_as_enum(), int(self.dimensions)):
+            self.init_ranges()
 
         self.create_container()
         color_factory = ColoringFactory(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
-        color_gen = color_factory.create((data_min, data_max), 2.0, self.container_object.location[2])
+        color_gen = color_factory.create(self.axis_settings.z_range, 2.0, self.container_object.location[2])
 
         if self.dimensions == '2':
             value_index = 1
@@ -113,7 +91,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 x_value = i
             x_norm = normalize_value(x_value, self.axis_settings.x_range[0], self.axis_settings.x_range[1])
 
-            z_norm = normalize_value(entry[value_index], data_min, data_max)
+            z_norm = normalize_value(entry[value_index], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
             if z_norm >= 0.0 and z_norm <= 0.0001:
                 z_norm = 0.0001
             if self.dimensions == '2':
@@ -133,7 +111,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             AxisFactory.create(
                 self.container_object,
                 (self.axis_settings.x_step, self.axis_settings.y_step, self.axis_settings.z_step),
-                (self.axis_settings.x_range, self.axis_settings.y_range, (data_min, data_max)),
+                (self.axis_settings.x_range, self.axis_settings.y_range, self.axis_settings.z_range),
                 int(self.dimensions),
                 self.axis_settings.thickness,
                 self.axis_settings.tick_mark_height,

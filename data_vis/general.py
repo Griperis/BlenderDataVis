@@ -19,9 +19,11 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
             self.x_range[1] += 1.0
         if self.y_range[0] == self.y_range[1]:
             self.y_range[1] += 1.0
+        if self.z_range[0] == self.z_range[1]:
+            self.z_range += 1
 
     create: bpy.props.BoolProperty(
-        name='Create Axis',
+        name='Create Axis Object',
         default=True,
     )
 
@@ -46,8 +48,8 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     x_range: bpy.props.FloatVectorProperty(
         name='Range of x axis',
         size=2,
-        default=(0.0, 1.0),
-        update=range_updated
+        update=range_updated,
+        default=DataManager().get_range('x')
     )
 
     y_step: bpy.props.FloatProperty(
@@ -59,8 +61,15 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     y_range: bpy.props.FloatVectorProperty(
         name='Range of y axis',
         size=2,
-        default=(0.0, 1.0),
-        update=range_updated
+        update=range_updated,
+        default=DataManager().get_range('y')
+    )
+
+    z_range: bpy.props.FloatVectorProperty(
+        name='Range of y axis',
+        size=2,
+        update=range_updated,
+        default=DataManager().get_range('z'),
     )
 
     z_step: bpy.props.FloatProperty(
@@ -187,8 +196,11 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         only_2d = only_2d or not numerical
 
         if hasattr(self, 'dimensions') and self.dm.predicted_data_type != DataType.Categorical:
-            row = layout.row()
-            row.prop(self, 'dimensions')
+            if numerical:
+                row = layout.row()
+                row.prop(self, 'dimensions')
+            else:
+                self.dimensions = '2'
 
         self.draw_axis_settings(layout, numerical)
         self.draw_color_settings(layout)
@@ -207,9 +219,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
                         row.prop(self.label_settings, 'y_label')
                     row.prop(self.label_settings, 'z_label')
 
-    def draw_color_settings(self, layout):
+    def draw_color_settings(self, box):
         if hasattr(self, 'color_settings'):
-            box = layout.box()
             box.label(text='Color settings')
             box.prop(self.color_settings, 'use_shader')
             box.prop(self.color_settings, 'color_type')
@@ -221,20 +232,15 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             return
 
         box = layout.box()
-        row = box.row()
-        row.label(text='Axis Settings:')
-        row.prop(self.axis_settings, 'create')
-        if not self.axis_settings.create:
-            return
+        box.label(text='Axis Settings:')
 
-        if numerical:
-            box.prop(self.axis_settings, 'auto_ranges')
-        if not self.axis_settings.auto_ranges:
+        row = box.row()
+        row.prop(self.axis_settings, 'x_range', text='x')
+        if hasattr(self, 'dimensions') and self.dimensions == '3':
             row = box.row()
-            row.prop(self.axis_settings, 'x_range', text='x')
-            if hasattr(self, 'dimensions') and self.dimensions == '3':
-                row = box.row()
-                row.prop(self.axis_settings, 'y_range', text='y')
+            row.prop(self.axis_settings, 'y_range', text='y')
+        row = box.row()
+        row.prop(self.axis_settings, 'z_range', text='z')
         box.prop(self.axis_settings, 'auto_steps')
 
         if not self.axis_settings.auto_steps:
@@ -244,7 +250,11 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             if hasattr(self, 'dimensions') and self.dimensions == '3':
                 row.prop(self.axis_settings, 'y_step', text='y')
             row.prop(self.axis_settings, 'z_step', text='z')
-            
+
+        row = box.row()
+        row.prop(self.axis_settings, 'create')
+        if not self.axis_settings.create:
+            return
         row = box.row()
         row.prop(self.axis_settings, 'padding')
         row.prop(self.axis_settings, 'thickness')
@@ -260,7 +270,15 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def execute(self, context):
         raise NotImplementedError('Execute method should be implemented in every chart operator!')
 
+    def init_ranges(self):
+        self.axis_settings.x_range = self.dm.get_range('x')
+        self.axis_settings.y_range = self.dm.get_range('y')
+        self.axis_settings.z_range = self.dm.get_range('z')
+
     def invoke(self, context, event):
+        if hasattr(self, 'axis_settings'):
+            self.init_ranges()
+
         return context.window_manager.invoke_props_dialog(self)
 
     def create_container(self):
@@ -296,7 +314,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         if not self.label_settings.create:
             self.labels = (None, None, None)
             return
-        if self.dm.has_labels:
+        if self.dm.has_labels and self.label_settings.from_data:
             first_line = self.dm.get_labels()
             length = len(first_line)
             if length == 2:
