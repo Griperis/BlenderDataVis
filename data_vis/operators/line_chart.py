@@ -1,17 +1,17 @@
 import bpy
 import math
-from itertools import zip_longest
 from mathutils import Vector
 
 
-from data_vis.utils.data_utils import get_data_as_ll, find_data_range, find_axis_range, normalize_value, get_data_in_range, DataType
+from data_vis.utils.data_utils import find_data_range, find_axis_range, normalize_value, get_data_in_range
 from data_vis.operators.features.axis import AxisFactory
-from data_vis.general import OBJECT_OT_generic_chart, DV_LabelPropertyGroup
-from data_vis.general import CONST
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup
+from data_vis.data_manager import DataManager, DataType
+from data_vis.colors import NodeShader, ColorGen, ColorType
 
 
-class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
-    '''Creates line chart as a line or as curve'''
+class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
+    '''Creates Line Chart, supports 2D Numerical or Categorical values with or w/o labels'''
     bl_idname = 'object.create_line_chart'
     bl_label = 'Line Chart'
     bl_options = {'REGISTER', 'UNDO'}
@@ -36,45 +36,32 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
         )
     )
 
-    auto_steps: bpy.props.BoolProperty(
-        name='Automatic axis steps',
-        default=True
-    )
-
-    auto_ranges: bpy.props.BoolProperty(
-        name='Automatic axis ranges',
-        default=True
-    )
-
-    x_axis_step: bpy.props.FloatProperty(
-        name='Step of x axis',
-        default=1.0
-    )
-
-    x_axis_range: bpy.props.FloatVectorProperty(
-        name='Range of x axis',
-        size=2,
-        default=(0.0, 1.0)
-    )
-
-    z_axis_step: bpy.props.FloatProperty(
-        name='Step of z axis',
-        default=1.0
-    )
-
-    padding: bpy.props.FloatProperty(
-        name='Padding',
-        default=0.1,
-        min=0.0
-    )
-
     label_settings: bpy.props.PointerProperty(
         type=DV_LabelPropertyGroup
     )
 
+    axis_settings: bpy.props.PointerProperty(
+        type=DV_AxisPropertyGroup,
+        options={'SKIP_SAVE'}
+    )
+
+    color_shade: bpy.props.FloatVectorProperty(
+        name='Base Color',
+        subtype='COLOR',
+        default=(0.0, 0.0, 1.0),
+        min=0.0,
+        max=1.0,
+        description='Base color shade to work with'
+    )
+
+    use_shader: bpy.props.BoolProperty(
+        name='Use Nodes',
+        default=False,
+    )
+
     def __init__(self):
+        super().__init__()
         self.only_2d = True
-        self.x_delta = 0.2
         self.bevel_obj_size = (0.01, 0.01, 0.01)
         self.bevel_settings = {
             'rounded': {
@@ -89,62 +76,67 @@ class OBJECT_OT_line_chart(OBJECT_OT_generic_chart):
             },
         }
 
+    @classmethod
+    def poll(cls, context):
+        dm = DataManager()
+        return dm.is_type(DataType.Numerical, [2]) or dm.is_type(DataType.Categorical, [2])
+
     def draw(self, context):
         super().draw(context)
-        if self.bevel_edges:
-            row = layout.row()
-            row.prop(self, 'rounded')
         layout = self.layout
-        row = layout.row()
-        row.prop(self, 'bevel_edges')
+        box = layout.box()
         if self.bevel_edges:
-            row = layout.row()
-            row.prop(self, 'rounded')
+            box.prop(self, 'rounded')
+        box.prop(self, 'bevel_edges')
+
+        box = layout.box()
+        box.prop(self, 'use_shader')
+        box.prop(self, 'color_shade')
 
     def execute(self, context):
-        if not self.init_data(self.data_type_as_enum()):
-            return {'CANCELLED'}
-        if len(self.data[0]) > 2:
-            self.report({'ERROR'}, 'Line chart supports X Y values only')
-            return {'CANCELLED'}
+        self.init_data()
+
         self.create_container()
 
         if self.data_type_as_enum() == DataType.Numerical:
-            if self.auto_ranges:
-                self.x_axis_range = find_axis_range(self.data, 0)
-            data_min, data_max = find_data_range(self.data, self.x_axis_range)
-            self.data = get_data_in_range(self.data, self.x_axis_range)
+            self.data = get_data_in_range(self.data, self.axis_settings.x_range)
             sorted_data = sorted(self.data, key=lambda x: x[0])
         else:
-            self.x_axis_range[0] = 0
-            self.x_axis_range[1] = len(self.data) - 1
-            data_min = min(self.data, key=lambda val: val[1])[1]
-            data_max = max(self.data, key=lambda val: val[1])[1]
             sorted_data = self.data
 
         tick_labels = []
         if self.data_type_as_enum() == DataType.Numerical:
-            normalized_vert_list = [(normalize_value(entry[0], self.x_axis_range[0], self.x_axis_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for entry in sorted_data]
+            normalized_vert_list = [(normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], self.axis_settings.z_range[0], self.axis_settings.z_range[1])) for entry in sorted_data]
         else:
-            normalized_vert_list = [(normalize_value(i, self.x_axis_range[0], self.x_axis_range[1]), 0.0, normalize_value(entry[1], data_min, data_max)) for i, entry in enumerate(sorted_data)]
+            normalized_vert_list = [(normalize_value(i, self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], self.axis_settings.z_range[0], self.axis_settings.z_range[1])) for i, entry in enumerate(sorted_data)]
             tick_labels = list(zip(*sorted_data))[0]
 
         edges = [[i - 1, i] for i in range(1, len(normalized_vert_list))]
 
         self.create_curve(normalized_vert_list, edges)
         self.add_bevel_obj()
+        if self.use_shader:
+            mat = NodeShader(self.color_shade, location_z=self.container_object.location[2]).create_geometry_shader()
+        else:
+            mat = ColorGen(self.color_shade, ColorType.Constant, self.axis_settings.z_range).get_material()
 
-        AxisFactory.create(
-            self.container_object,
-            (self.x_axis_step, 0, self.z_axis_step),
-            (self.x_axis_range, [], (data_min, data_max)),
-            2,
-            tick_labels=(tick_labels, [], []),
-            labels=self.labels,
-            padding=self.padding,
-            auto_steps=self.auto_steps,
-            offset=0.0
-        )
+        self.curve_obj.data.materials.append(mat)
+        self.curve_obj.active_material = mat
+
+        if self.axis_settings.create:
+            AxisFactory.create(
+                self.container_object,
+                (self.axis_settings.x_step, 0, self.axis_settings.z_step),
+                (self.axis_settings.x_range, [], self.axis_settings.z_range),
+                2,
+                self.axis_settings.thickness,
+                self.axis_settings.tick_mark_height,
+                tick_labels=(tick_labels, [], []),
+                labels=self.labels,
+                padding=self.axis_settings.padding,
+                auto_steps=self.axis_settings.auto_steps,
+                offset=0.0
+            )
         return {'FINISHED'}
 
     def create_curve(self, verts, edges):

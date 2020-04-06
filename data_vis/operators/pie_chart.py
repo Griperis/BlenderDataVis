@@ -2,13 +2,14 @@ import bpy
 import math
 from mathutils import Matrix, Vector
 
-from data_vis.utils.data_utils import get_data_as_ll, find_data_range, DataType
-from data_vis.utils.color_utils import sat_col_gen, ColorGen
-from data_vis.general import OBJECT_OT_generic_chart, CONST
+from data_vis.utils.data_utils import find_data_range
+from data_vis.general import OBJECT_OT_GenericChart
+from data_vis.data_manager import DataManager, DataType
+from data_vis.colors import ColorGen, ColorType
 
 
-class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
-    '''Creates pie chart'''
+class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
+    '''Creates Pie Chart, supports 2D Categorical values without labels'''
     bl_idname = 'object.create_pie_chart'
     bl_label = 'Pie Chart'
     bl_options = {'REGISTER', 'UNDO'}
@@ -27,18 +28,34 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         max=1.0
     )
 
+    color_type: bpy.props.EnumProperty(
+        name='Coloring Type',
+        items=(
+            ('0', 'Constant', 'One color'),
+            ('1', 'Random', 'Random colors'),
+            ('2', 'Gradient', 'Gradient based on value')
+        ),
+        default='2',
+        description='Type of coloring for chart'
+    )
+
+    @classmethod
+    def poll(cls, context):
+        dm = DataManager()
+        return not dm.has_labels and dm.is_type(DataType.Categorical, [2])
+
     def draw(self, context):
         layout = self.layout
         row = layout.row()
         row.prop(self, 'vertices')
-        row = layout.row()
-        row.prop(self, 'color_shade')
+        box = layout.box()
+        box.prop(self, 'color_shade')
+        box.prop(self, 'color_type')
 
     def execute(self, context):
         self.slices = []
         self.materials = []
-        if not self.init_data(DataType.Categorical):
-            return {'CANCELLED'}
+        self.init_data()
 
         data_min = min(self.data, key=lambda entry: entry[1])[1]
         if data_min <= 0:
@@ -59,10 +76,10 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
 
         values_sum = sum(int(entry[1]) for entry in self.data)
         data_len = len(self.data)
-        color_gen = ColorGen(self.color_shade, (0, data_len))
+        color_gen = ColorGen(self.color_shade, ColorType.str_to_type(self.color_type), (0, data_len))
 
         prev_i = 0
-        for i in range(len(self.data)):
+        for i in range(data_len):
 
             portion = self.data[i][1] / values_sum
 
@@ -78,7 +95,7 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
                 raise Exception('Error occurred, try to increase number of vertices, i_from" {}, i_to: {}, inc: {}, val: {}'.format(prev_i, portion_end_i, increment, self.data[i][1]))
                 break
 
-            slice_mat = self.new_mat(color_gen.next(data_len - i), 1)
+            slice_mat = color_gen.get_material(data_len - i)
             slice_obj.active_material = slice_mat
             slice_obj.parent = self.container_object
             label_rot_z = (((prev_i + portion_end_i) * 0.5) / self.vertices) * 2.0 * math.pi
@@ -134,4 +151,11 @@ class OBJECT_OT_pie_chart(OBJECT_OT_generic_chart):
         to.location.x *= -1
         to.scale *= scale_multiplier
         to.parent = self.container_object
+
+        mat = bpy.data.materials.get('DV_TextMat')
+        if mat is None:
+            mat = bpy.data.materials.new(name='DV_TextMat')
+
+        to.data.materials.append(mat)
+        to.active_material = mat
         return to

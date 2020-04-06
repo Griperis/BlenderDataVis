@@ -1,9 +1,9 @@
 bl_info = {
-    'name': 'Data Visualisation',
+    'name': 'Data Vis',
     'author': 'Zdenek Dolezal',
     'description': '',
     'blender': (2, 80, 0),
-    'version': (1, 0, 0),
+    'version': (1, 1, 0),
     'location': 'Object -> Add Mesh',
     'warning': '',
     'category': 'Generic'
@@ -12,31 +12,81 @@ bl_info = {
 import bpy
 import bpy.utils.previews
 import os
+import subprocess
+import sys
 
 from .operators.data_load import FILE_OT_DVLoadFile
-from .operators.bar_chart import OBJECT_OT_bar_chart
-from .operators.line_chart import OBJECT_OT_line_chart
-from .operators.pie_chart import OBJECT_OT_pie_chart
-from .operators.point_chart import OBJECT_OT_point_chart
-from .general import DV_LabelPropertyGroup
+from .operators.bar_chart import OBJECT_OT_BarChart
+from .operators.line_chart import OBJECT_OT_LineChart
+from .operators.pie_chart import OBJECT_OT_PieChart
+from .operators.point_chart import OBJECT_OT_PointChart
+from .operators.surface_chart import OBJECT_OT_SurfaceChart
+from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup
+from .data_manager import DataManager
+
+
+class DV_Preferences(bpy.types.AddonPreferences):
+    '''Preferences for data visualisation addon'''
+    bl_idname = 'data_vis'
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.scale_y = 2.0
+        try:
+            import scipy
+            import numpy
+            row.label(text='Dependencies already installed...')
+        except ImportError:
+            row.operator('object.install_modules')
+            row = layout.row()
+            version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
+            row.label(text='Or in {} use command: python -m pip install scipy'.format(os.path.join(os.getcwd(), version, 'python', 'bin', 'python')))
+            row = layout.row()
+            row.label(text='Blender has to be restarted after this process!')
+
+
+class OBJECT_OT_InstallModules(bpy.types.Operator):
+    '''Operator that tries to install scipy and numpy using pip into blender python'''
+    bl_label = 'Install addon dependencies'
+    bl_idname = 'object.install_modules'
+    bl_options = {'REGISTER'}
+
+    def execute(self, context):
+        version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
+
+        python_path = os.path.join(os.getcwd(), version, 'python', 'bin', 'python')
+        try:
+            self.install(python_path)
+        except Exception as e:
+            self.report({'ERROR'}, 'Try to run Blender as administrator or install dependencies manually! :(\n Exception: {}'.format(str(e)))
+        return {'FINISHED'}
+
+    def install(self, python_path):
+        import platform
+
+        if platform.system() == 'Windows':
+            result = subprocess.check_call([python_path, '-m', 'pip', 'install', '--user', 'scipy'])
+        elif platform.system() == 'Linux':
+            result = subprocess.check_call(['sudo', python_path, '-m', 'pip', 'install', '--user', 'scipy'])
+
+        if result == 0:
+            bpy.utils.unregister_class(OBJECT_OT_SurfaceChart)
+            bpy.utils.register_class(OBJECT_OT_SurfaceChart)
 
 
 class DV_AddonPanel(bpy.types.Panel):
     '''
     Menu panel used for loading data and managing addon settings
     '''
-    bl_label = 'Data visualisation'
+    bl_label = 'DataVis'
     bl_idname = 'OBJECT_PT_dv'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Data Visualisation'
+    bl_category = 'DataVis'
 
     def draw(self, context):
         layout = self.layout
-
-        data_storage = bpy.data.scenes[0]
-
-        layout.label(text='Chart settings')
 
         row = layout.row()
         row.label(text='Data', icon='WORLD_DATA')
@@ -44,53 +94,29 @@ class DV_AddonPanel(bpy.types.Panel):
         row = layout.row()
         row.operator('ui.dv_load_data')
 
-        layout.label(text='Axis settings')
+        box = layout.box()
+        box.label(text='Dims: ' + str(data_manager.dimensions))
+        box.label(text='Labels: ' + str(data_manager.has_labels))
+        box.label(text='Type: ' + str(data_manager.predicted_data_type))
+
+        layout.label(text='General Settings')
 
         row = layout.row()
-        row.prop(data_storage.dv_props, 'text_size')
-
-        row = layout.row()
-        row.prop(data_storage.dv_props, 'axis_thickness')
-
-        row = layout.row()
-        row.prop(data_storage.dv_props, 'axis_tick_mark_height')
-
-
-class DV_RowProp(bpy.types.PropertyGroup):
-    '''
-    One row of loaded data as string
-    '''
-    value: bpy.props.StringProperty()
+        row.prop(bpy.data.scenes[0].dv_props, 'text_size')
 
 
 class DV_PropertyGroup(bpy.types.PropertyGroup):
     '''
     General addon settings and data are stored in this property group.
     '''
-    data: bpy.props.CollectionProperty(
-        name='Data',
-        type=DV_RowProp
-    )
-
     text_size: bpy.props.FloatProperty(
         name='Text size',
         default=0.05,
-        description='Size of addon generated text'
-    )
-
-    axis_thickness: bpy.props.FloatProperty(
-        name='Axis thickness',
-        default=0.01,
-        description='How thick is the axis object'
-    )
-
-    axis_tick_mark_height: bpy.props.FloatProperty(
-        name='Axis tick mark height',
-        default=0.03
+        description='Size of text generated by addon'
     )
 
 
-class OBJECT_MT_AddChart(bpy.types.Menu):
+class OBJECT_OT_AddChart(bpy.types.Menu):
     '''
     Menu panel grouping chart related operators in Blender AddObject panel
     '''
@@ -100,19 +126,20 @@ class OBJECT_MT_AddChart(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         main_icons = preview_collections['main']
-        layout.operator(OBJECT_OT_bar_chart.bl_idname, icon_value=main_icons['bar_chart'].icon_id)
-        layout.operator(OBJECT_OT_line_chart.bl_idname, icon_value=main_icons['line_chart'].icon_id)
-        layout.operator(OBJECT_OT_pie_chart.bl_idname, icon_value=main_icons['pie_chart'].icon_id)
-        layout.operator(OBJECT_OT_point_chart.bl_idname, icon_value=main_icons['point_chart'].icon_id)
+        layout.operator(OBJECT_OT_BarChart.bl_idname, icon_value=main_icons['bar_chart'].icon_id)
+        layout.operator(OBJECT_OT_LineChart.bl_idname, icon_value=main_icons['line_chart'].icon_id)
+        layout.operator(OBJECT_OT_PieChart.bl_idname, icon_value=main_icons['pie_chart'].icon_id)
+        layout.operator(OBJECT_OT_PointChart.bl_idname, icon_value=main_icons['point_chart'].icon_id)
+        layout.operator(OBJECT_OT_SurfaceChart.bl_idname, icon_value=main_icons['surface_chart'].icon_id)
 
 
 preview_collections = {}
-data_loaded = 0
+data_manager = DataManager()
 
 
 def chart_ops(self, context):
     icon = preview_collections['main']['addon_icon']
-    self.layout.menu(OBJECT_MT_AddChart.bl_idname, icon_value=icon.icon_id)
+    self.layout.menu(OBJECT_OT_AddChart.bl_idname, icon_value=icon.icon_id)
 
 
 def load_icons():
@@ -133,18 +160,34 @@ def remove_icons():
     preview_collections.clear()
 
 
+classes = [
+    DV_Preferences,
+    OBJECT_OT_InstallModules,
+    DV_PropertyGroup,
+    DV_LabelPropertyGroup,
+    DV_ColorPropertyGroup,
+    DV_AxisPropertyGroup,
+    OBJECT_OT_AddChart,
+    OBJECT_OT_BarChart,
+    OBJECT_OT_PieChart,
+    OBJECT_OT_PointChart,
+    OBJECT_OT_LineChart,
+    OBJECT_OT_SurfaceChart,
+    FILE_OT_DVLoadFile,
+    DV_AddonPanel,
+]
+
+
+def reload():
+    unregister()
+    register()
+
+
 def register():
     load_icons()
-    bpy.utils.register_class(DV_RowProp)
-    bpy.utils.register_class(DV_PropertyGroup)
-    bpy.utils.register_class(DV_LabelPropertyGroup)
-    bpy.utils.register_class(OBJECT_OT_bar_chart)
-    bpy.utils.register_class(OBJECT_OT_pie_chart)
-    bpy.utils.register_class(OBJECT_OT_line_chart)
-    bpy.utils.register_class(OBJECT_OT_point_chart)
-    bpy.utils.register_class(FILE_OT_DVLoadFile)
-    bpy.utils.register_class(DV_AddonPanel)
-    bpy.utils.register_class(OBJECT_MT_AddChart)
+    for c in classes:
+        bpy.utils.register_class(c)
+
     bpy.types.VIEW3D_MT_add.append(chart_ops)
 
     bpy.types.Scene.dv_props = bpy.props.PointerProperty(type=DV_PropertyGroup)
@@ -152,16 +195,8 @@ def register():
 
 def unregister():
     remove_icons()
-    bpy.utils.unregister_class(DV_PropertyGroup)
-    bpy.utils.unregister_class(DV_RowProp)
-    bpy.utils.unregister_class(OBJECT_MT_AddChart)
-    bpy.utils.unregister_class(DV_AddonPanel)
-    bpy.utils.unregister_class(OBJECT_OT_bar_chart)
-    bpy.utils.unregister_class(OBJECT_OT_pie_chart)
-    bpy.utils.unregister_class(OBJECT_OT_line_chart)
-    bpy.utils.unregister_class(OBJECT_OT_point_chart)
-    bpy.utils.unregister_class(FILE_OT_DVLoadFile)
-    bpy.utils.unregister_class(DV_LabelPropertyGroup)
+    for c in reversed(classes):
+        bpy.utils.unregister_class(c)
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
 
 

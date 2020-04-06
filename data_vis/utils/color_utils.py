@@ -1,15 +1,6 @@
 from mathutils import Vector
 from colorsys import hsv_to_rgb, rgb_to_hsv
 
-
-def random_col_gen():
-    ...
-
-
-def color_variety_gen():
-    ...
-
-
 def rgb_col_gen(length, r, g, b):
     base_color = Vector((r, g, b))
     step_size = 1.0 / length
