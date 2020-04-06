@@ -22,7 +22,12 @@ class AxisFactory:
         axis_steps - list of axis step sizes (x_step_size, y_step_size, z_step_size)
         axis_ranges - list of axis ranges ((x_min, x_max), (...), (...))
         dim - number of dimensions (2 or 3) in which to create axis
-        labels - array of labels for each axis [x, y, z]
+        tick_height - height of tick
+        labels - tuple of labels for each axis (x, y, z)
+        tick_labels - tuple of lists containing values to display next to ticks on axis
+        auto_steps - whether to create steps automatically and prevent axis being too dense
+        padding - space between chart and axis
+        offset - offset of start of ticks
         '''
         if dim not in [2, 3]:
             raise AttributeError('Only 2 or 3 dim axis supported. {} is invalid number'.format(dim))
@@ -56,11 +61,13 @@ class Axis:
     step - space between axis ticks
     range - tuple/list of from..to values
     dir - direction of axis specified by AxisDir class
-    hm - height multiplier to normalize chart height
+    labels - custom labels for axis ticks
+    tick-height - height of tick mark
+    auto_step - creates 10 uniform steps across axis
     '''
-    def __init__(self, parent, step, ax_range, ax_dir, labels, thickness, tick_height, auto_step=False):
+    def __init__(self, parent, step, ax_range, ax_dir, tick_labels, thickness, tick_height, auto_step=False):
         self.range = ax_range
-        if not auto_step or len(labels) > 0:
+        if not auto_step or (len(tick_labels) <= 10 and len(tick_labels) > 0):
             self.step = step
         else:
             self.step = (self.range[1] - self.range[0]) / 10
@@ -74,10 +81,11 @@ class Axis:
             raise AttributeError('Use AxisDir enumeration as ax_range param')
 
         self.axis_cont = None
-        self.labels = labels
+        self.tick_labels = tick_labels
         self.create_materials()
 
     def create_materials(self):
+        '''Creates materials for axis, ticks and text'''
         self.axis_mat = bpy.data.materials.get('DV_AxisMat')
         if self.axis_mat is None:
             self.axis_mat = bpy.data.materials.new(name='DV_AxisMat')
@@ -91,9 +99,7 @@ class Axis:
             self.text_mat = bpy.data.materials.new(name='DV_TextMat')
 
     def create_container(self):
-        '''
-        Creates container for axis, with default name 'Axis_Container_DIM' where DIM is X, Y or Z
-        '''
+        '''Creates container for axis, with default name 'Axis_Container_DIM' where DIM is X, Y or Z'''
         bpy.ops.object.empty_add()
         self.axis_cont = bpy.context.object
         self.axis_cont.name = 'Axis_Container_' + str(self.dir)
@@ -140,10 +146,10 @@ class Axis:
         for value in float_range(self.range[0], self.range[1], self.step):
             tick_location = start_pos + (value - self.range[0]) / (self.range[1] - self.range[0])
             self.create_tick_mark(tick_location)
-            if len(self.labels) == 0:
+            if len(self.tick_labels) == 0:
                 self.create_tick_label(value, tick_location)
             else:
-                self.create_tick_label(self.labels[int(value)], tick_location, rotate=True)
+                self.create_tick_label(self.tick_labels[int(value)], tick_location, rotate=True)
 
     def create(self, padding, offset, label, only_2d=False):
         '''
@@ -179,12 +185,14 @@ class Axis:
                 self.axis_cont.location.y -= padding
 
     def create_label(self, value):
+        '''Creates axis label (description) with value'''
         obj = self.create_text_object(value)
         obj.parent = self.axis_cont
         obj.location = (1.3, 0, 0)
         self.rotate_text_object(obj)
 
     def create_tick_label(self, value, x_location, rotate=False):
+        '''Creates tick label with value on x_location offset'''
         obj = self.create_text_object(value)
         if rotate:
             obj.rotation_euler.y = math.radians(45)
@@ -209,6 +217,7 @@ class Axis:
         return obj
 
     def rotate_text_object(self, obj):
+        '''Rotates text object 45 degrees to fit more text'''
         if self.dir == AxisDir.Z:
             obj.rotation_euler.y = math.radians(90)
 

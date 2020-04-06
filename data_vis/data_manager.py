@@ -33,7 +33,12 @@ class DataManager:
             self.__init__()
             try:
                 with open(filepath, 'r') as file:
-                    self.raw_data = [line.split(separator) for line in file]
+                    self.raw_data = []
+                    for line in file:
+                        if line == '\n':
+                            continue
+                        self.raw_data.append(line.split(separator))
+                        
                 self.analyse_data()
             except UnicodeDecodeError as e:
                 self.predicted_data_type = DataType.Invalid

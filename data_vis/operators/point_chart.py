@@ -75,7 +75,7 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             if not self.in_axis_range_bounds_new(entry):
                 continue
 
-            bpy.ops.mesh.primitive_uv_sphere_add()
+            bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8)
             point_obj = context.active_object
             point_obj.scale = Vector((self.point_scale, self.point_scale, self.point_scale))
 

@@ -17,7 +17,7 @@ except ImportError as e:
 
 
 class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
-    '''Creates Surface Chart'''
+    '''Creates Surface Chart (needs scipy in Blender python)'''
     bl_idname = 'object.create_surface_chart'
     bl_label = 'Surface Chart'
     bl_options = {'REGISTER', 'UNDO'}
@@ -141,6 +141,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
                 3,
                 self.axis_settings.thickness,
                 self.axis_settings.tick_mark_height,
+                labels=self.labels,
                 padding=self.axis_settings.padding,
                 auto_steps=self.axis_settings.auto_steps,
                 offset=0.0

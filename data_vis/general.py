@@ -207,9 +207,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
                         row.prop(self.label_settings, 'y_label')
                     row.prop(self.label_settings, 'z_label')
 
-    def draw_color_settings(self, layout):
+    def draw_color_settings(self, box):
         if hasattr(self, 'color_settings'):
-            box = layout.box()
             box.label(text='Color settings')
             box.prop(self.color_settings, 'use_shader')
             box.prop(self.color_settings, 'color_type')
@@ -224,11 +223,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         row = box.row()
         row.label(text='Axis Settings:')
         row.prop(self.axis_settings, 'create')
-        if not self.axis_settings.create:
-            return
 
-        if numerical:
-            box.prop(self.axis_settings, 'auto_ranges')
+        box.prop(self.axis_settings, 'auto_ranges')
         if not self.axis_settings.auto_ranges:
             row = box.row()
             row.prop(self.axis_settings, 'x_range', text='x')
@@ -245,6 +241,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
                 row.prop(self.axis_settings, 'y_step', text='y')
             row.prop(self.axis_settings, 'z_step', text='z')
             
+        if not self.axis_settings.create:
+            return
         row = box.row()
         row.prop(self.axis_settings, 'padding')
         row.prop(self.axis_settings, 'thickness')
@@ -296,7 +294,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         if not self.label_settings.create:
             self.labels = (None, None, None)
             return
-        if self.dm.has_labels:
+        if self.dm.has_labels and self.label_settings.from_data:
             first_line = self.dm.get_labels()
             length = len(first_line)
             if length == 2:
