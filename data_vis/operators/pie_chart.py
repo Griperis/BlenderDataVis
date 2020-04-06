@@ -31,7 +31,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
     @classmethod
     def poll(cls, context):
         dm = DataManager()
-        return not dm.has_labels and dm.is_type(DataType.Categorical, 2)
+        return not dm.has_labels and dm.is_type(DataType.Categorical, [2])
 
     def draw(self, context):
         layout = self.layout

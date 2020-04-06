@@ -53,7 +53,6 @@ class DataManager:
                 try:
                     row = float(col)
                 except Exception as e:
-                    print('Labels analysis: ', e)
                     total += 1
 
             if total == len(self.raw_data[0]):
@@ -140,9 +139,19 @@ class DataManager:
                 return tuple(self.ranges[axis])
             else:
                 return (0.0, 1.0)
+        
+        def override(self, data_type, dims):
+            if data_type != self.predicted_data_type or dims != self.dimensions:
+                if data_type == DataType.Categorical:
+                    self.ranges['x'] = (0, len(self.parsed_data) - 1)
+                else:
+                    self.parse_data()
+                return True
+            else:
+                return False
 
         def is_type(self, data_type, dims):
-            return data_type == self.predicted_data_type and self.dimensions <= dims and dims > 1 and dims <= 3
+            return data_type == self.predicted_data_type and self.dimensions in dims
 
         def __get_row_list(self, row):
             if self.predicted_data_type == DataType.Categorical:

@@ -35,11 +35,6 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         )
     )
 
-    z_auto: bpy.props.BoolProperty(
-        name='Z',
-        default=True
-    )
-
     label_settings: bpy.props.PointerProperty(
         type=DV_LabelPropertyGroup
     )
@@ -69,15 +64,11 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
     @classmethod
     def poll(cls, context):
         dm = DataManager()
-        return dm.is_type(DataType.Numerical, 2) or dm.is_type(DataType.Categorical, 2)
+        return dm.is_type(DataType.Numerical, [2]) or dm.is_type(DataType.Categorical, [2])
 
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        row = layout.row()
-        row.prop(self, 'z_auto')
-        if not self.z_auto:
-            row.prop(self.axis_settings, 'z_range')
         if self.bevel_edges:
             row = layout.row()
             row.prop(self, 'rounded')

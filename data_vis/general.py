@@ -23,7 +23,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
             self.z_range += 1
 
     create: bpy.props.BoolProperty(
-        name='Create Axis',
+        name='Create Axis Object',
         default=True,
     )
 
@@ -196,8 +196,11 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         only_2d = only_2d or not numerical
 
         if hasattr(self, 'dimensions') and self.dm.predicted_data_type != DataType.Categorical:
-            row = layout.row()
-            row.prop(self, 'dimensions')
+            if numerical:
+                row = layout.row()
+                row.prop(self, 'dimensions')
+            else:
+                self.dimensions = '2'
 
         self.draw_axis_settings(layout, numerical)
         self.draw_color_settings(layout)
@@ -229,17 +232,15 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             return
 
         box = layout.box()
-        row = box.row()
-        row.label(text='Axis Settings:')
-        row.prop(self.axis_settings, 'create')
+        box.label(text='Axis Settings:')
 
-        box.prop(self.axis_settings, 'auto_ranges')
-        if not self.axis_settings.auto_ranges:
+        row = box.row()
+        row.prop(self.axis_settings, 'x_range', text='x')
+        if hasattr(self, 'dimensions') and self.dimensions == '3':
             row = box.row()
-            row.prop(self.axis_settings, 'x_range', text='x')
-            if hasattr(self, 'dimensions') and self.dimensions == '3':
-                row = box.row()
-                row.prop(self.axis_settings, 'y_range', text='y')
+            row.prop(self.axis_settings, 'y_range', text='y')
+        row = box.row()
+        row.prop(self.axis_settings, 'z_range', text='z')
         box.prop(self.axis_settings, 'auto_steps')
 
         if not self.axis_settings.auto_steps:
@@ -249,7 +250,9 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             if hasattr(self, 'dimensions') and self.dimensions == '3':
                 row.prop(self.axis_settings, 'y_step', text='y')
             row.prop(self.axis_settings, 'z_step', text='z')
-            
+
+        row = box.row()
+        row.prop(self.axis_settings, 'create')
         if not self.axis_settings.create:
             return
         row = box.row()

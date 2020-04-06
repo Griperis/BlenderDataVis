@@ -45,6 +45,7 @@ class DV_Preferences(bpy.types.AddonPreferences):
             row = layout.row()
             row.label(text='Blender has to be restarted after this process!')
 
+
 class OBJECT_OT_InstallModules(bpy.types.Operator):
     '''Operator that tries to install scipy and numpy using pip into blender python'''
     bl_label = 'Install addon dependencies'

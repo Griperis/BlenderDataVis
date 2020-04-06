@@ -43,7 +43,7 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
 
     @classmethod
     def poll(cls, context):
-        return DataManager().is_type(DataType.Numerical, 3)
+        return DataManager().is_type(DataType.Numerical, [3])
 
     def draw(self, context):
         super().draw(context)
