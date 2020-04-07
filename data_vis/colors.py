@@ -11,12 +11,12 @@ class ColorType(Enum):
     Custom = 3
 
     def str_to_type(value):
-        if str(value) == '0' or value == 'Constant':
-            return ColorType.Constant
-        if str(value) == '1' or value == 'Random':
-            return ColorType.Random
-        if str(value) == '2' or value == 'Gradient':
+        if str(value) == '0' or value == 'Gradient':
             return ColorType.Gradient
+        if str(value) == '1' or value == 'Constant':
+            return ColorType.Constant
+        if str(value) == '2' or value == 'Random':
+            return ColorType.Random
 
 
 class NodeShader:

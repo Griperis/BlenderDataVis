@@ -137,6 +137,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
                 auto_steps=self.axis_settings.auto_steps,
                 offset=0.0
             )
+        self.select_container()
         return {'FINISHED'}
 
     def create_curve(self, verts, edges):

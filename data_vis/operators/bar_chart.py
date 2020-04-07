@@ -27,7 +27,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
     data_type: bpy.props.EnumProperty(
         name='Chart type',
         items=(
-            ('0', 'Numerical', 'X relative to Z or Y'),
+            ('0', 'Numerical', 'X, [Y] relative to Z'),
             ('1', 'Categorical', 'Label and value'),
         ),
     )
@@ -121,5 +121,5 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 auto_steps=self.axis_settings.auto_steps,
                 offset=0.0
             )
-
+        self.select_container()
         return {'FINISHED'}
