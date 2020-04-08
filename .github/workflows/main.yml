@@ -11,9 +11,6 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       
-    - uses: actions/checkout@v2
-    - name: Download zip
-      run:  sudo apt-get install zip
-      
-    - name: Zip addon
-      run:  zip -r data_vis.zip data_vis
+    - uses: montudor/action-zip@v0.1.0
+      with:
+        args: zip -qq -r ./data_viz.zip ./data_viz
