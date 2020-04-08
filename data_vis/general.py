@@ -91,6 +91,20 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
         default=0.05
     )
 
+    number_format: bpy.props.EnumProperty(
+        name='Num format',
+        items=(
+            ('0', 'Decimal', '123.456'),
+            ('1', 'Scientific', '1.23e+05')
+        )
+    )
+
+    decimal_places: bpy.props.IntProperty(
+        name='Decimal places',
+        default=2,
+        min=0
+    )
+
 
 class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
     create: bpy.props.BoolProperty(
@@ -249,9 +263,13 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         row.prop(self.axis_settings, 'padding')
         row.prop(self.axis_settings, 'thickness')
         row.prop(self.axis_settings, 'tick_mark_height')
+        box.separator()
+        row = box.row()
+        row.label(text='Text settings', icon='FONT_DATA')
+        box.prop(self.axis_settings, 'number_format')
         row = box.row()
         row.prop(self.axis_settings, 'text_size')
-
+        row.prop(self.axis_settings, 'decimal_places')
         box.separator()
         self.draw_label_settings(box)
 

@@ -27,7 +27,6 @@ class AxisFactory:
         
         steps = [axis_settings.x_step, axis_settings.y_step, axis_settings.z_step]
         ranges = [axis_settings.x_range, axis_settings.y_range, axis_settings.z_range]
-
         for i in range(dim):
             if i == 0:
                 direction = AxisDir.X
@@ -53,9 +52,12 @@ class AxisFactory:
                 axis_settings.thickness,
                 axis_settings.tick_mark_height,
                 axis_settings.auto_steps,
-                axis_settings.text_size
+                axis_settings.text_size,
+                axis_settings.number_format,
+                axis_settings.decimal_places
             )
             axis.create(axis_settings.padding, offset, labels[dir_idx], dim == 2)
+
 
 class Axis:
     '''
@@ -68,7 +70,7 @@ class Axis:
     tick-height - height of tick mark
     auto_step - creates 10 uniform steps across axis
     '''
-    def __init__(self, parent, step, ax_range, ax_dir, tick_labels, thickness, tick_height, auto_step=False, text_size=0.05):
+    def __init__(self, parent, step, ax_range, ax_dir, tick_labels, thickness, tick_height, auto_step=False, text_size=0.05, number_format='0', decimal_places=2):
         self.range = ax_range
         if not auto_step or (len(tick_labels) <= 10 and len(tick_labels) > 0):
             self.step = step
@@ -85,7 +87,17 @@ class Axis:
 
         self.axis_cont = None
         self.tick_labels = tick_labels
+        self.create_format_string(number_format, decimal_places)
         self.create_materials()
+
+    def create_format_string(self, number_format, decimal_places):
+        '''Creates format string specified by axis options'''
+        if number_format == '0':
+            self.number_fmt = '{:.' + str(decimal_places) + 'f}'
+        elif number_format == '1':
+            self.number_fmt = '{:.' + str(decimal_places) + 'e}'
+        else:
+            raise AttributeError('Unknown number format')
 
     def create_materials(self):
         '''Creates materials for axis, ticks and text'''
@@ -210,7 +222,7 @@ class Axis:
         bpy.ops.object.text_add()
         obj = bpy.context.object
         if type(value) is float:
-            obj.data.body = '%.2f' % value
+            obj.data.body = self.number_fmt.format(value)
         else:
             obj.data.body = str(value)
         obj.data.align_x = 'CENTER'
