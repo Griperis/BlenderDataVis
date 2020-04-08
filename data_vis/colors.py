@@ -118,11 +118,7 @@ class NodeShader:
         mul_node.operation = 'MULTIPLY'
         mul_node.inputs[1].default_value = self.scale
 
-        # Normalize the position when creating shader
-        sub_node = nodes.new('ShaderNodeMath')
-        sub_node.location = (-700, 0)
-        sub_node.operation = 'SUBTRACT'
-        sub_node.inputs[1].default_value = self.location_z
+        sub_node = self.__create_z_sub_node(nodes, material, -700)
 
         xyz_sep_node = nodes.new('ShaderNodeSeparateXYZ')
         xyz_sep_node.location = (-900, 0)
@@ -154,10 +150,7 @@ class NodeShader:
         cr_node.color_ramp.elements[1].color = self.base_color
 
         # Normalize the position when creating shader
-        sub_node = nodes.new('ShaderNodeMath')
-        sub_node.location = (-500, 0)
-        sub_node.operation = 'SUBTRACT'
-        sub_node.inputs[1].default_value = self.location_z
+        sub_node = self.__create_z_sub_node(nodes, material, -500)
 
         xyz_sep_node = nodes.new('ShaderNodeSeparateXYZ')
         xyz_sep_node.location = (-700, 0)
@@ -175,6 +168,25 @@ class NodeShader:
 
     def get_material(self, *args):
         return self.material
+
+    def __create_z_sub_node(self, nodes, material, location_x):
+        sub_node = nodes.new('ShaderNodeMath')
+        sub_node.location = (location_x, 0)
+        sub_node.operation = 'SUBTRACT'
+
+        drv = material.node_tree.driver_add('nodes["Math.001"].inputs[1].default_value')
+        var = drv.driver.variables.new()
+        var.type = 'TRANSFORMS'
+        var.name = 'z_pos'
+        
+        target = var.targets[0]
+        target.id = bpy.data.objects.get('Chart_Container')
+        target.transform_type = 'LOC_Z'
+        target.transform_space = 'WORLD_SPACE'
+
+        drv.driver.expression = var.name
+
+        return sub_node
 
     def __add_alpha(self, color, alpha):
         return (color[0], color[1], color[2], alpha)
