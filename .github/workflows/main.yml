@@ -1,0 +1,16 @@
+name: CI
+on:
+  push:
+    branches: 
+    - master
+    - develop
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      
+    - uses: montudor/action-zip@v0.1.0
+      with:
+        args: zip -qq -r ./data_viz.zip ./data_viz
