@@ -1,4 +1,3 @@
-
 import bpy
 import math
 
@@ -8,11 +7,6 @@ from data_vis.utils.data_utils import find_axis_range
 from data_vis.colors import ColorType
 
 
-class CONST:
-    GRAPH_Z_SCALE = 0.5
-    HALF_PI = math.pi * 0.5
-
-
 class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     def range_updated(self, context):
         if self.x_range[0] == self.x_range[1]:
@@ -20,17 +14,11 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
         if self.y_range[0] == self.y_range[1]:
             self.y_range[1] += 1.0
         if self.z_range[0] == self.z_range[1]:
-            self.z_range += 1
+            self.z_range += 1.0
 
     create: bpy.props.BoolProperty(
         name='Create Axis Object',
         default=True,
-    )
-
-    auto_ranges: bpy.props.BoolProperty(
-        name='Automatic Ranges',
-        default=True,
-        description='Automatically displays all data'
     )
 
     auto_steps: bpy.props.BoolProperty(
@@ -98,6 +86,25 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
         description='Axis distance from chart origin'
     )
 
+    text_size: bpy.props.FloatProperty(
+        name='Text size',
+        default=0.05
+    )
+
+    number_format: bpy.props.EnumProperty(
+        name='Num format',
+        items=(
+            ('0', 'Decimal', '123.456'),
+            ('1', 'Scientific', '1.23e+05')
+        )
+    )
+
+    decimal_places: bpy.props.IntProperty(
+        name='Decimal places',
+        default=2,
+        min=0
+    )
+
 
 class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
     create: bpy.props.BoolProperty(
@@ -152,15 +159,6 @@ class DV_ColorPropertyGroup(bpy.types.PropertyGroup):
         max=1.0,
         description='Base color shade to work with'
     )
-
-
-class Properties:
-    '''
-    Access to Blender properties related to addon, which are not in specific chart operators
-    '''
-    @staticmethod
-    def get_text_size():
-        return bpy.data.scenes[0].dv_props.text_size
 
 
 class OBJECT_OT_GenericChart(bpy.types.Operator):
@@ -265,6 +263,13 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         row.prop(self.axis_settings, 'padding')
         row.prop(self.axis_settings, 'thickness')
         row.prop(self.axis_settings, 'tick_mark_height')
+        box.separator()
+        row = box.row()
+        row.label(text='Text settings', icon='FONT_DATA')
+        box.prop(self.axis_settings, 'number_format')
+        row = box.row()
+        row.prop(self.axis_settings, 'text_size')
+        row.prop(self.axis_settings, 'decimal_places')
         box.separator()
         self.draw_label_settings(box)
 
