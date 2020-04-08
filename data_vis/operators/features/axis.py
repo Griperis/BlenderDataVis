@@ -57,46 +57,6 @@ class AxisFactory:
             )
             axis.create(axis_settings.padding, offset, labels[dir_idx], dim == 2)
 
-    @staticmethod
-    def create_old(parent, axis_steps, axis_ranges, dim, thickness, tick_height, labels=(None, None, None), tick_labels=([], [], []), auto_steps=False, padding=0.0, offset=0.0):
-        '''
-        Factory method that creates all axis with all values specified by parameters
-        parent - parent object for axis containers
-        axis_steps - list of axis step sizes (x_step_size, y_step_size, z_step_size)
-        axis_ranges - list of axis ranges ((x_min, x_max), (...), (...))
-        dim - number of dimensions (2 or 3) in which to create axis
-        tick_height - height of tick
-        labels - tuple of labels for each axis (x, y, z)
-        tick_labels - tuple of lists containing values to display next to ticks on axis
-        auto_steps - whether to create steps automatically and prevent axis being too dense
-        padding - space between chart and axis
-        offset - offset of start of ticks
-        '''
-        if dim not in [2, 3]:
-            raise AttributeError('Only 2 or 3 dim axis supported. {} is invalid number'.format(dim))
-
-        for i in range(dim):
-            if i == 0:
-                direction = AxisDir.X
-            elif i == 1:
-                # y axis in 2D chart is z in blender 3D space
-                if dim == 2:
-                    direction = AxisDir.Z
-                else:
-                    direction = AxisDir.Y
-            elif i == 2:
-                direction = AxisDir.Z
-
-            # create Y axis in 2D in Z direction using Z values
-            dir_idx = i
-            if dim == 2 and i == 1:
-                dir_idx = 2
-                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx], thickness, tick_height, auto_steps)
-            else:
-                axis = Axis(parent, axis_steps[dir_idx], axis_ranges[dir_idx], direction, tick_labels[dir_idx], thickness, tick_height, auto_steps)
-            axis.create(padding, offset, labels[dir_idx], True if dim == 2 else False)
-
-
 class Axis:
     '''
     Abstraction for axis creation and its labeling
