@@ -92,6 +92,7 @@ class DV_AddonPanel(bpy.types.Panel):
 
         box = layout.box()
         box.label(icon='WORLD_DATA', text='Data Information:')
+        box.label(text='File: ' + str(data_manager.get_filename()))
         box.label(text='Dims: ' + str(data_manager.dimensions))
         box.label(text='Labels: ' + str(data_manager.has_labels))
         box.label(text='Type: ' + str(data_manager.predicted_data_type))

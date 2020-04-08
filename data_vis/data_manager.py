@@ -1,5 +1,6 @@
-from enum import Enum
 import bpy
+import os
+from enum import Enum
 
 
 class DataType(Enum):
@@ -23,6 +24,7 @@ class DataManager:
             self.labels = ()
             self.dimensions = 0
             self.ranges = {}
+            self.filepath = ''
 
         def set_data(self, data):
             self.raw_data = data
@@ -32,6 +34,7 @@ class DataManager:
 
         def load_data(self, filepath, separator=','):
             self.__init__()
+            self.filepath = filepath
             try:
                 with open(filepath, 'r') as file:
                     self.raw_data = []
@@ -140,6 +143,9 @@ class DataManager:
             else:
                 return (0.0, 1.0)
         
+        def get_filename(self):
+            return os.path.split(self.filepath)[1]
+
         def override(self, data_type, dims):
             if data_type != self.predicted_data_type or dims != self.dimensions:
                 if data_type == DataType.Categorical:
