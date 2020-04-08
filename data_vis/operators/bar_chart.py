@@ -66,6 +66,10 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
 
         tick_labels = []
 
+        if self.dm.predicted_data_type == DataType.Categorical and self.data_type_as_enum() == DataType.Numerical:
+            self.report({'ERROR'}, 'Cannot convert categorical data into numerical!')
+            return {'CANCELLED'}
+
         if self.dm.override(self.data_type_as_enum(), int(self.dimensions)):
             self.init_ranges()
 
@@ -110,16 +114,10 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         if self.axis_settings.create:
             AxisFactory.create(
                 self.container_object,
-                (self.axis_settings.x_step, self.axis_settings.y_step, self.axis_settings.z_step),
-                (self.axis_settings.x_range, self.axis_settings.y_range, self.axis_settings.z_range),
+                self.axis_settings,
                 int(self.dimensions),
-                self.axis_settings.thickness,
-                self.axis_settings.tick_mark_height,
-                tick_labels=(tick_labels, [], []),
                 labels=self.labels,
-                padding=self.axis_settings.padding,
-                auto_steps=self.axis_settings.auto_steps,
-                offset=0.0
+                tick_labels=(tick_labels, [], []),
             )
         self.select_container()
         return {'FINISHED'}
