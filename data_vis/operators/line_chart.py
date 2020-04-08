@@ -42,7 +42,6 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
 
     axis_settings: bpy.props.PointerProperty(
         type=DV_AxisPropertyGroup,
-        options={'SKIP_SAVE'}
     )
 
     color_shade: bpy.props.FloatVectorProperty(
