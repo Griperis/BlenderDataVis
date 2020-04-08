@@ -2,7 +2,6 @@ name: CI
 on:
   push:
     branches: 
-    - master
     - develop
 jobs:
   build:
@@ -23,4 +22,5 @@ jobs:
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
+        branch: develop
         github_token: ${{ secrets.GITHUB_TOKEN }}
