@@ -147,7 +147,7 @@ class DV_ColorPropertyGroup(bpy.types.PropertyGroup):
             ('1', 'Constant', 'One color'),
             ('2', 'Random', 'Random colors'),
         ),
-        default='2',
+        default='0',
         description='Type of coloring for chart'
     )
 
