@@ -13,4 +13,4 @@ jobs:
       
     - uses: montudor/action-zip@v0.1.0
       with:
-        args: zip -qq -r ./data_viz.zip . -i ./data_viz
+        args: zip -qq -r ./data_vis.zip ./data_vis
