@@ -10,11 +10,11 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      
+    - uses: actions/checkout@develop
     - uses: montudor/action-zip@v0.1.0
       with:
         args: zip -qq -r ./data_vis.zip . -i ./data_vis
- 
+
     - name: Commit files
       run: |
         git config --local user.email "griperis@outlook.cz"
