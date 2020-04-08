@@ -13,4 +13,7 @@ jobs:
       
     - uses: montudor/action-zip@v0.1.0
       with:
-        args: zip -qq -r ./data_vis.zip ./data_vis
+        args: zip -qq -r ./data_vis.zip . -i ./data_vis
+ 
+    - name: action-push
+      uses: ludeeus/action-push@0.0.1
