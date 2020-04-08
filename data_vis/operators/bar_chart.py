@@ -66,6 +66,10 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
 
         tick_labels = []
 
+        if self.dm.predicted_data_type == DataType.Categorical and self.data_type_as_enum() == DataType.Numerical:
+            self.report({'ERROR'}, 'Cannot convert categorical data into numerical!')
+            return {'CANCELLED'}
+
         if self.dm.override(self.data_type_as_enum(), int(self.dimensions)):
             self.init_ranges()
 

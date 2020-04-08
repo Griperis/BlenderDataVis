@@ -96,6 +96,10 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
     def execute(self, context):
         self.init_data()
 
+        if self.dm.predicted_data_type == DataType.Categorical and self.data_type_as_enum() == DataType.Numerical:
+            self.report({'ERROR'}, 'Cannot convert categorical data into numerical!')
+            return {'CANCELLED'}
+
         self.create_container()
 
         if self.data_type_as_enum() == DataType.Numerical:
