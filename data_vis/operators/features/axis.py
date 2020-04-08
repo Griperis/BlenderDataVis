@@ -3,7 +3,6 @@ from mathutils import Vector
 import bpy
 import math
 
-from data_vis.general import Properties
 from data_vis.utils.data_utils import float_range
 
 
@@ -15,7 +14,51 @@ class AxisDir(Enum):
 
 class AxisFactory:
     @staticmethod
-    def create(parent, axis_steps, axis_ranges, dim, thickness, tick_height, labels=(None, None, None), tick_labels=([], [], []), auto_steps=False, padding=0.0, offset=0.0):
+    def create(parent, axis_settings, dim, labels=(None, None, None), tick_labels=([], [], []), offset=0.0):
+        '''
+        Factory method that creates all axis with all values specified by parameters
+        parent - parent object for axis containers
+        axis_settings: DV_AxisPropertyGroup
+        labels - tuple of labels for each axis (x, y, z)
+        tick_labels - tuple of lists containing values to display next to ticks on axis
+        '''
+        if dim not in [2, 3]:
+            raise AttributeError('Only 2 or 3 dim axis supported. {} is invalid number'.format(dim))
+        
+        steps = [axis_settings.x_step, axis_settings.y_step, axis_settings.z_step]
+        ranges = [axis_settings.x_range, axis_settings.y_range, axis_settings.z_range]
+
+        for i in range(dim):
+            if i == 0:
+                direction = AxisDir.X
+            elif i == 1:
+                # y axis in 2D chart is z in blender 3D space
+                if dim == 2:
+                    direction = AxisDir.Z
+                else:
+                    direction = AxisDir.Y
+            elif i == 2:
+                direction = AxisDir.Z
+            
+            dir_idx = i
+            if dim == 2 and i == 1:
+                dir_idx = 2
+
+            axis = Axis(
+                parent,
+                steps[dir_idx],
+                ranges[dir_idx],
+                direction,
+                tick_labels[dir_idx],
+                axis_settings.thickness,
+                axis_settings.tick_mark_height,
+                axis_settings.auto_steps,
+                axis_settings.text_size
+            )
+            axis.create(axis_settings.padding, offset, labels[dir_idx], dim == 2)
+
+    @staticmethod
+    def create_old(parent, axis_steps, axis_ranges, dim, thickness, tick_height, labels=(None, None, None), tick_labels=([], [], []), auto_steps=False, padding=0.0, offset=0.0):
         '''
         Factory method that creates all axis with all values specified by parameters
         parent - parent object for axis containers
@@ -65,7 +108,7 @@ class Axis:
     tick-height - height of tick mark
     auto_step - creates 10 uniform steps across axis
     '''
-    def __init__(self, parent, step, ax_range, ax_dir, tick_labels, thickness, tick_height, auto_step=False):
+    def __init__(self, parent, step, ax_range, ax_dir, tick_labels, thickness, tick_height, auto_step=False, text_size=0.05):
         self.range = ax_range
         if not auto_step or (len(tick_labels) <= 10 and len(tick_labels) > 0):
             self.step = step
@@ -74,7 +117,7 @@ class Axis:
         self.parent_object = parent
         self.thickness = thickness
         self.mark_height = tick_height
-        self.text_size = Properties.get_text_size()
+        self.text_size = text_size
         if isinstance(ax_dir, AxisDir):
             self.dir = ax_dir
         else:

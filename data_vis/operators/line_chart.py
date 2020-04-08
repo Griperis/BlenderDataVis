@@ -56,7 +56,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
 
     use_shader: bpy.props.BoolProperty(
         name='Use Nodes',
-        default=False,
+        default=True,
     )
 
     def __init__(self):
@@ -85,9 +85,9 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         super().draw(context)
         layout = self.layout
         box = layout.box()
+        box.prop(self, 'bevel_edges')
         if self.bevel_edges:
             box.prop(self, 'rounded')
-        box.prop(self, 'bevel_edges')
 
         box = layout.box()
         box.prop(self, 'use_shader')
@@ -130,16 +130,10 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         if self.axis_settings.create:
             AxisFactory.create(
                 self.container_object,
-                (self.axis_settings.x_step, 0, self.axis_settings.z_step),
-                (self.axis_settings.x_range, [], self.axis_settings.z_range),
+                self.axis_settings,
                 2,
-                self.axis_settings.thickness,
-                self.axis_settings.tick_mark_height,
-                tick_labels=(tick_labels, [], []),
                 labels=self.labels,
-                padding=self.axis_settings.padding,
-                auto_steps=self.axis_settings.auto_steps,
-                offset=0.0
+                tick_labels=(tick_labels, [], [])
             )
         self.select_container()
         return {'FINISHED'}
