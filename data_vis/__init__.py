@@ -41,7 +41,7 @@ class DV_Preferences(bpy.types.AddonPreferences):
             row.operator('object.install_modules')
             row = layout.row()
             version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
-            row.label(text='Or in {} use command: python -m pip install scipy'.format(os.path.join(os.getcwd(), version, 'python', 'bin', 'python')))
+            row.label(text='Or use pip to install scipy into python which Blender uses!')
             row = layout.row()
             row.label(text='Blender has to be restarted after this process!')
 
@@ -63,15 +63,44 @@ class OBJECT_OT_InstallModules(bpy.types.Operator):
         return {'FINISHED'}
 
     def install(self, python_path):
-        pip_result = subprocess.check_call([python_path, '-m', 'ensurepip', '--user'])
-        if pip_result != 0:
-            raise Exception('Failed to install pip!')
+        import platform
 
-        result = subprocess.check_call([python_path, '-m', 'pip', 'install', '--user', 'scipy'])
+        info = ''
+        bp_pip = -1
+        bp_res = -1
 
-        if result == 0:
-            bpy.utils.unregister_class(OBJECT_OT_SurfaceChart)
-            bpy.utils.register_class(OBJECT_OT_SurfaceChart)
+        p_pip = -1
+        p_res = -1
+
+        p3_pip = -1
+        p3_res = -1
+        try:
+            bp_pip = subprocess.check_call([python_path, '-m', 'ensurepip', '--user'])
+            bp_res = subprocess.check_call([python_path, '-m', 'pip', 'install', '--user', 'scipy'])
+        except OSError as e:
+            info = 'Python in blender folder failed: ' + str(e) + '\n'
+
+        if bp_pip != 0 or bp_res != 0:
+            if platform.system() == 'Linux':
+                try:
+                    p_pip = subprocess.check_call(['python', '-m', 'ensurepip', '--user'])
+                    p_res = subprocess.check_call(['python', '-m', 'pip', 'install', '--user', 'scipy'])
+                except OSError as e:
+                    info += 'Python in PATH failed: ' + str(e) + '\n'
+
+                if p_pip != 0 or p_res != 0:  
+                    try:
+                        # python3
+                        p3_pip = subprocess.check_call(['python3', '-m', 'ensurepip', '--user'])
+                        p3_res = subprocess.check_call(['python3', '-m', 'pip', 'install', '--user', 'scipy'])
+                    except OSError as e:
+                        info += 'Python3 in PATH failed: ' + str(e) + '\n'
+
+        # if one approach worked
+        if (bp_pip == 0 and bp_res == 0) or (p_pip == 0 and p_res == 0) or (p3_pip == 0 and p3_res == 0):
+            self.report({'INFO'}, 'Scipy module should be succesfully installed, restart Blender now please! (Best effort approach)')
+        else:
+            raise Exception('Failed to install pip or scipy into blender python:\n' + str(info))
 
 
 class DV_AddonPanel(bpy.types.Panel):
