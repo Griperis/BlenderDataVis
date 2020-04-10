@@ -128,7 +128,12 @@ class DV_AddonPanel(bpy.types.Panel):
             box.label(text='File: ' + str(filename))
             box.label(text='Dims: ' + str(data_manager.dimensions))
             box.label(text='Labels: ' + str(data_manager.has_labels))
-            box.label(text='Lines: ' + str(data_manager.lines))
+            lines = data_manager.lines      
+            if lines >= 150:
+                lines = str(lines) + ' Warning (performace)!'
+            else:
+                lines = str(lines)     
+            box.label(text='Lines: ' + lines)
             box.label(text='Type: ' + str(data_manager.predicted_data_type))
 
 
