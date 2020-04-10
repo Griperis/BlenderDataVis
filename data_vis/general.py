@@ -8,6 +8,7 @@ from data_vis.colors import ColorType
 
 
 class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
+    '''Axis Settings, used with AxisFactory'''
     def range_updated(self, context):
         if self.x_range[0] == self.x_range[1]:
             self.x_range[1] += 1.0
@@ -107,6 +108,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
 
 
 class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
+    '''Label settings, used with AxisFactory with AxisPropertyGroup'''
     create: bpy.props.BoolProperty(
         name='Create labels',
         default=True
@@ -134,6 +136,7 @@ class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
 
 
 class DV_ColorPropertyGroup(bpy.types.PropertyGroup):
+    '''General color settings, ment to be used with ColorFactory'''
     use_shader: bpy.props.BoolProperty(
         name='Use Nodes',
         default=True,
@@ -161,8 +164,21 @@ class DV_ColorPropertyGroup(bpy.types.PropertyGroup):
     )
 
 
+class DV_AnimationPropertyGroup(bpy.types.PropertyGroup):
+    animate: bpy.props.BoolProperty(
+        name='Animate',
+        default=False
+    )
+
+    key_spacing: bpy.props.IntProperty(
+        name='Keyframe spacing',
+        default=20,
+        min=1
+    )
+
+
 class OBJECT_OT_GenericChart(bpy.types.Operator):
-    '''Creates chart'''
+    '''Encapsulation of common methods for charts'''
     bl_idname = 'object.create_chart'
     bl_label = 'Generic chart operator'
     bl_options = {'REGISTER', 'UNDO'}
@@ -205,6 +221,19 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
         self.draw_axis_settings(layout, numerical)
         self.draw_color_settings(layout)
+        self.draw_anim_settings(layout)
+
+    def draw_anim_settings(self, layout):
+        if not self.dm.animable:
+            box = layout.box()
+            box.label(text='NOT ANIMATABLE')
+            return
+        if hasattr(self, 'anim_settings'):
+            box = layout.box()
+            box.label(icon='TIME', text='Animation Settings:')
+            box.prop(self.anim_settings, 'animate')
+            if self.anim_settings.animate:
+                box.prop(self.anim_settings, 'key_spacing')
 
     def draw_label_settings(self, box):
         if hasattr(self, 'label_settings'):
@@ -285,6 +314,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         self.axis_settings.x_range = self.dm.get_range('x')
         self.axis_settings.y_range = self.dm.get_range('y')
         self.axis_settings.z_range = self.dm.get_range('z')
+        if hasattr(self, 'anim_settings') and self.anim_settings.animate:
+            self.axis_settings.z_range = self.dm.get_range('z_anim')
 
     def invoke(self, context, event):
         if hasattr(self, 'axis_settings'):
