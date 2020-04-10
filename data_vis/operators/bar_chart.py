@@ -116,10 +116,11 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             bar_obj.parent = self.container_object
 
             if self.anim_settings.animate and self.dm.tail_length != 0:
-                frame_n = 0
+                frame_n = context.scene.frame_current
                 bar_obj.keyframe_insert(data_path='location', frame=frame_n)
                 bar_obj.keyframe_insert(data_path='scale', frame=frame_n)
-                for j in range(value_index + 1, (value_index + 1) + self.dm.tail_length):
+                dif = 2 if self.dimensions == '2' else 1
+                for j in range(value_index + 1, value_index + self.dm.tail_length + dif):
                     frame_n += self.anim_settings.key_spacing
                     zn_norm = normalize_value(self.data[i][j], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
                     if zn_norm >= 0.0 and zn_norm <= 0.0005:

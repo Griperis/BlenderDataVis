@@ -66,7 +66,7 @@ class DataManager:
 
             prev_row_info = {}
             for i in range(1, len(self.raw_data)):
-                row_info = {'floats': 0, 'strings': 0,'first_string': False}
+                row_info = {'floats': 0, 'strings': 0, 'first_string': False}
                 row = self.raw_data[1]
                 for j, col in enumerate(row):
                     try:
@@ -85,7 +85,8 @@ class DataManager:
             if self.predicted_data_type != DataType.Invalid:
                 if row_info['first_string'] and row_info['strings'] == 1 and row_info['floats'] > 0:
                     self.dimensions = 2
-                    self.animable = True
+                    if row_info['floats'] > 1:
+                        self.animable = True
                     self.predicted_data_type = DataType.Categorical
                 elif row_info['strings'] == 0 and row_info['floats'] >= 2:
                     if row_info['floats'] == 2 or row_info['floats'] == 3:
@@ -98,7 +99,7 @@ class DataManager:
                 else:
                     self.predicted_data_type = DataType.Invalid
 
-                self.tail_length = row_info['floats'] - self.dimensions 
+                self.tail_length = row_info['floats'] - self.dimensions
                 self.parse_data()
 
         def parse_data(self):
@@ -117,6 +118,7 @@ class DataManager:
                 start_idx = 0
 
             min_max = []
+            self.lines = 0
             for i in range(start_idx, len(data)):
                 self.lines += 1
                 row_list = self.__get_row_list(self.raw_data[i])
@@ -133,9 +135,9 @@ class DataManager:
                 self.parsed_data.append(row_list)
    
             self.ranges['x'] = min_max[0]
-            if len(min_max) == 2:
+            if len(min_max) == 2 or self.predicted_data_type == DataType.Categorical:
                 self.ranges['z'] = min_max[1]
-            if len(min_max) > 2:
+            elif len(min_max) > 2:
                 self.ranges['y'] = min_max[1]
                 self.ranges['z'] = min_max[2]
 
@@ -178,7 +180,9 @@ class DataManager:
 
         def __get_row_list(self, row):
             if self.predicted_data_type == DataType.Categorical:
-                return [str(row[0]), float(row[1])]
+                ret_list = [str(row[0])]
+                ret_list.extend([float(x) for x in row[1:]])
+                return ret_list
             elif self.predicted_data_type == DataType.Numerical:
                 return [float(x) for x in row]
 
