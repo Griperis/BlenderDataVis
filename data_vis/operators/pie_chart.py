@@ -31,7 +31,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
     color_type: bpy.props.EnumProperty(
         name='Coloring Type',
         items=(
-            ('0', 'Gradient', 'Gradient based on value')
+            ('0', 'Gradient', 'Gradient based on value'),
             ('1', 'Constant', 'One color'),
             ('2', 'Random', 'Random colors'),
         ),

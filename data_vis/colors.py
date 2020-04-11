@@ -111,14 +111,14 @@ class NodeShader:
         cr_node.color_ramp.elements[0].color = (1, 1, 1, 1)
         cr_node.color_ramp.elements[1].color = self.base_color
 
+        sub_node = self.__create_z_sub_node(nodes, material, -700)
+        
         mul_node = nodes.new('ShaderNodeMath')
         mul_node.location = (-500, 0)
-
+ 
         # normalize
         mul_node.operation = 'MULTIPLY'
         mul_node.inputs[1].default_value = self.scale
-
-        sub_node = self.__create_z_sub_node(nodes, material, -700)
 
         xyz_sep_node = nodes.new('ShaderNodeSeparateXYZ')
         xyz_sep_node.location = (-900, 0)
@@ -174,7 +174,7 @@ class NodeShader:
         sub_node.location = (location_x, 0)
         sub_node.operation = 'SUBTRACT'
 
-        drv = material.node_tree.driver_add('nodes["Math.001"].inputs[1].default_value')
+        drv = material.node_tree.driver_add('nodes["Math"].inputs[1].default_value')
         var = drv.driver.variables.new()
         var.type = 'TRANSFORMS'
         var.name = 'z_pos'
