@@ -15,12 +15,6 @@ Download `data_vis.zip` and install it in Blender (Edit -> Preferences -> Addons
     <img src="media/video_4.gif" height="480px">
 </p>
 
-## Preview
-<p align="center">
-    <img src="media/bar_3d_render.png" height="300px">
-    <img src="media/surface.png"height="300px">
-</p>
-
 ## Introduction
 Brief section about how to use the addon and what principles are applied to data and visualisations and how addon works. Addon extends Blender UI in two places:
 - Add Object Menu - Create new visualisations under Chart subgroup (Shift + A)
@@ -85,6 +79,12 @@ Planned features:
 - Label alignment to camera for render
 
 Feel free to submit any issues or ideas!
+
+## Possible results
+<p align="center">
+    <img src="media/bar_3d_render.png" height="250px">
+    <img src="media/surface.png"height="250px">
+</p>
 
 ## Author
 Zdeněk Doležal - Bachelor Thesis
