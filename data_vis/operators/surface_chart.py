@@ -1,8 +1,8 @@
 import bpy
 import math
 
-from data_vis.general import OBJECT_OT_GenericChart, DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_ColorPropertyGroup
-from data_vis.utils.data_utils import find_data_range, normalize_value
+from data_vis.general import OBJECT_OT_GenericChart, DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup
+from data_vis.utils.data_utils import normalize_value
 from data_vis.colors import NodeShader
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
@@ -59,6 +59,10 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         type=DV_LabelPropertyGroup
     )
 
+    anim_settings: bpy.props.PointerProperty(
+        type=DV_AnimationPropertyGroup
+    )
+
     color_shade: bpy.props.FloatVectorProperty(
         name='Base Color',
         subtype='COLOR',
@@ -67,6 +71,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         max=1.0,
         description='Base color shade to work with'
     )
+
 
     @classmethod
     def poll(cls, context):
@@ -130,6 +135,38 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         mat = NodeShader(self.color_shade, location_z=self.container_object.location[2]).create_geometry_shader()
         obj.data.materials.append(mat)
         obj.active_material = mat
+
+        if self.anim_settings.animate:
+            verts = obj.data.vertices
+            sk_basis = obj.shape_key_add(name='Basis')
+            frame_n = context.scene.frame_current
+            sk_basis.keyframe_insert(data_path='value', frame=frame_n)
+
+            start_idx = 3  # cause of 3 dimensions supported and already parsed
+
+            # Create shape keys
+            for n in range(start_idx, start_idx + self.dm.tail_length):
+                f = [entry[n] for entry in self.data]
+                rbfi = interpolate.Rbf(px, py, f, function=self.rbf_function)
+                res = rbfi(X, Y)
+
+                sk = obj.shape_key_add(name='Column: ' + str(n))
+
+                for i in range(len(verts)):
+                    z_norm = normalize_value(res[i % self.density][i // self.density], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+                    sk.data[i].co.z = z_norm
+                    sk.value = 0
+
+                # add animation
+            
+            for sk in obj.data.shape_keys.key_blocks:
+                frame_n += self.anim_settings.key_spacing
+                sk.value = 1
+                sk.keyframe_insert(data_path='value', frame=frame_n)
+                for sko in obj.data.shape_keys.key_blocks:
+                    if sko != sk:
+                        sko.value = 0
+                        sko.keyframe_insert(data_path='value', frame=frame_n)
 
         if self.axis_settings.create:
             AxisFactory.create(

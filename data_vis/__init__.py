@@ -21,7 +21,7 @@ from .operators.line_chart import OBJECT_OT_LineChart
 from .operators.pie_chart import OBJECT_OT_PieChart
 from .operators.point_chart import OBJECT_OT_PointChart
 from .operators.surface_chart import OBJECT_OT_SurfaceChart
-from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup
+from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup
 from .data_manager import DataManager
 
 
@@ -121,10 +121,20 @@ class DV_AddonPanel(bpy.types.Panel):
 
         box = layout.box()
         box.label(icon='WORLD_DATA', text='Data Information:')
-        box.label(text='File: ' + str(data_manager.get_filename()))
-        box.label(text='Dims: ' + str(data_manager.dimensions))
-        box.label(text='Labels: ' + str(data_manager.has_labels))
-        box.label(text='Type: ' + str(data_manager.predicted_data_type))
+        filename = data_manager.get_filename()
+        if filename == '':
+            box.label(text='File: No file loaded')
+        else:
+            box.label(text='File: ' + str(filename))
+            box.label(text='Dims: ' + str(data_manager.dimensions))
+            box.label(text='Labels: ' + str(data_manager.has_labels))
+            lines = data_manager.lines      
+            if lines >= 150:
+                lines = str(lines) + ' Warning (performace)!'
+            else:
+                lines = str(lines)     
+            box.label(text='Lines: ' + lines)
+            box.label(text='Type: ' + str(data_manager.predicted_data_type))
 
 
 class OBJECT_OT_AddChart(bpy.types.Menu):
@@ -177,6 +187,7 @@ classes = [
     DV_LabelPropertyGroup,
     DV_ColorPropertyGroup,
     DV_AxisPropertyGroup,
+    DV_AnimationPropertyGroup,
     OBJECT_OT_AddChart,
     OBJECT_OT_BarChart,
     OBJECT_OT_PieChart,

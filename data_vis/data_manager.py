@@ -21,10 +21,12 @@ class DataManager:
             self.parsed_data = None
             self.predicted_data_type = None
             self.has_labels = False
-            self.labels = ()
+            self.lines = 0
             self.dimensions = 0
             self.ranges = {}
             self.filepath = ''
+            self.tail_length = 0
+            self.animable = False
 
         def set_data(self, data):
             self.raw_data = data
@@ -44,6 +46,7 @@ class DataManager:
                         self.raw_data.append(line.split(separator))
                         
                 self.analyse_data()
+                print(self)
             except UnicodeDecodeError as e:
                 self.predicted_data_type = DataType.Invalid
                 return 0
@@ -81,15 +84,23 @@ class DataManager:
 
             if self.predicted_data_type != DataType.Invalid:
                 if row_info['first_string'] and row_info['strings'] == 1 and row_info['floats'] > 0:
+                    self.dimensions = 2
+                    if row_info['floats'] > 1:
+                        self.animable = True
                     self.predicted_data_type = DataType.Categorical
                 elif row_info['strings'] == 0 and row_info['floats'] >= 2:
+                    if row_info['floats'] == 2 or row_info['floats'] == 3:
+                        self.dimensions = row_info['floats']
+                        self.animable = False
+                    elif row_info['floats'] >= 3:
+                        self.dimensions = 3
+                        self.animable = True
                     self.predicted_data_type = DataType.Numerical
                 else:
                     self.predicted_data_type = DataType.Invalid
 
+                self.tail_length = row_info['floats'] - self.dimensions
                 self.parse_data()
-
-            self.dimensions = len(self.raw_data[0])
 
         def parse_data(self):
             if self.raw_data is None:
@@ -107,7 +118,9 @@ class DataManager:
                 start_idx = 0
 
             min_max = []
+            self.lines = 0
             for i in range(start_idx, len(data)):
+                self.lines += 1
                 row_list = self.__get_row_list(self.raw_data[i])
                 if i == start_idx:
                     min_max = [[val, val] for val in row_list]
@@ -118,16 +131,20 @@ class DataManager:
 
                         if val > min_max[j][1]:
                             min_max[j][1] = val
-                        
-                self.parsed_data.append(row_list)  
-
+             
+                self.parsed_data.append(row_list)
+   
             self.ranges['x'] = min_max[0]
-            if len(min_max) == 2:
+            if len(min_max) == 2 or self.predicted_data_type == DataType.Categorical:
                 self.ranges['z'] = min_max[1]
-            if len(min_max) > 2:
+            elif len(min_max) > 2:
                 self.ranges['y'] = min_max[1]
                 self.ranges['z'] = min_max[2]
-            
+
+            if self.animable:
+                z_ranges = min_max[self.dimensions - 1:]
+                self.ranges['z_anim'] = [min(z_ranges, key=lambda x: x[0])[0], max(z_ranges, key=lambda x: x[1])[1]]
+
             if self.predicted_data_type == DataType.Categorical:
                 self.ranges['x'] = (0, len(self.parsed_data) - 1)
 
@@ -138,6 +155,8 @@ class DataManager:
             return self.labels
 
         def get_range(self, axis):
+            if axis == 'z_anim' and 'z_anim' not in self.ranges:
+                return tuple(self.ranges['z'])
             if axis in self.ranges:
                 return tuple(self.ranges[axis])
             else:
@@ -161,9 +180,22 @@ class DataManager:
 
         def __get_row_list(self, row):
             if self.predicted_data_type == DataType.Categorical:
-                return [str(row[0]), float(row[1])]
+                ret_list = [str(row[0])]
+                ret_list.extend([float(x) for x in row[1:]])
+                return ret_list
             elif self.predicted_data_type == DataType.Numerical:
                 return [float(x) for x in row]
+
+        def __str__(self):
+            return '{}\nL: {}\nNOFL: {}\nDIMS: {}\nRNGS: {}\nANIM_DATA: {}\nANIM: {}'.format(
+                self.predicted_data_type,
+                self.has_labels,
+                self.lines,
+                self.dimensions,
+                self.ranges,
+                self.tail_length,
+                self.animable
+            )
 
     instance = None
 
