@@ -2,10 +2,9 @@ import bpy
 from mathutils import Vector
 import math
 
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
-from data_vis.utils.data_utils import find_data_range, normalize_value, find_axis_range
-from data_vis.utils.color_utils import sat_col_gen, color_to_triplet, reverse_iterator, ColorGen
+from data_vis.utils.data_utils import normalize_value
 from data_vis.colors import ColoringFactory, ColorType
 from data_vis.data_manager import DataManager, DataType
 
@@ -39,6 +38,10 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
 
     color_settings: bpy.props.PointerProperty(
         type=DV_ColorPropertyGroup
+    )
+
+    anim_settings: bpy.props.PointerProperty(
+        type=DV_AnimationPropertyGroup
     )
 
     @classmethod
@@ -90,6 +93,16 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
                 point_obj.location = (x_norm, y_norm, z_norm)
 
             point_obj.parent = self.container_object
+
+            if self.anim_settings.animate and self.dm.tail_length != 0:
+                frame_n = context.scene.frame_current
+                point_obj.keyframe_insert(data_path='location', frame=frame_n)
+                dif = 2 if self.dimensions == '2' else 1
+                for j in range(value_index + 1, value_index + self.dm.tail_length + dif):
+                    frame_n += self.anim_settings.key_spacing
+                    zn_norm = normalize_value(self.data[i][j], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+                    point_obj.location[2] = zn_norm
+                    point_obj.keyframe_insert(data_path='location', frame=frame_n)
 
         if self.axis_settings.create:
             AxisFactory.create(
