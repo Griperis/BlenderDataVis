@@ -3,7 +3,7 @@ bl_info = {
     'author': 'Zdenek Dolezal',
     'description': '',
     'blender': (2, 80, 0),
-    'version': (1, 1, 0),
+    'version': (1, 2, 0),
     'location': 'Object -> Add Mesh',
     'warning': '',
     'category': 'Generic'
@@ -24,26 +24,8 @@ from .operators.surface_chart import OBJECT_OT_SurfaceChart
 from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup
 from .data_manager import DataManager
 
-
-class DV_Preferences(bpy.types.AddonPreferences):
-    '''Preferences for data visualisation addon'''
-    bl_idname = 'data_vis'
-
-    def draw(self, context):
-        layout = self.layout
-        row = layout.row()
-        row.scale_y = 2.0
-        try:
-            import scipy
-            import numpy
-            row.label(text='Dependencies already installed...')
-        except ImportError:
-            row.operator('object.install_modules')
-            row = layout.row()
-            version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
-            row.label(text='Or use pip to install scipy into python which Blender uses!')
-            row = layout.row()
-            row.label(text='Blender has to be restarted after this process!')
+preview_collections = {}
+data_manager = DataManager()
 
 
 class OBJECT_OT_InstallModules(bpy.types.Operator):
@@ -108,7 +90,7 @@ class DV_AddonPanel(bpy.types.Panel):
     Menu panel used for loading data and managing addon settings
     '''
     bl_label = 'DataVis'
-    bl_idname = 'OBJECT_PT_dv'
+    bl_idname = 'DV_PT_data_load'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'DataVis'
@@ -128,13 +110,90 @@ class DV_AddonPanel(bpy.types.Panel):
             box.label(text='File: ' + str(filename))
             box.label(text='Dims: ' + str(data_manager.dimensions))
             box.label(text='Labels: ' + str(data_manager.has_labels))
-            lines = data_manager.lines      
+            lines = data_manager.lines
             if lines >= 150:
                 lines = str(lines) + ' Warning (performace)!'
             else:
                 lines = str(lines)     
             box.label(text='Lines: ' + lines)
             box.label(text='Type: ' + str(data_manager.predicted_data_type))
+
+
+def update_space_type(self, context):
+    try:
+        if hasattr(bpy.types, 'DV_PT_data_load'):
+            bpy.utils.unregister_class(DV_AddonPanel)
+        DV_AddonPanel.bl_space_type = self.ui_space_type
+        bpy.utils.register_class(DV_AddonPanel)
+    except Exception as e:
+        print('Setting Space Type error: ', str(e))
+
+
+def update_category(self, context):
+    try:
+        if hasattr(bpy.types, 'DV_PT_data_load'):
+            bpy.utils.unregister_class(DV_AddonPanel)
+        DV_AddonPanel.bl_category = self.ui_category
+        bpy.utils.register_class(DV_AddonPanel)
+    except Exception as e:
+        print('Setting Category error: ', str(e))
+
+
+def update_region_type(self, context):
+    try:
+        if hasattr(bpy.types, 'DV_PT_data_load'):
+            bpy.utils.unregister_class(DV_AddonPanel)
+        DV_AddonPanel.bl_region_type = self.ui_region_type
+        bpy.utils.register_class(DV_AddonPanel)
+    except Exception as e:
+        print('Setting Region Type error: ', str(e))
+
+
+class DV_Preferences(bpy.types.AddonPreferences):
+    '''Preferences for data visualisation addon'''
+    bl_idname = 'data_vis'
+
+    ui_region_type: bpy.props.StringProperty(
+        name='Region Type',
+        default='UI',
+        update=update_region_type
+    )
+    ui_space_type: bpy.props.StringProperty(
+        name='Space Type',
+        default='VIEW_3D',
+        update=update_space_type
+    )
+
+    ui_category: bpy.props.StringProperty(
+        name='Panel Category',
+        default='DataVis',
+        update=update_category
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        box.label(text='Python dependencies', icon='PLUS')
+        row = box.row()
+        row.scale_y = 2.0
+        try:
+            import scipy
+            import numpy
+            row.label(text='Dependencies already installed...')
+        except ImportError:
+            row.operator('object.install_modules')
+            row = box.row()
+            version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
+            row.label(text='Or use pip to install scipy into python which Blender uses!')
+            row = box.row()
+            row.label(text='Blender has to be restarted after this process!')
+
+        box = layout.box()
+        box.label(text='Customize position of addon panel', icon='TOOL_SETTINGS')
+        box.prop(self, 'ui_region_type')
+        box.prop(self, 'ui_space_type')
+        box.prop(self, 'ui_category')
+        box.label(text='Check console for possible errors!', icon='ERROR')
 
 
 class OBJECT_OT_AddChart(bpy.types.Menu):
@@ -152,10 +211,6 @@ class OBJECT_OT_AddChart(bpy.types.Menu):
         layout.operator(OBJECT_OT_PieChart.bl_idname, icon_value=main_icons['pie_chart'].icon_id)
         layout.operator(OBJECT_OT_PointChart.bl_idname, icon_value=main_icons['point_chart'].icon_id)
         layout.operator(OBJECT_OT_SurfaceChart.bl_idname, icon_value=main_icons['surface_chart'].icon_id)
-
-
-preview_collections = {}
-data_manager = DataManager()
 
 
 def chart_ops(self, context):
