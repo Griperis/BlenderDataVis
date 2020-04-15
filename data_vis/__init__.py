@@ -1,9 +1,9 @@
 bl_info = {
     'name': 'Data Vis',
     'author': 'Zdenek Dolezal',
-    'description': '',
+    'description': 'Data visualisation addon',
     'blender': (2, 80, 0),
-    'version': (1, 2, 0),
+    'version': (1, 3, 0),
     'location': 'Object -> Add Mesh',
     'warning': '',
     'category': 'Generic'
