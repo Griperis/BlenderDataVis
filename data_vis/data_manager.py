@@ -44,6 +44,8 @@ class DataManager:
                     csv_reader = csv.reader(file, delimiter=delimiter)
                     self.raw_data = []
                     for line in csv_reader:
+                        if len(line) == 0:
+                            continue
                         self.raw_data.append(line)
                         
                 self.analyse_data()
