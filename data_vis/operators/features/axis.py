@@ -56,7 +56,7 @@ class AxisFactory:
                 axis_settings.number_format,
                 axis_settings.decimal_places
             )
-            axis.create(axis_settings.padding, offset, labels[dir_idx], dim == 2)
+            axis.create(axis_settings.padding, offset, labels[dir_idx], axis_settings.z_position, dim == 2)
 
 
 class Axis:
@@ -89,6 +89,10 @@ class Axis:
         self.tick_labels = tick_labels
         self.create_format_string(number_format, decimal_places)
         self.create_materials()
+
+        self.text_objs = []
+        self.tick_objs = []
+        self.axis_obj = None
 
     def create_format_string(self, number_format, decimal_places):
         '''Creates format string specified by axis options'''
@@ -136,6 +140,7 @@ class Axis:
         obj.location.x += length
         obj.data.materials.append(self.axis_mat)
         obj.active_material = self.axis_mat
+        self.axis_obj = obj
         return obj
 
     def create_tick_mark(self, x_location):
@@ -152,6 +157,7 @@ class Axis:
         obj.parent = self.axis_cont
         obj.data.materials.append(self.tick_mat)
         obj.active_material = self.tick_mat
+        self.tick_objs.append(obj)
 
     def create_ticks(self, start_pos):
         '''
@@ -166,7 +172,7 @@ class Axis:
             else:
                 self.create_tick_label(self.tick_labels[int(value)], tick_location, rotate=True)
 
-    def create(self, padding, offset, label, only_2d=False):
+    def create(self, padding, offset, label, position='FRONT', only_2d=False):
         '''
         Creates axis in range for dir dimension with spacing as set by ctor
         padding - how far should the axis start from the chart object (space around chart)
@@ -176,6 +182,10 @@ class Axis:
         self.create_container()
         # create line with text by spacing in ax_range
         line_len = 1.0 + padding + offset
+        if (self.dir == AxisDir.X and position == 'RIGHT') or (self.dir == AxisDir.Y and position == 'BACK'):
+            # add padding for right
+            line_len += padding
+
         axis_line = self.create_axis_line(line_len * 0.5)
         self.create_ticks(offset)
         if label is not None:
@@ -199,11 +209,18 @@ class Axis:
             if not only_2d:
                 self.axis_cont.location.y -= padding
 
+            if position == 'BACK':
+                self.axis_cont.location.y += line_len + padding
+            elif position == 'RIGHT':
+                self.axis_cont.location.x += line_len + padding
+                for to in self.text_objs:
+                    to.location.z = -0.1
+
     def create_label(self, value):
         '''Creates axis label (description) with value'''
         obj = self.create_text_object(value)
         obj.parent = self.axis_cont
-        obj.location = (1.3, 0, 0)
+        obj.location = (1.2, 0, 0)
         self.rotate_text_object(obj)
 
     def create_tick_label(self, value, x_location, rotate=False):
@@ -229,6 +246,7 @@ class Axis:
         obj.scale *= self.text_size
         obj.data.materials.append(self.text_mat)
         obj.active_material = self.text_mat
+        self.text_objs.append(obj)
         return obj
 
     def rotate_text_object(self, obj):
@@ -240,3 +258,4 @@ class Axis:
             obj.rotation_euler.z = math.radians(180)
 
         obj.rotation_euler.x = math.radians(90)
+

@@ -64,6 +64,16 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
         default=1.0,
     )
 
+    z_position: bpy.props.EnumProperty(
+        name='Z Axis Pos',
+        items=(
+            ('FRONT', 'Front', 'Left front corner'),
+            ('BACK', 'Back', 'Left back corner'),
+            ('RIGHT', 'Right', 'Right front corner'),
+        ),
+        default='FRONT'
+    )
+
     thickness: bpy.props.FloatProperty(
         name='Thickness',
         min=0.001,
@@ -291,6 +301,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         row.prop(self.axis_settings, 'create')
         if not self.axis_settings.create:
             return
+        row = box.row()
+        row.prop(self.axis_settings, 'z_position')
         row = box.row()
         row.prop(self.axis_settings, 'padding')
         row.prop(self.axis_settings, 'thickness')
