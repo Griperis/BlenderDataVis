@@ -1,5 +1,7 @@
 import bpy
 import os
+import csv
+
 from enum import Enum
 
 
@@ -34,16 +36,15 @@ class DataManager:
         def get_raw_data(self):
             return self.raw_data
 
-        def load_data(self, filepath, separator=','):
+        def load_data(self, filepath, delimiter=','):
             self.__init__()
             self.filepath = filepath
             try:
                 with open(filepath, 'r') as file:
+                    csv_reader = csv.reader(file, delimiter=delimiter)
                     self.raw_data = []
-                    for line in file:
-                        if line == '\n':
-                            continue
-                        self.raw_data.append(line.split(separator))
+                    for line in csv_reader:
+                        self.raw_data.append(line)
                         
                 self.analyse_data()
                 print(self)
