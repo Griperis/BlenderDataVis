@@ -57,6 +57,8 @@ x, y, x + y
 1, 1, 2
 ```
 
+Data also can have multiple top values (like Z in t, t + 1, t + 2). There is a possibility to create animation and keyframes for each data and interpolate between it. (Supported for Bar, Point and Surface chart)
+
 ### Creating chart
 Use add object menu and select chart which suits your needs. If you set data type and dimensions correctly, chart should create with automatic axis ranges and steps and default coloring. You can try to play with parameters and if you can come up with something cool.
 All charts sizes are normalized to 1, e. g. you can create stem chart by using bar and point chart or dual-line chart by creating two line charts with proper settings.
@@ -74,6 +76,8 @@ Currently supported features:
 - Creating axis with labels from charts
 - Ranges of data to visualise can be set
 - Materials and 3 types of coloring of charts (Including default Node Shader for gradients and random colors)
+- Basic animations from data
+- Panel settings (to prevent sidebar cluster)
 
 
 Known issues:
@@ -81,7 +85,6 @@ Known issues:
 
 Planned features:
 - Muliple categories for categorical charts
-- Animations between timestamps in data
 - Label alignment to camera for render
 
 Feel free to submit any issues or ideas!
@@ -91,4 +94,4 @@ Zdeněk Doležal - Bachelor Thesis
 
 Faculty of information technology BUT
 
-Version 1.1
+Version 1.3

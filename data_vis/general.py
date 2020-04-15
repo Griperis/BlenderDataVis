@@ -8,6 +8,7 @@ from data_vis.colors import ColorType
 
 
 class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
+    '''Axis Settings, used with AxisFactory'''
     def range_updated(self, context):
         if self.x_range[0] == self.x_range[1]:
             self.x_range[1] += 1.0
@@ -107,6 +108,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
 
 
 class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
+    '''Label settings, used with AxisFactory with AxisPropertyGroup'''
     create: bpy.props.BoolProperty(
         name='Create labels',
         default=True
@@ -134,6 +136,7 @@ class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
 
 
 class DV_ColorPropertyGroup(bpy.types.PropertyGroup):
+    '''General color settings, ment to be used with ColorFactory'''
     use_shader: bpy.props.BoolProperty(
         name='Use Nodes',
         default=True,
@@ -161,8 +164,21 @@ class DV_ColorPropertyGroup(bpy.types.PropertyGroup):
     )
 
 
+class DV_AnimationPropertyGroup(bpy.types.PropertyGroup):
+    animate: bpy.props.BoolProperty(
+        name='Animate',
+        default=False
+    )
+
+    key_spacing: bpy.props.IntProperty(
+        name='Keyframe spacing',
+        default=20,
+        min=1
+    )
+
+
 class OBJECT_OT_GenericChart(bpy.types.Operator):
-    '''Creates chart'''
+    '''Encapsulation of common methods for charts'''
     bl_idname = 'object.create_chart'
     bl_label = 'Generic chart operator'
     bl_options = {'REGISTER', 'UNDO'}
@@ -174,6 +190,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         self.container_object = None
         self.labels = []
         self.dm = DataManager()
+        self.prev_anim_setting = False
         if hasattr(self, 'dimensions'):
             self.dimensions = str(self.dm.dimensions)
 
@@ -184,7 +201,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         layout = self.layout
         box = layout.box()
         box.label(icon='WORLD_DATA', text='Chart settings:')
-        if hasattr(self, 'data_type'):
+        if self.dm.predicted_data_type != DataType.Categorical and hasattr(self, 'data_type'):
             row = box.row()
             row.prop(self, 'data_type')
 
@@ -205,6 +222,20 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
         self.draw_axis_settings(layout, numerical)
         self.draw_color_settings(layout)
+        self.draw_anim_settings(layout)
+
+    def draw_anim_settings(self, layout):
+        if not self.dm.animable:
+            return
+        if hasattr(self, 'anim_settings'):
+            box = layout.box()
+            box.label(icon='TIME', text='Animation Settings:')
+            box.prop(self.anim_settings, 'animate')
+            if self.anim_settings.animate:
+                box.prop(self.anim_settings, 'key_spacing')
+            if self.anim_settings.animate != self.prev_anim_setting:
+                self.use_anim_range(self.anim_settings.animate)
+                self.prev_anim_setting = self.anim_settings.animate
 
     def draw_label_settings(self, box):
         if hasattr(self, 'label_settings'):
@@ -239,7 +270,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         row = box.row()
         row.label(text='Range settings:')
         row = box.row()
-        row.prop(self.axis_settings, 'x_range', text='X')
+        if self.dm.predicted_data_type != DataType.Categorical:
+            row.prop(self.axis_settings, 'x_range', text='X')
         if hasattr(self, 'dimensions') and self.dimensions == '3':
             row = box.row()
             row.prop(self.axis_settings, 'y_range', text='Y')
@@ -281,16 +313,24 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def execute(self, context):
         raise NotImplementedError('Execute method should be implemented in every chart operator!')
 
-    def init_ranges(self):
-        self.axis_settings.x_range = self.dm.get_range('x')
-        self.axis_settings.y_range = self.dm.get_range('y')
-        self.axis_settings.z_range = self.dm.get_range('z')
-
     def invoke(self, context, event):
         if hasattr(self, 'axis_settings'):
             self.init_ranges()
 
         return context.window_manager.invoke_props_dialog(self)
+
+    def init_ranges(self):
+        self.axis_settings.x_range = self.dm.get_range('x')
+        self.axis_settings.y_range = self.dm.get_range('y')
+        self.axis_settings.z_range = self.dm.get_range('z')
+        if hasattr(self, 'anim_settings') and self.anim_settings.animate:
+            self.axis_settings.z_range = self.dm.get_range('z_anim')
+
+    def use_anim_range(self, is_anim):
+        if is_anim:
+            self.axis_settings.z_range = self.dm.get_range('z_anim')
+        else:
+            self.axis_settings.z_range = self.dm.get_range('z')
 
     def create_container(self):
         bpy.ops.object.empty_add()
@@ -316,10 +356,10 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def init_data(self):
         if hasattr(self, 'label_settings'):
             self.init_labels()
-        data = self.dm.get_parsed_data()
 
-        self.data = data
-        return True
+        if hasattr(self, 'anim_settings') and self.prev_anim_setting != self.anim_settings.animate:
+            self.use_anim_range(self.anim_settings.animate)
+        self.data = self.dm.get_parsed_data()
 
     def init_labels(self):
         if not self.label_settings.create:
@@ -341,39 +381,20 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         self.axis_settings.x_range = find_axis_range(data, 0)
         self.axis_settings.y_range = find_axis_range(data, 1)
 
-    def in_axis_range_bounds(self, entry):
-        '''
-        Checks whether the entry point defined as [x, y, z] is within user selected axis range
-        returns False if not in range, else True
-        '''
-        entry_dims = len(entry)
-        if entry_dims == 2 or entry_dims == 3:
-            if hasattr(self, 'data_type') and self.data_type != '0':
-                return True
-
-            if entry[0] < self.x_axis_range[0] or entry[0] > self.x_axis_range[1]:
-                return False
-
-        if entry_dims == 3:
-            if entry[1] < self.y_axis_range[0] or entry[1] > self.y_axis_range[1]:
-                return False
-
-        return True
-
     def in_axis_range_bounds_new(self, entry):
         '''
         Checks whether the entry point defined as [x, y, z] is within user selected axis range
         returns False if not in range, else True
         '''
         entry_dims = len(entry)
-        if entry_dims == 2 or entry_dims == 3:
-            if hasattr(self, 'data_type') and self.data_type != '0':
+        if entry_dims == 2 or entry_dims >= 3:
+            if hasattr(self, 'data_type') and self.data_type_as_enum() != DataType.Numerical:
                 return True
 
             if entry[0] < self.axis_settings.x_range[0] or entry[0] > self.axis_settings.x_range[1]:
                 return False
 
-        if entry_dims == 3:
+        if entry_dims >= 3:
             if entry[1] < self.axis_settings.y_range[0] or entry[1] > self.axis_settings.y_range[1]:
                 return False
 
