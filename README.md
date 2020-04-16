@@ -12,15 +12,15 @@ Load data into Blender and create visualisations!
 ## Quickstart
 Download `data_vis.zip` and install it in Blender (Edit -> Preferences -> Addons). Or get the folder `data_vis` (from repo or the zip) and move it into blender addons directory manually.
 <p align="center">
-    <img src="https://wtzpew.db.files.1drv.com/y4mOUivgVz_88v2M4KZe9h-cJujJg426Kd1Zv2jhHKmbjuLJWolTvhwMU9rOu1M-5zDHK51CUw1cXc76C4Ege6LZSncB7KJj8fRaQjIs87iUikmEn4Qp0eSI-ZJqY4mWIPhULHADgu4Mx99XSJCgp-E2WkkDpVI-6KYH2K_pi7BQhmW2ocQcB1ms8n3kUgeasxeYktdFEQZD2pm-vb0hexzww?width=600&height=338&cropmode=none" height="250px">
-    <img src="https://wtzoew.db.files.1drv.com/y4mwG6e49Xl-z0Pf16gw5n37ovLcSu8Z2OAzxDcRTw7ZBDFQrUaKZTicnr5JJmjSTVIikpPFS-MhFBAE5G5Cw0XvserBhGNsSjIxx6phZhonAvltiEqe8CZ1pk1e_04fiGBAJlnUUkDXgUxzNJxJFBqMnu23aMa9opL7RuQ-tHeY9j7kRtTrGOnQZL2v9JgzXThtg89eutEhPJuLSJigQ94yg?width=600&height=338&cropmode=none" height="250px">
+    <img src="./media/use_case.gif" height="250px">
+    <img src="./media/animations_3D.gif" height="250px">
 </p>
 
 ## Possible results
 <p align="center">
-    <img src="https://pqfusw.db.files.1drv.com/y4mdRF4h1pF4gaRw8bpA6y8jBFZGGSN458CM-01AK8f2UxQbNRYeYOcuhq56BHEosW4ZFdn81MN7a-VUwenuGRXB-1TEwmbZYbdBlpQsMQqPg5s9k3-JNEpYsSfyVfkFTDddSSt8rVU0POtvm3MhBA8fgdnkiR8WDTJmKEXlIu5ZAuzx0OsSo7aIZ37N2oTXrCyUjXFiNGyBus61GlN3LlhEw?width=1920&height=1080&cropmode=none" height="200px">
-    <img src="https://jyu4wq.db.files.1drv.com/y4mDwYua54jSza0oiPv5aNGZeeY-36weBtVb0ryWTXYK-bh-tf_wBMbKsF-e7maV8Q8nN1qX7tFiaFaTPeTAqyLwr3B74N-V5T2vjc1I87MMR2iT2hyAQBXU1rV0ZRjBPbiPGmV8_ET-fhrzbB93qEog2sQuHI-1HMh40giGj8pGSwE_NxyW2MgzQVWhrNzn5FXKCHgXEQwfHEKDVKUKRZLMg?width=1920&height=1080&cropmode=none"height="200px">
-    <img src="https://vsdb2q.db.files.1drv.com/y4monFbUmmqb8VmUcWKEP439PXodK3JwaruUb0BmdQVwPlZqDplRZ2ovQSLXTITw8dK04WQIbr3x0Nm4q7WazMXpnzOgtMfgEHxYRyT3-iT6rApISdwsuBgOYvxYWmv_STxJ8731EXksNV-WTGNCexFq7Xj82Ee77jW-amjmomA9rMEROw9AAZb1AwQWjBn0JheAISHNq56JnKvIYOwKk0bcQ?width=1920&height=1080&cropmode=none" height="200px">
+    <img src="https://pqfusw.db.files.1drv.com/y4mdRF4h1pF4gaRw8bpA6y8jBFZGGSN458CM-01AK8f2UxQbNRYeYOcuhq56BHEosW4ZFdn81MN7a-VUwenuGRXB-1TEwmbZYbdBlpQsMQqPg5s9k3-JNEpYsSfyVfkFTDddSSt8rVU0POtvm3MhBA8fgdnkiR8WDTJmKEXlIu5ZAuzx0OsSo7aIZ37N2oTXrCyUjXFiNGyBus61GlN3LlhEw?width=1920&height=1080&cropmode=none" height="170x">
+    <img src="https://jyu4wq.db.files.1drv.com/y4mDwYua54jSza0oiPv5aNGZeeY-36weBtVb0ryWTXYK-bh-tf_wBMbKsF-e7maV8Q8nN1qX7tFiaFaTPeTAqyLwr3B74N-V5T2vjc1I87MMR2iT2hyAQBXU1rV0ZRjBPbiPGmV8_ET-fhrzbB93qEog2sQuHI-1HMh40giGj8pGSwE_NxyW2MgzQVWhrNzn5FXKCHgXEQwfHEKDVKUKRZLMg?width=1920&height=1080&cropmode=none"height="170px">
+    <img src="https://vsdb2q.db.files.1drv.com/y4monFbUmmqb8VmUcWKEP439PXodK3JwaruUb0BmdQVwPlZqDplRZ2ovQSLXTITw8dK04WQIbr3x0Nm4q7WazMXpnzOgtMfgEHxYRyT3-iT6rApISdwsuBgOYvxYWmv_STxJ8731EXksNV-WTGNCexFq7Xj82Ee77jW-amjmomA9rMEROw9AAZb1AwQWjBn0JheAISHNq56JnKvIYOwKk0bcQ?width=1920&height=1080&cropmode=none" height="170px">
 </p>
 
 ## Introduction
