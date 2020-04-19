@@ -132,7 +132,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
     def join_slices(self, i_from, i_to):
         bpy.ops.object.select_all(action='DESELECT')
         if i_to > len(self.slices) - 1:
-                i_to = len(self.slices) - 1
+            i_to = len(self.slices) - 1
         for i in range(i_from, i_to):
             if i > len(self.slices) - 1:
                 print('IndexError: Cannot portion slices properly: i: {}, len(slices): {}, i_from: {}, i_to: {}'.format(i, len(self.slices), i_from, i_to))
