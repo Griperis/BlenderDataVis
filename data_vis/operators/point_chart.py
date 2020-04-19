@@ -2,7 +2,7 @@ import bpy
 from mathutils import Vector
 import math
 
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.utils.data_utils import normalize_value
 from data_vis.colors import ColoringFactory, ColorType
@@ -42,6 +42,10 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
 
     anim_settings: bpy.props.PointerProperty(
         type=DV_AnimationPropertyGroup
+    )
+    
+    header_settings: bpy.props.PointerProperty(
+        type=DV_HeaderPropertyGroup
     )
 
     @classmethod
@@ -111,5 +115,8 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
                 int(self.dimensions),
                 labels=self.labels
             )
+
+        if self.header_settings.create:
+            self.create_header()
         self.select_container()
         return {'FINISHED'}

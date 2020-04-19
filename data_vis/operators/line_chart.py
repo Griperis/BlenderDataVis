@@ -5,7 +5,7 @@ from mathutils import Vector
 
 from data_vis.utils.data_utils import find_data_range, find_axis_range, normalize_value, get_data_in_range
 from data_vis.operators.features.axis import AxisFactory
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import NodeShader, ColorGen, ColorType
 
@@ -44,6 +44,10 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         type=DV_AxisPropertyGroup,
     )
 
+    header_settings: bpy.props.PointerProperty(
+        type=DV_HeaderPropertyGroup
+    )
+
     color_shade: bpy.props.FloatVectorProperty(
         name='Base Color',
         subtype='COLOR',
@@ -57,6 +61,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         name='Use Nodes',
         default=True,
     )
+
 
     def __init__(self):
         super().__init__()
@@ -134,6 +139,8 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
                 labels=self.labels,
                 tick_labels=(tick_labels, [], [])
             )
+        if self.header_settings.create:
+            self.create_header()
         self.select_container()
         return {'FINISHED'}
 

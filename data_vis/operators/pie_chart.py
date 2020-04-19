@@ -3,7 +3,7 @@ import math
 from mathutils import Matrix, Vector
 
 from data_vis.utils.data_utils import find_data_range
-from data_vis.general import OBJECT_OT_GenericChart
+from data_vis.general import OBJECT_OT_GenericChart, DV_HeaderPropertyGroup
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import ColorGen, ColorType
 
@@ -14,10 +14,26 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
     bl_label = 'Pie Chart'
     bl_options = {'REGISTER', 'UNDO'}
 
+    header_settings: bpy.props.PointerProperty(
+        type=DV_HeaderPropertyGroup
+    )
+
     vertices: bpy.props.IntProperty(
         name='Vertices',
         min=3,
         default=64
+    )
+
+    text_size: bpy.props.FloatProperty(
+        name='Text Size',
+        min=0.01,
+        default=0.05
+    )
+
+    label_distance: bpy.props.FloatProperty(
+        name='Label distance',
+        min=0.0,
+        default=0.5,
     )
 
     color_shade: bpy.props.FloatVectorProperty(
@@ -45,9 +61,14 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         return not dm.has_labels and dm.is_type(DataType.Categorical, [2])
 
     def draw(self, context):
+        super().draw(context)
         layout = self.layout
         row = layout.row()
         row.prop(self, 'vertices')
+        row = layout.row()
+        row.prop(self, 'text_size')
+        row = layout.row()
+        row.prop(self, 'label_distance')
         box = layout.box()
         box.label(icon='COLOR', text='Color settings:')
         box.prop(self, 'color_shade')
@@ -100,15 +121,18 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             slice_obj.active_material = slice_mat
             slice_obj.parent = self.container_object
             label_rot_z = (((prev_i + portion_end_i) * 0.5) / self.vertices) * 2.0 * math.pi
-            label_obj = self.add_value_label((1, 0, 0), (0, 0, label_rot_z), self.data[i][0], portion, 0.2, self.data[i][1])
+            label_obj = self.add_value_label((self.label_distance, 0, 0), (0, 0, label_rot_z), self.data[i][0], portion, self.data[i][1])
             label_obj.rotation_euler = (0, 0, 0)
             prev_i += increment
-
+        if self.header_settings.create:
+            self.create_header((0, 0.7, 0.15), False)
         self.select_container()
         return {'FINISHED'}
 
     def join_slices(self, i_from, i_to):
         bpy.ops.object.select_all(action='DESELECT')
+        if i_to > len(self.slices) - 1:
+                i_to = len(self.slices) - 1
         for i in range(i_from, i_to):
             if i > len(self.slices) - 1:
                 print('IndexError: Cannot portion slices properly: i: {}, len(slices): {}, i_from: {}, i_to: {}'.format(i, len(self.slices), i_from, i_to))
@@ -125,8 +149,9 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         '''
         Creates a triangle (slice of pie chart)
         '''
-        verts = [(0, 0, 0.1), (-1, 1, 0.1), (-1, -1, 0.1),
-                 (0, 0, 0), (-1, 1, 0), (-1, -1, 0)]
+        slice_size = 0.5
+        verts = [(0, 0, 0.1), (-slice_size, slice_size, 0.1), (-slice_size, -slice_size, 0.1),
+                 (0, 0, 0), (-slice_size, slice_size, 0), (-slice_size, -slice_size, 0)]
 
         faces = [[0, 1, 2], [3, 4, 5], [0, 1, 3], [1, 3, 4], [0, 2, 3], [2, 3, 5], [1, 2, 4], [2, 4, 5]]
 
@@ -142,16 +167,15 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
 
         return obj
 
-    def add_value_label(self, location, rotation, label, portion, scale_multiplier, value):
+    def add_value_label(self, location, rotation, label, portion, value):
         bpy.ops.object.text_add()
         to = bpy.context.object
         to.data.body = '{0}: {1}'.format(label, value)
         to.data.align_x = 'CENTER'
         to.rotation_euler = rotation
         to.location = Vector(location) @ to.rotation_euler.to_matrix()
-        to.location.z += 0.2
-        to.location.x *= -1
-        to.scale *= scale_multiplier
+        to.location.z += 0.15
+        to.scale *= self.text_size
         to.parent = self.container_object
 
         mat = bpy.data.materials.get('DV_TextMat')

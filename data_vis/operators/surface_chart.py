@@ -1,7 +1,7 @@
 import bpy
 import math
 
-from data_vis.general import OBJECT_OT_GenericChart, DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.utils.data_utils import normalize_value
 from data_vis.colors import NodeShader
 from data_vis.operators.features.axis import AxisFactory
@@ -61,6 +61,10 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
 
     anim_settings: bpy.props.PointerProperty(
         type=DV_AnimationPropertyGroup
+    )
+
+    header_settings: bpy.props.PointerProperty(
+        type=DV_HeaderPropertyGroup
     )
 
     color_shade: bpy.props.FloatVectorProperty(
@@ -175,6 +179,9 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
                 3,
                 labels=self.labels,
             )
+
+        if self.header_settings.create:
+            self.create_header()
         self.select_container()
         return {'FINISHED'}
 

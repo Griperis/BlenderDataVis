@@ -4,7 +4,7 @@ from mathutils import Vector
 
 
 from data_vis.utils.data_utils import normalize_value
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import ColoringFactory, ColorType
@@ -52,6 +52,10 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
 
     anim_settings: bpy.props.PointerProperty(
         type=DV_AnimationPropertyGroup
+    )
+
+    header_settings: bpy.props.PointerProperty(
+        type=DV_HeaderPropertyGroup
     )
 
     @classmethod
@@ -138,5 +142,8 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 labels=self.labels,
                 tick_labels=(tick_labels, [], []),
             )
+        
+        if self.header_settings.create:
+            self.create_header()
         self.select_container()
         return {'FINISHED'}
