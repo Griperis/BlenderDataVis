@@ -5,6 +5,7 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 
 
 class ColorType(Enum):
+    '''Supported color types'''
     Constant = 0
     Random = 1
     Gradient = 2,
@@ -20,11 +21,13 @@ class ColorType(Enum):
 
 
 class NodeShader:
-    def __init__(self, base_color, shader_type=ColorType.Custom, scale=1.0, location_z=0):
+    '''Creates different types of node shaders depending on function arguments'''
+    def __init__(self, container_name, base_color, shader_type=ColorType.Custom, scale=1.0, location_z=0):
         self.base_color = self.__add_alpha(base_color, 1)
         self.shader_type = shader_type
         self.scale = scale
         self.location_z = location_z
+        self.container_name = container_name
 
         if self.shader_type == ColorType.Random:
             self.material = self.create_random_shader()
@@ -180,7 +183,7 @@ class NodeShader:
         var.name = 'z_pos'
         
         target = var.targets[0]
-        target.id = bpy.data.objects.get('Chart_Container')
+        target.id = bpy.data.objects.get(self.container_name)
         target.transform_type = 'LOC_Z'
         target.transform_space = 'WORLD_SPACE'
 
@@ -193,6 +196,7 @@ class NodeShader:
 
 
 class ColorGen:
+    '''Creates materials for every data entry'''
     def __init__(self, base_color, color_type, value_range):
         self.base_color = rgb_to_hsv(*base_color)
         self.value_range = value_range
@@ -202,6 +206,7 @@ class ColorGen:
             self.material.diffuse_color = (*base_color, 1.0)
     
     def get_material(self, value=1.0):
+        '''Returns material based ColorType, if ColorType is gradient, values is needed'''
         if self.color_type == ColorType.Constant:
             return self.material
         elif self.color_type == ColorType.Gradient:
@@ -217,13 +222,15 @@ class ColorGen:
 
 
 class ColoringFactory:
-    def __init__(self, base_color, color_type, use_shader):
+    '''Factory, that can instantiate NodeShader or ColorGen based on similar settings'''
+    def __init__(self, container_name, base_color, color_type, use_shader):
+        self.container_name = container_name
         self.base_color = base_color
         self.color_type = color_type
         self.use_shader = use_shader
 
     def create(self, value_range=(0, 1), scale=1.0, location_z=0):
         if self.use_shader:
-            return NodeShader(self.base_color, self.color_type, scale, location_z)
+            return NodeShader(self.container_name, self.base_color, self.color_type, scale, location_z)
         else:
             return ColorGen(self.base_color, self.color_type, value_range)

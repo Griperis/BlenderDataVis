@@ -4,7 +4,7 @@ from mathutils import Vector
 
 
 from data_vis.utils.data_utils import normalize_value
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import ColoringFactory, ColorType
@@ -54,10 +54,18 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         type=DV_AnimationPropertyGroup
     )
 
+    header_settings: bpy.props.PointerProperty(
+        type=DV_HeaderPropertyGroup
+    )
+
     @classmethod
     def poll(cls, context):
         dm = DataManager()
         return dm.is_type(DataType.Numerical, [2, 3]) or dm.is_type(DataType.Categorical, [2])
+
+    def init_props(self):
+        if self.dm.is_type(DataType.Categorical, [2]):
+            self.bar_size[0] = 1 / (2 * len(self.dm.get_parsed_data()) + 1)
 
     def draw(self, context):
         super().draw(context)
@@ -78,7 +86,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             self.init_ranges()
 
         self.create_container()
-        color_factory = ColoringFactory(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
+        color_factory = ColoringFactory(self.get_name(), self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
         color_gen = color_factory.create(self.axis_settings.z_range, 2.0, self.container_object.location[2])
 
         if self.dimensions == '2':
@@ -135,8 +143,12 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 self.container_object,
                 self.axis_settings,
                 int(self.dimensions),
+                self.chart_id,
                 labels=self.labels,
                 tick_labels=(tick_labels, [], []),
             )
+        
+        if self.header_settings.create:
+            self.create_header()
         self.select_container()
         return {'FINISHED'}

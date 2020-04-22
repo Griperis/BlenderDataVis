@@ -3,7 +3,7 @@ bl_info = {
     'author': 'Zdenek Dolezal',
     'description': 'Data visualisation addon',
     'blender': (2, 80, 0),
-    'version': (1, 3, 1),
+    'version': (1, 3, 2),
     'location': 'Object -> Add Mesh',
     'warning': '',
     'category': 'Generic'
@@ -21,7 +21,7 @@ from .operators.line_chart import OBJECT_OT_LineChart
 from .operators.pie_chart import OBJECT_OT_PieChart
 from .operators.point_chart import OBJECT_OT_PointChart
 from .operators.surface_chart import OBJECT_OT_SurfaceChart
-from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup
+from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
 from .data_manager import DataManager
 
 preview_collections = {}
@@ -86,9 +86,7 @@ class OBJECT_OT_InstallModules(bpy.types.Operator):
 
 
 class DV_AddonPanel(bpy.types.Panel):
-    '''
-    Menu panel used for loading data and managing addon settings
-    '''
+    '''Menu panel used for loading data and managing addon settings'''
     bl_label = 'DataVis'
     bl_idname = 'DV_PT_data_load'
     bl_space_type = 'VIEW_3D'
@@ -219,9 +217,10 @@ def chart_ops(self, context):
 
 
 def load_icons():
+    '''Loads pngs from icons folder into preview_collections['main']'''
     pcoll = bpy.utils.previews.new()
 
-    icons_dir = os.path.join(os.path.dirname(__file__), "icons")
+    icons_dir = os.path.join(os.path.dirname(__file__), 'icons')
     for icon in os.listdir(icons_dir):
         name, ext = icon.split('.')
         if ext == 'png':
@@ -231,6 +230,7 @@ def load_icons():
 
 
 def remove_icons():
+    '''Clears icons collection'''
     for pcoll in preview_collections.values():
         bpy.utils.previews.remove(pcoll)
     preview_collections.clear()
@@ -243,6 +243,7 @@ classes = [
     DV_ColorPropertyGroup,
     DV_AxisPropertyGroup,
     DV_AnimationPropertyGroup,
+    DV_HeaderPropertyGroup,
     OBJECT_OT_AddChart,
     OBJECT_OT_BarChart,
     OBJECT_OT_PieChart,

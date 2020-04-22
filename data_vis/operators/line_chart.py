@@ -5,7 +5,7 @@ from mathutils import Vector
 
 from data_vis.utils.data_utils import find_data_range, find_axis_range, normalize_value, get_data_in_range
 from data_vis.operators.features.axis import AxisFactory
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import NodeShader, ColorGen, ColorType
 
@@ -42,6 +42,10 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
 
     axis_settings: bpy.props.PointerProperty(
         type=DV_AxisPropertyGroup,
+    )
+
+    header_settings: bpy.props.PointerProperty(
+        type=DV_HeaderPropertyGroup
     )
 
     color_shade: bpy.props.FloatVectorProperty(
@@ -119,7 +123,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         self.create_curve(normalized_vert_list, edges)
         self.add_bevel_obj()
         if self.use_shader:
-            mat = NodeShader(self.color_shade, location_z=self.container_object.location[2]).create_geometry_shader()
+            mat = NodeShader(self.get_name(), self.color_shade, location_z=self.container_object.location[2]).create_geometry_shader()
         else:
             mat = ColorGen(self.color_shade, ColorType.Constant, self.axis_settings.z_range).get_material()
 
@@ -131,9 +135,12 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
                 self.container_object,
                 self.axis_settings,
                 2,
+                self.chart_id,
                 labels=self.labels,
                 tick_labels=(tick_labels, [], [])
             )
+        if self.header_settings.create:
+            self.create_header()
         self.select_container()
         return {'FINISHED'}
 

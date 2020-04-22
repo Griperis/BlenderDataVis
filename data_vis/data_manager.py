@@ -12,10 +12,10 @@ class DataType(Enum):
 
 
 class DataManager:
-    """
+    '''
     Singleton that manages data access across the addon
     pattern design from https://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html
-    """
+    '''
     class __DataManager:
 
         def __init__(self):
