@@ -117,6 +117,25 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     )
 
 
+class DV_HeaderPropertyGroup(bpy.types.PropertyGroup):
+    '''Header settings property group'''
+    create: bpy.props.BoolProperty(
+        name='Create header',
+        default=True,
+    )
+
+    text: bpy.props.StringProperty(
+        name='Text',
+        default='None'
+    )
+
+    size: bpy.props.FloatProperty(
+        name='Size',
+        default=0.07,
+        min=0.01
+    )
+
+
 class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
     '''Label settings, used with AxisFactory with AxisPropertyGroup'''
     create: bpy.props.BoolProperty(
@@ -195,6 +214,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
     data = None
     axis_mat = None
+    chart_id = 0
 
     def __init__(self):
         self.container_object = None
@@ -206,6 +226,9 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
         if hasattr(self, 'data_type'):
             self.data_type = '0' if self.dm.predicted_data_type == DataType.Numerical else '1'
+
+        self.chart_id = OBJECT_OT_GenericChart.chart_id
+        OBJECT_OT_GenericChart.chart_id += 1
 
     def draw(self, context):
         layout = self.layout
@@ -229,11 +252,24 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
                 row.prop(self, 'dimensions')
             else:
                 self.dimensions = '2'
-
+        
+        self.draw_header_settings(box)
         self.draw_axis_settings(layout, numerical)
         self.draw_color_settings(layout)
         self.draw_anim_settings(layout)
 
+    def draw_header_settings(self, box):
+        if hasattr(self, 'header_settings'):
+            row = box.row()
+            row.label(text='Header', icon='BOLD')
+            row.prop(self.header_settings, 'create')
+            if self.header_settings.create:
+                row = box.row()
+                if self.header_settings.text == 'None':
+                    self.header_settings.text = self.bl_label
+                row.prop(self.header_settings, 'text')
+                row.prop(self.header_settings, 'size')
+            
     def draw_anim_settings(self, layout):
         if not self.dm.animable:
             return
@@ -253,8 +289,9 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             row.label(icon='FILE_FONT', text='Label Settings:')
             row.prop(self.label_settings, 'create')
             if self.label_settings.create:
-                box.prop(self.label_settings, 'from_data')
-                if not self.label_settings.from_data:
+                if self.dm.has_labels:
+                    box.prop(self.label_settings, 'from_data')
+                if not self.label_settings.from_data or not self.dm.has_labels:
                     row = box.row()
                     row.prop(self.label_settings, 'x_label')
                     if self.dm.dimensions == 3:
@@ -278,7 +315,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         box.label(icon='ORIENTATION_VIEW', text='Axis Settings:')
 
         row = box.row()
-        row.label(text='Range settings:')
+        row.label(text='Ranges:', icon='ARROW_LEFTRIGHT')
         row = box.row()
         if self.dm.predicted_data_type != DataType.Categorical:
             row.prop(self.axis_settings, 'x_range', text='X')
@@ -292,7 +329,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         if not self.axis_settings.auto_steps:
             row = box.row()
             if numerical:
-                row.prop(self.axis_settings, 'x_step', text='X')
+                row.prop(self.axis_settings, 'x_step')
             if hasattr(self, 'dimensions') and self.dimensions == '3':
                 row.prop(self.axis_settings, 'y_step', text='Y')
             row.prop(self.axis_settings, 'z_step', text='Z')
@@ -309,7 +346,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         row.prop(self.axis_settings, 'tick_mark_height')
         box.separator()
         row = box.row()
-        row.label(text='Text settings', icon='FONT_DATA')
+        row.label(text='Tick settings', icon='FONT_DATA')
         box.prop(self.axis_settings, 'number_format')
         row = box.row()
         row.prop(self.axis_settings, 'text_size')
@@ -326,8 +363,12 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         raise NotImplementedError('Execute method should be implemented in every chart operator!')
 
     def invoke(self, context, event):
+        '''When user clicks on operator button, invoke is called, if subclass has axis_settings defined, ranges are initialized, if init_props is defined it is called'''
         if hasattr(self, 'axis_settings'):
             self.init_ranges()
+        
+        if hasattr(self, 'init_props'):
+            self.init_props()
 
         return context.window_manager.invoke_props_dialog(self)
 
@@ -348,7 +389,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         bpy.ops.object.empty_add()
         self.container_object = bpy.context.object
         self.container_object.empty_display_type = 'PLAIN_AXES'
-        self.container_object.name = 'Chart_Container'
+        self.container_object.name = self.bl_label + '_' + str(self.chart_id)
         self.container_object.location = bpy.context.scene.cursor.location
 
     def data_type_as_enum(self):
@@ -417,3 +458,22 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         bpy.context.view_layer.objects.active = self.container_object
         self.container_object.select_set(True)
+
+    def create_header(self, offset=(0.5, 0, 1.2), rotate=True):
+        '''Creates header at container + offset'''
+        bpy.ops.object.text_add()
+        obj = bpy.context.object
+        obj.data.align_x = 'CENTER'
+        obj.data.body = self.header_settings.text
+        obj.location = Vector(offset)
+        obj.scale *= self.header_settings.size
+        header_mat = bpy.data.materials.new(name='DV_HeaderMat_' + str(self.chart_id))
+        obj.data.materials.append(header_mat)
+        obj.active_material = header_mat
+        if rotate:
+            obj.rotation_euler.x = math.radians(90)
+        obj.parent = self.container_object
+
+    def get_name(self):
+        '''Returns chart container name'''
+        return self.container_object.name

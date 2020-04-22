@@ -2,7 +2,7 @@ import bpy
 from mathutils import Vector
 import math
 
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.utils.data_utils import normalize_value
 from data_vis.colors import ColoringFactory, ColorType
@@ -43,6 +43,10 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
     anim_settings: bpy.props.PointerProperty(
         type=DV_AnimationPropertyGroup
     )
+    
+    header_settings: bpy.props.PointerProperty(
+        type=DV_HeaderPropertyGroup
+    )
 
     @classmethod
     def poll(cls, context):
@@ -66,7 +70,7 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             value_index = 2
 
         self.create_container()
-        color_factory = ColoringFactory(self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
+        color_factory = ColoringFactory(self.get_name(), self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
         color_gen = color_factory.create(self.axis_settings.z_range, 1.0, self.container_object.location[2])
         
         for i, entry in enumerate(self.data):
@@ -108,8 +112,12 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             AxisFactory.create(
                 self.container_object,
                 self.axis_settings,
+                self.chart_id,
                 int(self.dimensions),
                 labels=self.labels
             )
+
+        if self.header_settings.create:
+            self.create_header()
         self.select_container()
         return {'FINISHED'}

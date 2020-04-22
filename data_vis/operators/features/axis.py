@@ -14,7 +14,7 @@ class AxisDir(Enum):
 
 class AxisFactory:
     @staticmethod
-    def create(parent, axis_settings, dim, labels=(None, None, None), tick_labels=([], [], []), offset=0.0):
+    def create(parent, axis_settings, dim, chart_id, labels=(None, None, None), tick_labels=([], [], []), offset=0.0):
         '''
         Factory method that creates all axis with all values specified by parameters
         parent - parent object for axis containers
@@ -45,6 +45,7 @@ class AxisFactory:
 
             axis = Axis(
                 parent,
+                chart_id,
                 steps[dir_idx],
                 ranges[dir_idx],
                 direction,
@@ -70,7 +71,7 @@ class Axis:
     tick-height - height of tick mark
     auto_step - creates 10 uniform steps across axis
     '''
-    def __init__(self, parent, step, ax_range, ax_dir, tick_labels, thickness, tick_height, auto_step=False, text_size=0.05, number_format='0', decimal_places=2):
+    def __init__(self, parent, chart_id, step, ax_range, ax_dir, tick_labels, thickness, tick_height, auto_step=False, text_size=0.05, number_format='0', decimal_places=2):
         self.range = ax_range
         if not auto_step or (len(tick_labels) <= 10 and len(tick_labels) > 0):
             self.step = step
@@ -88,7 +89,7 @@ class Axis:
         self.axis_cont = None
         self.tick_labels = tick_labels
         self.create_format_string(number_format, decimal_places)
-        self.create_materials()
+        self.create_materials(chart_id)
 
         self.text_objs = []
         self.tick_objs = []
@@ -103,19 +104,19 @@ class Axis:
         else:
             raise AttributeError('Unknown number format')
 
-    def create_materials(self):
+    def create_materials(self, chart_id):
         '''Creates materials for axis, ticks and text'''
-        self.axis_mat = bpy.data.materials.get('DV_AxisMat')
+        self.axis_mat = bpy.data.materials.get('DV_AxisMat_' + str(chart_id))
         if self.axis_mat is None:
-            self.axis_mat = bpy.data.materials.new(name='DV_AxisMat')
+            self.axis_mat = bpy.data.materials.new(name='DV_AxisMat_' + str(chart_id))
     
-        self.tick_mat = bpy.data.materials.get('DV_TickMat')
+        self.tick_mat = bpy.data.materials.get('DV_TickMat_' + str(chart_id))
         if self.tick_mat is None:
-            self.tick_mat = bpy.data.materials.new(name='DV_TickMat')
+            self.tick_mat = bpy.data.materials.new(name='DV_TickMat_' + str(chart_id))
 
-        self.text_mat = bpy.data.materials.get('DV_TextMat')
+        self.text_mat = bpy.data.materials.get('DV_TextMat_' + str(chart_id))
         if self.text_mat is None:
-            self.text_mat = bpy.data.materials.new(name='DV_TextMat')
+            self.text_mat = bpy.data.materials.new(name='DV_TextMat_' + str(chart_id))
 
     def create_container(self):
         '''Creates container for axis, with default name 'Axis_Container_DIM' where DIM is X, Y or Z'''
