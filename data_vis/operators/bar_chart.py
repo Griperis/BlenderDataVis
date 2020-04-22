@@ -63,6 +63,10 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         dm = DataManager()
         return dm.is_type(DataType.Numerical, [2, 3]) or dm.is_type(DataType.Categorical, [2])
 
+    def init_props(self):
+        if self.dm.is_type(DataType.Categorical, [2]):
+            self.bar_size[0] = 1 / (2 * len(self.dm.get_parsed_data()) + 1)
+
     def draw(self, context):
         super().draw(context)
         layout = self.layout

@@ -62,7 +62,6 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         default=True,
     )
 
-
     def __init__(self):
         super().__init__()
         self.only_2d = True

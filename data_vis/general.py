@@ -363,8 +363,12 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         raise NotImplementedError('Execute method should be implemented in every chart operator!')
 
     def invoke(self, context, event):
+        '''When user clicks on operator button, invoke is called, if subclass has axis_settings defined, ranges are initialized, if init_props is defined it is called'''
         if hasattr(self, 'axis_settings'):
             self.init_ranges()
+        
+        if hasattr(self, 'init_props'):
+            self.init_props()
 
         return context.window_manager.invoke_props_dialog(self)
 
