@@ -5,6 +5,7 @@ from colorsys import rgb_to_hsv, hsv_to_rgb
 
 
 class ColorType(Enum):
+    '''Supported color types'''
     Constant = 0
     Random = 1
     Gradient = 2,
@@ -20,6 +21,7 @@ class ColorType(Enum):
 
 
 class NodeShader:
+    '''Creates different types of node shaders depending on function arguments'''
     def __init__(self, container_name, base_color, shader_type=ColorType.Custom, scale=1.0, location_z=0):
         self.base_color = self.__add_alpha(base_color, 1)
         self.shader_type = shader_type
@@ -194,6 +196,7 @@ class NodeShader:
 
 
 class ColorGen:
+    '''Creates materials for every data entry'''
     def __init__(self, base_color, color_type, value_range):
         self.base_color = rgb_to_hsv(*base_color)
         self.value_range = value_range
@@ -203,6 +206,7 @@ class ColorGen:
             self.material.diffuse_color = (*base_color, 1.0)
     
     def get_material(self, value=1.0):
+        '''Returns material based ColorType, if ColorType is gradient, values is needed'''
         if self.color_type == ColorType.Constant:
             return self.material
         elif self.color_type == ColorType.Gradient:
@@ -218,6 +222,7 @@ class ColorGen:
 
 
 class ColoringFactory:
+    '''Factory, that can instantiate NodeShader or ColorGen based on similar settings'''
     def __init__(self, container_name, base_color, color_type, use_shader):
         self.container_name = container_name
         self.base_color = base_color

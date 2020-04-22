@@ -86,9 +86,7 @@ class OBJECT_OT_InstallModules(bpy.types.Operator):
 
 
 class DV_AddonPanel(bpy.types.Panel):
-    '''
-    Menu panel used for loading data and managing addon settings
-    '''
+    '''Menu panel used for loading data and managing addon settings'''
     bl_label = 'DataVis'
     bl_idname = 'DV_PT_data_load'
     bl_space_type = 'VIEW_3D'
@@ -219,9 +217,10 @@ def chart_ops(self, context):
 
 
 def load_icons():
+    '''Loads pngs from icons folder into preview_collections['main']'''
     pcoll = bpy.utils.previews.new()
 
-    icons_dir = os.path.join(os.path.dirname(__file__), "icons")
+    icons_dir = os.path.join(os.path.dirname(__file__), 'icons')
     for icon in os.listdir(icons_dir):
         name, ext = icon.split('.')
         if ext == 'png':
@@ -231,6 +230,7 @@ def load_icons():
 
 
 def remove_icons():
+    '''Clears icons collection'''
     for pcoll in preview_collections.values():
         bpy.utils.previews.remove(pcoll)
     preview_collections.clear()
