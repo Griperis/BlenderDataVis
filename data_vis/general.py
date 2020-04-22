@@ -214,6 +214,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
     data = None
     axis_mat = None
+    chart_id = 0
 
     def __init__(self):
         self.container_object = None
@@ -225,6 +226,9 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
         if hasattr(self, 'data_type'):
             self.data_type = '0' if self.dm.predicted_data_type == DataType.Numerical else '1'
+
+        self.chart_id = OBJECT_OT_GenericChart.chart_id
+        OBJECT_OT_GenericChart.chart_id += 1
 
     def draw(self, context):
         layout = self.layout
@@ -285,8 +289,9 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             row.label(icon='FILE_FONT', text='Label Settings:')
             row.prop(self.label_settings, 'create')
             if self.label_settings.create:
-                box.prop(self.label_settings, 'from_data')
-                if not self.label_settings.from_data:
+                if self.dm.has_labels:
+                    box.prop(self.label_settings, 'from_data')
+                if not self.label_settings.from_data or not self.dm.has_labels:
                     row = box.row()
                     row.prop(self.label_settings, 'x_label')
                     if self.dm.dimensions == 3:
@@ -380,7 +385,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         bpy.ops.object.empty_add()
         self.container_object = bpy.context.object
         self.container_object.empty_display_type = 'PLAIN_AXES'
-        self.container_object.name = self.bl_label
+        self.container_object.name = self.bl_label + '_' + str(self.chart_id)
         self.container_object.location = bpy.context.scene.cursor.location
 
     def data_type_as_enum(self):
@@ -456,13 +461,15 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         obj = bpy.context.object
         obj.data.align_x = 'CENTER'
         obj.data.body = self.header_settings.text
-        obj.location += Vector(offset)
+        obj.location = Vector(offset)
         obj.scale *= self.header_settings.size
-        header_mat = bpy.data.materials.get('DV_HeaderMat')
-        if header_mat is None:
-            header_mat = bpy.data.materials.new(name='DV_HeaderMat')
+        header_mat = bpy.data.materials.new(name='DV_HeaderMat_' + str(self.chart_id))
         obj.data.materials.append(header_mat)
         obj.active_material = header_mat
         if rotate:
             obj.rotation_euler.x = math.radians(90)
+        obj.parent = self.container_object
 
+    def get_name(self):
+        '''Returns chart container name'''
+        return self.container_object.name

@@ -178,9 +178,9 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         to.scale *= self.text_size
         to.parent = self.container_object
 
-        mat = bpy.data.materials.get('DV_TextMat')
+        mat = bpy.data.materials.get('DV_TextMat_' + str(self.chart_id))
         if mat is None:
-            mat = bpy.data.materials.new(name='DV_TextMat')
+            mat = bpy.data.materials.new(name='DV_TextMat_' + str(self.chart_id))
 
         to.data.materials.append(mat)
         to.active_material = mat

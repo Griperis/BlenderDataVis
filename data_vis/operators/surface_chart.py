@@ -136,7 +136,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         bpy.context.scene.collection.objects.link(obj)
         obj.parent = self.container_object
 
-        mat = NodeShader(self.color_shade, location_z=self.container_object.location[2]).create_geometry_shader()
+        mat = NodeShader(self.get_name(), self.color_shade, location_z=self.container_object.location[2]).create_geometry_shader()
         obj.data.materials.append(mat)
         obj.active_material = mat
 
@@ -177,6 +177,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
                 self.container_object,
                 self.axis_settings,
                 3,
+                self.chart_id,
                 labels=self.labels,
             )
 
