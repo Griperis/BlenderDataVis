@@ -260,6 +260,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
     def draw_header_settings(self, box):
         if hasattr(self, 'header_settings'):
+            box.separator()
             row = box.row()
             row.label(text='Header', icon='BOLD')
             row.prop(self.header_settings, 'create')
