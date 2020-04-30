@@ -133,8 +133,8 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             AxisFactory.create(
                 self.container_object,
                 self.axis_settings,
-                self.chart_id,
                 int(self.dimensions),
+                self.chart_id,
                 labels=self.labels
             )
 
