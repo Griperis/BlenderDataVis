@@ -123,6 +123,9 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 bpy.ops.mesh.primitive_cylinder_add(vertices=16)
                 bar_obj = context.active_object
             elif self.use_obj == 'Custom':
+                if self.custom_obj_name not in bpy.data.objects:
+                    self.report({'ERROR'}, 'Selected object is part of the chart or is deleted!')
+                    return {'CANCELLED'}
                 src_obj = bpy.data.objects[self.custom_obj_name]
                 bar_obj = src_obj.copy()
                 bar_obj.data = src_obj.data.copy()

@@ -100,6 +100,9 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
                 bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8)
                 point_obj = context.active_object
             else:
+                if self.custom_obj_name not in bpy.data.objects:
+                    self.report({'ERROR'}, 'Selected object is part of the chart or is deleted!')
+                    return {'CANCELLED'}
                 src_obj = bpy.data.objects[self.custom_obj_name]
                 point_obj = src_obj.copy()
                 point_obj.data = src_obj.data.copy()
