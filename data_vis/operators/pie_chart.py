@@ -145,7 +145,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             self.create_header((0, 0.7, 0.15), False)
 
         if self.legend_settings.create:
-            Legend(self.chart_id, self.legend_settings, legend_data).create(self.container_object)
+            Legend(self.chart_id, self.legend_settings).create(self.container_object, legend_data)
     
         self.select_container()
         return {'FINISHED'}

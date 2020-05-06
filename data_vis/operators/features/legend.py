@@ -3,22 +3,25 @@ import bpy
 
 class Legend:
     '''Handles legend creation'''
-    def __init__(self, chart_id, settings, entries):
+    def __init__(self, chart_id, settings):
         '''
         Creates instance of legend class
         Parameters:
         chart_id - id of chart
         settings - DV_LegendPropertyGroup
-        entries - list of tuples to display (material_name, value)
         '''
         self.settings = settings
-        self.entries = entries
         self.chart_id = chart_id
         self.items = []
         self.get_materials()
 
-    def create(self, container):
-        '''Creates legend container and items parented to parameter container'''
+    def create(self, container, entries):
+        '''¨
+        Creates legend container and items
+        Parameters:
+        container - parent object for legend
+        entries - list of tuples to display (material_name, value)
+        '''
         bpy.ops.object.empty_add()
         self.leg_container = bpy.context.active_object
         self.leg_container.parent = container
@@ -31,8 +34,7 @@ class Legend:
         self.background.parent = self.leg_container
         self.background.location = (0, 0, 0)
 
-
-        size_x = self.create_items()
+        size_x = self.create_items(entries)
         padding = 0.1
         self.background.scale = (size_x * 0.5 + padding, 0.5 + padding, 1)
         self.background.location.x = size_x * 0.5 - self.settings.item_size
@@ -51,17 +53,17 @@ class Legend:
         self.legend_mat = bpy.data.materials.new(name='DV_LegendMat_' + str(self.chart_id))
         self.legend_mat.diffuse_color = (1, 1, 1, 1)
 
-    def create_items(self):
+    def create_items(self, entries):
         '''Creates legend items'''
         idx = 0
         x_pos = 0
         longest_entry = 0
         size_x = 0
 
-        for mat_name, entry in self.entries.items():
+        for mat_name, entry in entries.items():
             y_pos = 2 * idx * (self.settings.item_size + 0.02) - (0.5 - self.settings.item_size)
             if y_pos >= 0.5 - self.settings.item_size:
-                # overflow, reset y increase x 
+                # overflow, reset y increase x
                 x_pos += longest_entry * self.settings.item_size
                 idx = 0
                 y_pos = 2 * idx * (self.settings.item_size + 0.02) - (0.5 - self.settings.item_size)
@@ -97,3 +99,7 @@ class Legend:
 
     def colorbar(self, material):
         '''Creates colorbar with specified material'''
+        bpy.ops.mesh.primitive_plane_add()
+        plane = bpy.context.active_object
+        plane.data.materials.append(material)
+        plane.active_material = material
