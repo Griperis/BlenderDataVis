@@ -211,10 +211,6 @@ class DV_LegendPropertyGroup(bpy.types.PropertyGroup):
         name='Create Legend'
     )
 
-    color_bar: bpy.props.BoolProperty(
-        name='Show Colorbar'
-    )
-
     position: bpy.props.EnumProperty(
         name='Position',
         items=(
@@ -306,9 +302,6 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             if self.legend_settings.create:
                 box.prop(self.legend_settings, 'position')
                 box.prop(self.legend_settings, 'item_size')
-  # TODO              if hasattr(self, 'color_settings') or hasattr(self, 'color_type'):
-  # TODO                  box.prop(self.legend_settings, 'color_bar')
-                
 
     def draw_anim_settings(self, layout):
         if not self.dm.animable:
