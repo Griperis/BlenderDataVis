@@ -58,6 +58,19 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         type=DV_HeaderPropertyGroup
     )
 
+    use_obj: bpy.props.EnumProperty(
+        name='Object',
+        items=(
+            ('Bar', 'Bar', 'Scaled cube'),
+            ('Cylinder', 'Cylinder', 'Scaled cylinder'),
+            ('Custom', 'Custom', 'Select custom object'),
+        )
+    )
+
+    custom_obj_name: bpy.props.StringProperty(
+        name='Custom'
+    )
+
     @classmethod
     def poll(cls, context):
         dm = DataManager()
@@ -70,7 +83,12 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        row = layout.row()
+        box = layout.box()
+        box.prop(self, 'use_obj')
+        if self.use_obj == 'Custom':
+            box.prop_search(self, 'custom_obj_name', context.scene, 'objects')
+
+        row = box.row()
         row.prop(self, 'bar_size')
 
     def execute(self, context):
@@ -97,9 +115,19 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         for i, entry in enumerate(self.data):
             if not self.in_axis_range_bounds_new(entry):
                 continue
+            
+            if self.use_obj == 'Bar' or (self.use_obj == 'Custom' and self.custom_obj_name == ''):
+                bpy.ops.mesh.primitive_cube_add()
+                bar_obj = context.active_object
+            elif self.use_obj == 'Cylinder':
+                bpy.ops.mesh.primitive_cylinder_add(vertices=16)
+                bar_obj = context.active_object
+            elif self.use_obj == 'Custom':
+                src_obj = bpy.data.objects[self.custom_obj_name]
+                bar_obj = src_obj.copy()
+                bar_obj.data = src_obj.data.copy()
+                context.collection.objects.link(bar_obj)
 
-            bpy.ops.mesh.primitive_cube_add()
-            bar_obj = context.active_object
             if self.data_type_as_enum() == DataType.Numerical:
                 x_value = entry[0]
             else:
