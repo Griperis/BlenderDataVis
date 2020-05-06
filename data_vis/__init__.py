@@ -266,7 +266,6 @@ def register():
         bpy.utils.register_class(c)
 
     bpy.types.VIEW3D_MT_add.append(chart_ops)
-    bpy.types.Scene.dv_custom_obj_name = bpy.props.StringProperty()
 
 
 def unregister():
@@ -274,7 +273,6 @@ def unregister():
     for c in reversed(classes):
         bpy.utils.unregister_class(c)
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
-    del bpy.types.Scene.dv_custom_obj_name
 
 
 if __name__ == '__main__':

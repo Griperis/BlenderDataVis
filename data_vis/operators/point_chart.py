@@ -48,9 +48,16 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
         type=DV_HeaderPropertyGroup
     )
 
-    custom_object: bpy.props.BoolProperty(
-        name='Custom object',
-        default=False
+    use_obj: bpy.props.EnumProperty(
+        name='Object',
+        items=(
+            ('Sphere', 'Sphere', 'UV Sphere'),
+            ('Custom', 'Custom', 'Select custom object'),
+        )
+    )
+
+    custom_obj_name: bpy.props.StringProperty(
+        name='Custom'
     )
 
     @classmethod
@@ -60,15 +67,13 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        row = layout.row()
-        row.prop(self, 'point_scale')
 
-        row = layout.row()
-        row.prop(self, 'custom_object')
-        if self.custom_object:
-            row = layout.row()
-            scene = context.scene
-            row.prop_search(scene, 'dv_custom_obj_name', scene, 'objects', text='Object')
+        box = layout.box()
+        box.prop(self, 'use_obj')
+        if self.use_obj == 'Custom':
+            box.prop_search(self, 'custom_obj_name', context.scene, 'objects')
+        
+        box.prop(self, 'point_scale')
 
     def execute(self, context):
         self.init_data()
@@ -84,8 +89,6 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
         self.create_container()
         color_factory = ColoringFactory(self.get_name(), self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
         color_gen = color_factory.create(self.axis_settings.z_range, 1.0, self.container_object.location[2])
-
-        custom_obj_name = context.scene.dv_custom_obj_name
         
         for i, entry in enumerate(self.data):
 
@@ -93,11 +96,11 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             if not self.in_axis_range_bounds_new(entry):
                 continue
             
-            if not self.custom_object or custom_obj_name == '':
+            if self.use_obj == 'Sphere' or self.custom_obj_name == '':
                 bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8)
                 point_obj = context.active_object
             else:
-                src_obj = bpy.data.objects[custom_obj_name]
+                src_obj = bpy.data.objects[self.custom_obj_name]
                 point_obj = src_obj.copy()
                 point_obj.data = src_obj.data.copy()
                 context.collection.objects.link(point_obj)
