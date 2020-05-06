@@ -3,9 +3,10 @@ import math
 from mathutils import Matrix, Vector
 
 from data_vis.utils.data_utils import find_data_range
-from data_vis.general import OBJECT_OT_GenericChart, DV_HeaderPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart, DV_HeaderPropertyGroup, DV_LegendPropertyGroup
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import ColorGen, ColorType
+from data_vis.operators.features.legend import Legend
 
 
 class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
@@ -18,6 +19,10 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         type=DV_HeaderPropertyGroup
     )
 
+    legend_settings: bpy.props.PointerProperty(
+        type=DV_LegendPropertyGroup
+    )
+
     vertices: bpy.props.IntProperty(
         name='Vertices',
         min=3,
@@ -25,13 +30,18 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
     )
 
     text_size: bpy.props.FloatProperty(
-        name='Text Size',
+        name='Label Size',
         min=0.01,
         default=0.05
     )
 
+    create_labels: bpy.props.BoolProperty(
+        name='Create Labels',
+        default=True
+    )
+
     label_distance: bpy.props.FloatProperty(
-        name='Label distance',
+        name='Label Distance',
         min=0.0,
         default=0.5,
     )
@@ -63,16 +73,18 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        row = layout.row()
-        row.prop(self, 'vertices')
-        row = layout.row()
-        row.prop(self, 'text_size')
-        row = layout.row()
-        row.prop(self, 'label_distance')
         box = layout.box()
         box.label(icon='COLOR', text='Color settings:')
-        box.prop(self, 'color_shade')
         box.prop(self, 'color_type')
+        if self.color_type != '2':
+            box.prop(self, 'color_shade')
+
+        box = layout.box()
+        box.prop(self, 'vertices')
+        box.prop(self, 'create_labels')
+        if self.create_labels:
+            box.prop(self, 'label_distance')
+            box.prop(self, 'text_size')
 
     def execute(self, context):
         self.slices = []
@@ -101,6 +113,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         color_gen = ColorGen(self.color_shade, ColorType.str_to_type(self.color_type), (0, data_len))
 
         prev_i = 0
+        legend_data = {}
         for i in range(data_len):
 
             portion = self.data[i][1] / values_sum
@@ -120,12 +133,20 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             slice_mat = color_gen.get_material(data_len - i)
             slice_obj.active_material = slice_mat
             slice_obj.parent = self.container_object
-            label_rot_z = (((prev_i + portion_end_i) * 0.5) / self.vertices) * 2.0 * math.pi
-            label_obj = self.add_value_label((self.label_distance, 0, 0), (0, 0, label_rot_z), self.data[i][0], portion, self.data[i][1])
-            label_obj.rotation_euler = (0, 0, 0)
+            if self.create_labels:
+                label_rot_z = (((prev_i + portion_end_i) * 0.5) / self.vertices) * 2.0 * math.pi
+                label_obj = self.add_value_label((self.label_distance, 0, 0), (0, 0, label_rot_z), self.data[i][0], portion, self.data[i][1])
+                label_obj.rotation_euler = (0, 0, 0)
             prev_i += increment
+
+            legend_data[str(slice_mat.name)] = self.data[i][0] 
+
         if self.header_settings.create:
             self.create_header((0, 0.7, 0.15), False)
+
+        if self.legend_settings.create:
+            Legend(self.chart_id, self.legend_settings, legend_data).create(self.container_object)
+    
         self.select_container()
         return {'FINISHED'}
 

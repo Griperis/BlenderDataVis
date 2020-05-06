@@ -206,6 +206,31 @@ class DV_AnimationPropertyGroup(bpy.types.PropertyGroup):
     )
 
 
+class DV_LegendPropertyGroup(bpy.types.PropertyGroup):
+    create: bpy.props.BoolProperty(
+        name='Create Legend'
+    )
+
+    color_bar: bpy.props.BoolProperty(
+        name='Show Colorbar'
+    )
+
+    position: bpy.props.EnumProperty(
+        name='Position',
+        items=(
+            ('Right', 'Right', 'Legend on the right side'),
+            ('Left', 'Left', 'Legend on the left side'),
+        )
+    )
+
+    item_size: bpy.props.FloatProperty(
+        name='Item Size',
+        min=0.01,
+        max=0.5,
+        default=0.07,
+    )
+
+
 class OBJECT_OT_GenericChart(bpy.types.Operator):
     '''Encapsulation of common methods for charts'''
     bl_idname = 'object.create_chart'
@@ -255,6 +280,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         
         self.draw_header_settings(box)
         self.draw_axis_settings(layout, numerical)
+        self.draw_legend_settings(layout)
         self.draw_color_settings(layout)
         self.draw_anim_settings(layout)
 
@@ -270,7 +296,20 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
                     self.header_settings.text = self.bl_label
                 row.prop(self.header_settings, 'text')
                 row.prop(self.header_settings, 'size')
-            
+    
+    def draw_legend_settings(self, layout):
+        if hasattr(self, 'legend_settings'):
+            box = layout.box()
+            row = box.row()
+            row.label(icon='WORDWRAP_ON', text='Legend Settings:')
+            row.prop(self.legend_settings, 'create')
+            if self.legend_settings.create:
+                box.prop(self.legend_settings, 'position')
+                box.prop(self.legend_settings, 'item_size')
+  # TODO              if hasattr(self, 'color_settings') or hasattr(self, 'color_type'):
+  # TODO                  box.prop(self.legend_settings, 'color_bar')
+                
+
     def draw_anim_settings(self, layout):
         if not self.dm.animable:
             return

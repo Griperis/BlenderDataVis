@@ -21,7 +21,7 @@ from .operators.line_chart import OBJECT_OT_LineChart
 from .operators.pie_chart import OBJECT_OT_PieChart
 from .operators.point_chart import OBJECT_OT_PointChart
 from .operators.surface_chart import OBJECT_OT_SurfaceChart
-from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
+from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup, DV_LegendPropertyGroup
 from .data_manager import DataManager
 
 preview_collections = {}
@@ -244,6 +244,7 @@ classes = [
     DV_AxisPropertyGroup,
     DV_AnimationPropertyGroup,
     DV_HeaderPropertyGroup,
+    DV_LegendPropertyGroup,
     OBJECT_OT_AddChart,
     OBJECT_OT_BarChart,
     OBJECT_OT_PieChart,
