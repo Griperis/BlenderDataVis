@@ -48,6 +48,18 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
         type=DV_HeaderPropertyGroup
     )
 
+    use_obj: bpy.props.EnumProperty(
+        name='Object',
+        items=(
+            ('Sphere', 'Sphere', 'UV Sphere'),
+            ('Custom', 'Custom', 'Select custom object'),
+        )
+    )
+
+    custom_obj_name: bpy.props.StringProperty(
+        name='Custom'
+    )
+
     @classmethod
     def poll(cls, context):
         return DataManager().is_type(DataType.Numerical, [2, 3])
@@ -55,8 +67,13 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        row = layout.row()
-        row.prop(self, 'point_scale')
+
+        box = layout.box()
+        box.prop(self, 'use_obj')
+        if self.use_obj == 'Custom':
+            box.prop_search(self, 'custom_obj_name', context.scene, 'objects')
+        
+        box.prop(self, 'point_scale')
 
     def execute(self, context):
         self.init_data()
@@ -78,9 +95,16 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             # skip values outside defined axis range
             if not self.in_axis_range_bounds_new(entry):
                 continue
+            
+            if self.use_obj == 'Sphere' or self.custom_obj_name == '':
+                bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8)
+                point_obj = context.active_object
+            else:
+                src_obj = bpy.data.objects[self.custom_obj_name]
+                point_obj = src_obj.copy()
+                point_obj.data = src_obj.data.copy()
+                context.collection.objects.link(point_obj)
 
-            bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8)
-            point_obj = context.active_object
             point_obj.scale = Vector((self.point_scale, self.point_scale, self.point_scale))
 
             mat = color_gen.get_material(entry[value_index])
@@ -112,8 +136,8 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             AxisFactory.create(
                 self.container_object,
                 self.axis_settings,
-                self.chart_id,
                 int(self.dimensions),
+                self.chart_id,
                 labels=self.labels
             )
 
