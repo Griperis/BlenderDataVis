@@ -51,7 +51,7 @@ class Legend:
             self.text_mat = bpy.data.materials.new(name='DV_TextMat_' + str(self.chart_id))
 
         self.legend_mat = bpy.data.materials.new(name='DV_LegendMat_' + str(self.chart_id))
-        self.legend_mat.diffuse_color = (1, 1, 1, 1)
+        self.legend_mat.diffuse_color = (0, 0, 0, 1)
 
     def create_items(self, entries):
         '''Creates legend items'''
