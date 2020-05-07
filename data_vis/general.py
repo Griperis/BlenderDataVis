@@ -31,6 +31,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         self.labels = []
         self.dm = DataManager()
         self.prev_anim_setting = False
+        self.prev_auto_step = False
         if hasattr(self, 'dimensions'):
             self.dimensions = str(self.dm.dimensions)
 
@@ -147,20 +148,28 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             row.prop(self.axis_settings, 'y_range', text='Y')
         row = box.row()
         row.prop(self.axis_settings, 'z_range', text='Z')
+        row = box.row()
+        row.prop(self.axis_settings, 'create')
+        
+        if not self.axis_settings.create:
+            return
+
         box.prop(self.axis_settings, 'auto_steps')
+
+        if self.prev_auto_step != self.axis_settings.auto_steps:
+            self.axis_settings.x_step = self.dm.get_step_size('x')
+            self.axis_settings.y_step = self.dm.get_step_size('y')
+            self.axis_settings.z_step = self.dm.get_step_size('z')
+            self.prev_auto_step = self.axis_settings.auto_steps
 
         if not self.axis_settings.auto_steps:
             row = box.row()
             if numerical:
-                row.prop(self.axis_settings, 'x_step')
+                row.prop(self.axis_settings, 'x_step', text='X')
             if hasattr(self, 'dimensions') and self.dimensions == '3':
                 row.prop(self.axis_settings, 'y_step', text='Y')
             row.prop(self.axis_settings, 'z_step', text='Z')
 
-        row = box.row()
-        row.prop(self.axis_settings, 'create')
-        if not self.axis_settings.create:
-            return
         row = box.row()
         row.prop(self.axis_settings, 'z_position')
         row = box.row()

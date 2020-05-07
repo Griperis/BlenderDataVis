@@ -172,6 +172,14 @@ class DataManager:
             else:
                 return (0.0, 1.0)
         
+        def get_step_size(self, axis):
+            default_steps = 10
+            if axis in self.ranges:
+                ax_range = tuple(self.ranges[axis])
+                return (ax_range[1] - ax_range[0]) / default_steps
+            else:
+                return 1.0
+
         def get_filename(self):
             return os.path.split(self.filepath)[1]
 

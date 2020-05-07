@@ -4,6 +4,8 @@
 # Description: Common chart properties, example usage in one of chart implementations
 
 import bpy
+from data_vis.data_manager import DataManager
+
 
 class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     '''Axis Settings, used with AxisFactory'''
@@ -27,7 +29,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
 
     x_step: bpy.props.FloatProperty(
         name='Step of x axis',
-        default=1.0,
+        default=DataManager().get_step_size('x')
     )
 
     x_range: bpy.props.FloatVectorProperty(
@@ -39,7 +41,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
 
     y_step: bpy.props.FloatProperty(
         name='Step of y axis',
-        default=1.0,
+        default=DataManager().get_step_size('y')
     )
 
     y_range: bpy.props.FloatVectorProperty(
@@ -58,7 +60,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
 
     z_step: bpy.props.FloatProperty(
         name='Step of z axis',
-        default=1.0,
+        default=DataManager().get_step_size('z')
     )
 
     z_position: bpy.props.EnumProperty(
