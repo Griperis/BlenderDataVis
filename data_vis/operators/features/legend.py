@@ -1,3 +1,8 @@
+# File: legend.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Provides Legend class to work with legend
+
 import bpy
 
 

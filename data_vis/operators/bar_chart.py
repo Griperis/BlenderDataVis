@@ -1,10 +1,16 @@
+# File: bar_chart.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Bar chart implementation
+
 import bpy
 import math
 from mathutils import Vector
 
 
 from data_vis.utils.data_utils import normalize_value
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart
+from data_vis.properties import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import ColoringFactory, ColorType

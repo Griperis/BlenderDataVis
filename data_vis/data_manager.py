@@ -1,3 +1,8 @@
+# File: data_manager.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Data loading, data analysis and data information interface
+
 import bpy
 import os
 import csv
@@ -57,6 +62,7 @@ class DataManager:
             return len(self.raw_data)
 
         def analyse_data(self):
+            '''Analyses data type and labels'''
             total = 0
             for i, col in enumerate(self.raw_data[0]):
                 try:
@@ -106,6 +112,7 @@ class DataManager:
                 self.parse_data()
 
         def parse_data(self):
+            '''Takes raw_data and parses it into parsed_data while finding data ranges'''
             if self.raw_data is None:
                 print('No data has been loaded!')
                 self.parsed_data = [[]]

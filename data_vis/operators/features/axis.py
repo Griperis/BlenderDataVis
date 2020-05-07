@@ -1,3 +1,9 @@
+# File: axis.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Axis creation related classes and implementation
+
+
 from enum import Enum
 from mathutils import Vector
 import bpy

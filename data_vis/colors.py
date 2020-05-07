@@ -1,3 +1,8 @@
+# File: colors.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Color related code
+
 import bpy
 import random
 from enum import Enum
