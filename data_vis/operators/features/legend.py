@@ -94,6 +94,9 @@ class Legend:
             self.items.append((plane_obj, text_obj))
             idx += 1
 
+        # scale larger with one entry
+        if longest_entry == 1:
+            longest_entry = 2
         # add last column of items to size and shift it by item size, add padding
         return (size_x + longest_entry * self.settings.item_size)
 

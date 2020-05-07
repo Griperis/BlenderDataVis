@@ -103,7 +103,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     )
 
     number_format: bpy.props.EnumProperty(
-        name='Num format',
+        name='Format',
         items=(
             ('0', 'Decimal', '123.456'),
             ('1', 'Scientific', '1.23e+05')
@@ -223,7 +223,7 @@ class DV_LegendPropertyGroup(bpy.types.PropertyGroup):
         name='Item Size',
         min=0.01,
         max=0.5,
-        default=0.07,
+        default=0.065,
     )
 
 
@@ -274,17 +274,18 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             else:
                 self.dimensions = '2'
         
-        self.draw_header_settings(box)
+        self.draw_header_settings(layout)
         self.draw_axis_settings(layout, numerical)
         self.draw_legend_settings(layout)
         self.draw_color_settings(layout)
         self.draw_anim_settings(layout)
 
-    def draw_header_settings(self, box):
+    def draw_header_settings(self, layout):
         if hasattr(self, 'header_settings'):
-            box.separator()
+
+            box = layout.box()
+            box.label(text='Header:', icon='BOLD')
             row = box.row()
-            row.label(text='Header', icon='BOLD')
             row.prop(self.header_settings, 'create')
             if self.header_settings.create:
                 row = box.row()
@@ -297,7 +298,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         if hasattr(self, 'legend_settings'):
             box = layout.box()
             row = box.row()
-            row.label(icon='WORDWRAP_ON', text='Legend Settings:')
+            row.label(icon='WORDWRAP_ON', text='Legend:')
             row.prop(self.legend_settings, 'create')
             if self.legend_settings.create:
                 box.prop(self.legend_settings, 'position')
@@ -308,7 +309,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             return
         if hasattr(self, 'anim_settings'):
             box = layout.box()
-            box.label(icon='TIME', text='Animation Settings:')
+            box.label(icon='TIME', text='Animation:')
             box.prop(self.anim_settings, 'animate')
             if self.anim_settings.animate:
                 box.prop(self.anim_settings, 'key_spacing')
@@ -319,7 +320,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def draw_label_settings(self, box):
         if hasattr(self, 'label_settings'):
             row = box.row()
-            row.label(icon='FILE_FONT', text='Label Settings:')
+            row.label(icon='FILE_FONT', text='Labels:')
             row.prop(self.label_settings, 'create')
             if self.label_settings.create:
                 if self.dm.has_labels:
@@ -334,7 +335,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def draw_color_settings(self, layout):
         if hasattr(self, 'color_settings'):
             box = layout.box()
-            box.label(icon='COLOR', text='Color settings')
+            box.label(icon='COLOR', text='Colors:')
             box.prop(self.color_settings, 'use_shader')
             box.prop(self.color_settings, 'color_type')
             if not ColorType.str_to_type(self.color_settings.color_type) == ColorType.Random:
@@ -345,7 +346,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             return
 
         box = layout.box()
-        box.label(icon='ORIENTATION_VIEW', text='Axis Settings:')
+        box.label(icon='ORIENTATION_VIEW', text='Axis:')
 
         row = box.row()
         row.label(text='Ranges:', icon='ARROW_LEFTRIGHT')
@@ -379,7 +380,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         row.prop(self.axis_settings, 'tick_mark_height')
         box.separator()
         row = box.row()
-        row.label(text='Tick settings', icon='FONT_DATA')
+        row.label(text='Ticks:', icon='FONT_DATA')
         box.prop(self.axis_settings, 'number_format')
         row = box.row()
         row.prop(self.axis_settings, 'text_size')

@@ -108,7 +108,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             rot += rot_inc
             self.slices.append(cyl_slice)
 
-        values_sum = sum(int(entry[1]) for entry in self.data)
+        values_sum = sum(float(entry[1]) for entry in self.data)
         data_len = len(self.data)
         color_gen = ColorGen(self.color_shade, ColorType.str_to_type(self.color_type), (0, data_len))
 
@@ -134,8 +134,8 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             slice_obj.active_material = slice_mat
             slice_obj.parent = self.container_object
             if self.create_labels:
-                label_rot_z = (((prev_i + portion_end_i) * 0.5) / self.vertices) * 2.0 * math.pi
-                label_obj = self.add_value_label((self.label_distance, 0, 0), (0, 0, label_rot_z), self.data[i][0], portion, self.data[i][1])
+                rotation_z = ((prev_i + portion_end_i) * 0.5) / self.vertices
+                label_obj = self.add_value_label(self.label_distance, rotation_z * 2.0 * math.pi + math.pi, self.data[i][0], self.data[i][1])
                 label_obj.rotation_euler = (0, 0, 0)
             prev_i += increment
 
@@ -153,7 +153,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
     def join_slices(self, i_from, i_to):
         bpy.ops.object.select_all(action='DESELECT')
         if i_to > len(self.slices) - 1:
-            i_to = len(self.slices) - 1
+            i_to = len(self.slices)
         for i in range(i_from, i_to):
             if i > len(self.slices) - 1:
                 print('IndexError: Cannot portion slices properly: i: {}, len(slices): {}, i_from: {}, i_to: {}'.format(i, len(self.slices), i_from, i_to))
@@ -188,14 +188,12 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
 
         return obj
 
-    def add_value_label(self, location, rotation, label, portion, value):
+    def add_value_label(self, distance, angle, label, value):
         bpy.ops.object.text_add()
         to = bpy.context.object
         to.data.body = '{0}: {1}'.format(label, value)
         to.data.align_x = 'CENTER'
-        to.rotation_euler = rotation
-        to.location = Vector(location) @ to.rotation_euler.to_matrix()
-        to.location.z += 0.15
+        to.location = (math.cos(angle) * distance, math.sin(angle) * distance, 0.15)
         to.scale *= self.text_size
         to.parent = self.container_object
 
