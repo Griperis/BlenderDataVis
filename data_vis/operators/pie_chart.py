@@ -1,3 +1,8 @@
+# File: pie_chart.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Pie chart implementation
+
 import bpy
 import math
 from mathutils import Matrix, Vector

@@ -1,5 +1,12 @@
+# File: color_utils.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Utility functions for working with colors
+
+
 from mathutils import Vector
 from colorsys import hsv_to_rgb, rgb_to_hsv
+
 
 def rgb_col_gen(length, r, g, b):
     base_color = Vector((r, g, b))
@@ -29,14 +36,3 @@ def vec3_to_triplet(vec):
 
 def color_to_triplet(col):
     return (col.r, col.g, col.b)
-
-
-class ColorGen:
-    # based on value / on entry of data
-    def __init__(self, base_color, value_range):
-        self.base_color = rgb_to_hsv(*base_color)
-        self.value_range = value_range
-    
-    def next(self, value):
-        norm = (value - self.value_range[0]) / (self.value_range[1] - self.value_range[0])
-        return hsv_to_rgb(self.base_color[0], self.base_color[1] * norm, self.base_color[2])

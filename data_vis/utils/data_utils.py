@@ -1,11 +1,28 @@
+# File: data_utils.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Utility functions for working with data
+
 from data_vis.data_manager import DataType
 
 
 def find_axis_range(data, val_idx):
+    '''
+    Finds range of data on index
+    Parameters:
+    data - data to find range in
+    val_idx - idx where to access for data
+    '''
     return (min(data, key=lambda x: x[val_idx])[val_idx], max(data, key=lambda x: x[val_idx])[val_idx])
 
 
 def get_data_in_range(data, range_x):
+    '''
+    Returns data in specified range
+    Parameters:
+    data - data to search in
+    range_x - range of result data
+    '''
     return list(filter(lambda val: range_x[0] <= val[0] <= range_x[1], data))
 
 
