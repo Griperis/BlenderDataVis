@@ -3,6 +3,7 @@
 # Licence: GPL 3.0
 # Description: Common chart properties, example usage in one of chart implementations
 
+import bpy
 
 class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     '''Axis Settings, used with AxisFactory'''
