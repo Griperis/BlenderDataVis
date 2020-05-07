@@ -25,7 +25,6 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
     auto_steps: bpy.props.BoolProperty(
         name='Automatic Steps',
         default=True,
-        description='Automatically calculates stepsize to display 10 marks'
     )
 
     x_step: bpy.props.FloatProperty(
@@ -79,7 +78,6 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
         min=0.001,
         max=0.02,
         default=0.005,
-        description='How thick is the axis object'
     )
 
     tick_mark_height: bpy.props.FloatProperty(
@@ -87,19 +85,17 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
         default=0.015,
         min=0.001,
         max=0.02,
-        description='Thickness of axis mark objects'
     )
 
     padding: bpy.props.FloatProperty(
         name='Padding',
         default=0.1,
         min=0,
-        description='Axis distance from chart origin'
     )
 
     text_size: bpy.props.FloatProperty(
         name='Text size',
-        default=0.05
+        default=0.05,
     )
 
     number_format: bpy.props.EnumProperty(
@@ -132,7 +128,7 @@ class DV_HeaderPropertyGroup(bpy.types.PropertyGroup):
     size: bpy.props.FloatProperty(
         name='Size',
         default=0.07,
-        min=0.01
+        min=0.01,
     )
 
 
