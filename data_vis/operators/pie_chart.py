@@ -183,8 +183,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
 
         mesh = bpy.data.meshes.new('pie_mesh')
         obj = bpy.data.objects.new(mesh.name, mesh)
-        col = bpy.data.collections.get('Collection')
-        col.objects.link(obj)
+        bpy.context.scene.collection.objects.link(obj)
         obj.parent = self.container_object
         bpy.context.view_layer.objects.active = obj
 
