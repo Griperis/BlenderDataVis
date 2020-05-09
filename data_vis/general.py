@@ -164,8 +164,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
         if not self.axis_settings.auto_steps:
             row = box.row()
-            if numerical:
-                row.prop(self.axis_settings, 'x_step', text='X')
+            row.prop(self.axis_settings, 'x_step', text='X')
             if hasattr(self, 'dimensions') and self.dimensions == '3':
                 row.prop(self.axis_settings, 'y_step', text='Y')
             row.prop(self.axis_settings, 'z_step', text='Z')

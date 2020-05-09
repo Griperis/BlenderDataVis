@@ -84,7 +84,9 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
 
     def init_props(self):
         if self.dm.is_type(DataType.Categorical, [2]):
-            self.bar_size[0] = 1 / (2 * len(self.dm.get_parsed_data()) + 1)
+            size = 1 / (2 * len(self.dm.get_parsed_data()) + 1)
+            if size <= 0.05:
+                self.bar_size[0] = size
 
     def draw(self, context):
         super().draw(context)

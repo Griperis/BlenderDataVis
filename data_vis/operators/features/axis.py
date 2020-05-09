@@ -79,10 +79,16 @@ class Axis:
     '''
     def __init__(self, parent, chart_id, step, ax_range, ax_dir, tick_labels, thickness, tick_height, auto_step=False, text_size=0.05, number_format='0', decimal_places=2):
         self.range = ax_range
-        if not auto_step or (len(tick_labels) <= 10 and len(tick_labels) > 0):
+        if not auto_step:
             self.step = step
         else:
             self.step = (self.range[1] - self.range[0]) / 10
+
+        if len(tick_labels) > 0 and auto_step:
+            self.step = 1
+        elif len(tick_labels) > 10 and auto_step:
+            self.step = len(tick_labels) / 10
+
         self.parent_object = parent
         self.thickness = thickness
         self.mark_height = tick_height
