@@ -6,7 +6,11 @@
     Data visualisation addon for blender
 </h3>
 <p align="center">
-Load data into Blender and create visualisations!
+    Load data into Blender and create visualisations!
+</p>
+<p align="center">
+    <a href="https://github.com/Griperis/BlenderDataVis/wiki/Manual">User manual</a> |
+    <a href="https://blendermarket.com/products/data-visualisation-addon">Blender Market</a>
 </p>
 
 ## Quickstart
@@ -83,7 +87,7 @@ Currently supported features:
 - Bar chart (Categorical, 2D Numeric, 3D Numeric)
 - Point chart / Scatterplot (2D Numeric, 3D Numeric)
 - Surface chart (Using scipy)
-- Creating axis with labels from charts
+- Creating axis with labels from data
 - Ranges of data to visualise can be set
 - Materials and 3 types of coloring of charts (Including default Node Shader for gradients and random colors)
 - Basic animations from data
