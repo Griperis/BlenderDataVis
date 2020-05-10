@@ -1,7 +1,14 @@
+# File: surface_chart.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Surface chart implementation
+
+
 import bpy
 import math
 
-from data_vis.general import OBJECT_OT_GenericChart, DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart
+from data_vis.properties import DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.utils.data_utils import normalize_value
 from data_vis.colors import NodeShader
 from data_vis.operators.features.axis import AxisFactory

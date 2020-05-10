@@ -1,3 +1,9 @@
+# File: data_load.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Data load operator creating modal window
+
+
 import bpy
 from data_vis.data_manager import DataManager
 

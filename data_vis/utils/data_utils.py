@@ -1,11 +1,28 @@
+# File: data_utils.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Utility functions for working with data
+
 from data_vis.data_manager import DataType
 
 
 def find_axis_range(data, val_idx):
+    '''
+    Finds range of data on index
+    Parameters:
+    data - data to find range in
+    val_idx - idx where to access for data
+    '''
     return (min(data, key=lambda x: x[val_idx])[val_idx], max(data, key=lambda x: x[val_idx])[val_idx])
 
 
 def get_data_in_range(data, range_x):
+    '''
+    Returns data in specified range
+    Parameters:
+    data - data to search in
+    range_x - range of result data
+    '''
     return list(filter(lambda val: range_x[0] <= val[0] <= range_x[1], data))
 
 
@@ -39,25 +56,31 @@ def float_data_gen(data, col, label_col, separator=','):
         yield {'val': val, 'label': label, 'res': res}
 
 
-def float_range(start, stop=None, step=None):
+def float_range(start, stop=None, step=None, precision=0.00001):
     '''
     Generates range of float numbers like python range, but step can be float
     Inspiration taken from: https://pynative.com/python-range-for-float-numbers/
+    start - start of interval
+    stop - end of interval
+    step - step size
+    precision - comparison precision as fix to float comparison error
+    returns - iterator from start to stop with step stepsize
     '''
+    val = start
     if stop is None:
         stop = start + 0.0
-        start = 0.0
+        val = 0.0
 
     if step is None:
         step = 1.0
 
     while True:
-        if step > 0 and start > stop:
+        if step > 0 and val - precision > stop:
             break
-        elif step < 0 and start < stop:
+        elif step < 0 and val + precision < stop:
             break
-        yield start
-        start = start + step
+        yield val
+        val = val + step
 
 
 def normalize_value(value, minimum, maximum):

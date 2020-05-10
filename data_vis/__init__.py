@@ -1,9 +1,14 @@
+# Data Visualisation Addon - load data into Blender and create visualisations
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Entry point to the addon
+
 bl_info = {
     'name': 'Data Vis',
     'author': 'Zdenek Dolezal',
     'description': 'Data visualisation addon',
     'blender': (2, 80, 0),
-    'version': (1, 3, 2),
+    'version': (1, 3, 3),
     'location': 'Object -> Add Mesh',
     'warning': '',
     'category': 'Generic'
@@ -21,7 +26,7 @@ from .operators.line_chart import OBJECT_OT_LineChart
 from .operators.pie_chart import OBJECT_OT_PieChart
 from .operators.point_chart import OBJECT_OT_PointChart
 from .operators.surface_chart import OBJECT_OT_SurfaceChart
-from .general import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
+from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup
 from .data_manager import DataManager
 
 preview_collections = {}
@@ -244,6 +249,7 @@ classes = [
     DV_AxisPropertyGroup,
     DV_AnimationPropertyGroup,
     DV_HeaderPropertyGroup,
+    DV_LegendPropertyGroup,
     OBJECT_OT_AddChart,
     OBJECT_OT_BarChart,
     OBJECT_OT_PieChart,

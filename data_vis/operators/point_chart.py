@@ -1,8 +1,14 @@
+# File: point_chart.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Point chart (scatterplot) implementation
+
 import bpy
 from mathutils import Vector
 import math
 
-from data_vis.general import OBJECT_OT_GenericChart, DV_LabelPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
+from data_vis.general import OBJECT_OT_GenericChart
+from data_vis.properties import DV_LabelPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.utils.data_utils import normalize_value
 from data_vis.colors import ColoringFactory, ColorType
@@ -48,6 +54,18 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
         type=DV_HeaderPropertyGroup
     )
 
+    use_obj: bpy.props.EnumProperty(
+        name='Object',
+        items=(
+            ('Sphere', 'Sphere', 'UV Sphere'),
+            ('Custom', 'Custom', 'Select custom object'),
+        )
+    )
+
+    custom_obj_name: bpy.props.StringProperty(
+        name='Custom'
+    )
+
     @classmethod
     def poll(cls, context):
         return DataManager().is_type(DataType.Numerical, [2, 3])
@@ -55,8 +73,13 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        row = layout.row()
-        row.prop(self, 'point_scale')
+
+        box = layout.box()
+        box.prop(self, 'use_obj')
+        if self.use_obj == 'Custom':
+            box.prop_search(self, 'custom_obj_name', context.scene, 'objects')
+        
+        box.prop(self, 'point_scale')
 
     def execute(self, context):
         self.init_data()
@@ -78,9 +101,19 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             # skip values outside defined axis range
             if not self.in_axis_range_bounds_new(entry):
                 continue
+            
+            if self.use_obj == 'Sphere' or self.custom_obj_name == '':
+                bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8)
+                point_obj = context.active_object
+            else:
+                if self.custom_obj_name not in bpy.data.objects:
+                    self.report({'ERROR'}, 'Selected object is part of the chart or is deleted!')
+                    return {'CANCELLED'}
+                src_obj = bpy.data.objects[self.custom_obj_name]
+                point_obj = src_obj.copy()
+                point_obj.data = src_obj.data.copy()
+                context.collection.objects.link(point_obj)
 
-            bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8)
-            point_obj = context.active_object
             point_obj.scale = Vector((self.point_scale, self.point_scale, self.point_scale))
 
             mat = color_gen.get_material(entry[value_index])
