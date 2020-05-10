@@ -10,6 +10,7 @@
 </p>
 <p align="center">
     <a href="https://github.com/Griperis/BlenderDataVis/wiki/Manual">User manual</a> |
+    <a href="https://youtu.be/qIF7QPu2cOI">Video</a> |
     <a href="https://blendermarket.com/products/data-visualisation-addon">Blender Market</a>
 </p>
 
