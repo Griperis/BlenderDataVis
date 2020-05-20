@@ -84,10 +84,11 @@ class Axis:
         else:
             self.step = (self.range[1] - self.range[0]) / 10
 
-        if len(tick_labels) > 0 and auto_step:
-            self.step = 1
-        elif len(tick_labels) > 10 and auto_step:
-            self.step = len(tick_labels) / 10
+        if len(tick_labels) > 0:
+            if auto_step:
+                self.step = (len(tick_labels) - 1) / 10
+                print(self.step)
+
 
         self.parent_object = parent
         self.thickness = thickness
