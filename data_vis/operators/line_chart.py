@@ -23,7 +23,8 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
     bl_options = {'REGISTER', 'UNDO'}
 
     bevel_edges: bpy.props.BoolProperty(
-        name='Bevel edges'
+        name='Bevel edges',
+        description='Can have bad affect on data from large dataset'
     )
 
     data_type: bpy.props.EnumProperty(
@@ -68,6 +69,21 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         default=True,
     )
 
+    series_label: bpy.props.BoolProperty(
+        name='Series Label',
+        description='Creates color and label for series'
+    )
+
+    series_label_text: bpy.props.StringProperty(
+        name='Label Text',
+        default='Series'
+    )
+
+    series_label_size: bpy.props.FloatProperty(
+        name='Size',
+        default=0.07
+    )
+
     def __init__(self):
         super().__init__()
         self.only_2d = True
@@ -93,14 +109,22 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
+
+        box = layout.box()
+        box.label(icon='COLOR', text='Colors:')
+        box.prop(self, 'use_shader')
+        box.prop(self, 'color_shade')
+
         box = layout.box()
         box.prop(self, 'bevel_edges')
         if self.bevel_edges:
             box.prop(self, 'rounded')
 
-        box = layout.box()
-        box.prop(self, 'use_shader')
-        box.prop(self, 'color_shade')
+        box.separator()
+        box.prop(self, 'series_label')
+        if self.series_label:
+            box.prop(self, 'series_label_text')
+            box.prop(self, 'series_label_size')
 
     def execute(self, context):
         self.init_data()
@@ -145,12 +169,46 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
                 labels=self.labels,
                 tick_labels=(tick_labels, [], [])
             )
+
+        if self.series_label:
+            self.create_series_label(mat)
+
         if self.header_settings.create:
             self.create_header()
+
         self.select_container()
         return {'FINISHED'}
 
+    def create_series_label(self, material):
+        '''Creates label for series specified with material'''
+        bpy.ops.object.empty_add()
+        container = bpy.context.active_object
+
+        bpy.ops.object.text_add()
+        to = bpy.context.object
+        to.data.align_x = 'LEFT'
+        to.data.align_y = 'CENTER'
+        to.name = 'SeriesLabel'
+        to.location = (self.series_label_size + 0.02, 0, 0)
+        to.scale *= (self.series_label_size)
+        to.parent = container
+        to.data.body = str(self.series_label_text)
+        to.data.materials.append(bpy.data.materials.get('DV_TextMat_' + str(self.chart_id)))
+
+        bpy.ops.mesh.primitive_plane_add()
+        plane = bpy.context.active_object
+        plane.data.materials.append(material)
+        plane.active_material = material
+        plane.scale = (self.series_label_size - 0.01, self.series_label_size - 0.01, 1)
+        plane.location = (0, 0, 0)
+        plane.parent = container
+
+        container.location = (1.2, 0, 0.5)
+        container.rotation_euler = (math.radians(90), 0, 0)
+        container.parent = self.container_object
+
     def create_curve(self, verts, edges):
+        '''Creates object wit hdata from verts and edges'''
         m = bpy.data.meshes.new('line_mesh')
         self.curve_obj = bpy.data.objects.new('line_chart_curve', m)
 
@@ -166,6 +224,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         bpy.ops.object.convert(target='CURVE')
 
     def bevel_curve_obj(self):
+        '''Bevels curve object'''
         bpy.ops.object.mode_set(mode='EDIT')
         opts = self.bevel_settings['rounded'] if self.rounded == '1' else self.bevel_settings['sharp']
         bpy.ops.mesh.bevel(
@@ -178,6 +237,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         bpy.ops.object.mode_set(mode='OBJECT')
 
     def add_bevel_obj(self):
+        '''Adds bevel object to existing curve'''
         bpy.ops.mesh.primitive_plane_add()
         bevel_obj = bpy.context.active_object
         bevel_obj.scale = self.bevel_obj_size
