@@ -86,7 +86,10 @@ class Axis:
 
         if len(tick_labels) > 0:
             if auto_step:
-                self.step = (len(tick_labels) - 1) / 10
+                if len(tick_labels) > 10:
+                    self.step = (len(tick_labels) - 1) / 10
+                else:
+                    self.step = 1
 
         self.parent_object = parent
         self.thickness = thickness
