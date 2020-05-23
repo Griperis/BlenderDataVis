@@ -10,6 +10,7 @@ import csv
 from enum import Enum
 
 
+
 class DataType(Enum):
     Numerical = 0
     Categorical = 1
@@ -45,16 +46,14 @@ class DataManager:
             self.__init__()
             self.filepath = filepath
             try:
-                with open(filepath, 'r') as file:
+                with open(filepath, 'r', encoding='UTF-8') as file:
                     csv_reader = csv.reader(file, delimiter=delimiter)
                     self.raw_data = []
                     for line in csv_reader:
                         if len(line) == 0:
                             continue
                         self.raw_data.append(line)
-                        
                 self.analyse_data()
-                print(self)
             except UnicodeDecodeError as e:
                 self.predicted_data_type = DataType.Invalid
                 return 0
