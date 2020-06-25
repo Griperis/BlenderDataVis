@@ -7,9 +7,10 @@ import bpy
 
 from data_vis.general import OBJECT_OT_GenericChart
 from data_vis.properties import DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup
-from data_vis.colors import ColoringFactory
+from data_vis.colors import ColoringFactory, ColorType
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType, DataSubtype
+from data_vis.utils.data_utils import normalize_value
 
 
 class OBJECT_OT_BubbleChart(OBJECT_OT_GenericChart):
@@ -42,15 +43,17 @@ class OBJECT_OT_BubbleChart(OBJECT_OT_GenericChart):
         type=DV_HeaderPropertyGroup
     )
 
-    point_min_scale: bpy.props.FloatProperty(
-        name='Point min scale',
-        default=0.005
+    bubble_size: bpy.props.FloatVectorProperty(
+        name='Bubble size',
+        size=2,
+        default=(0.005, 0.1),
     )
 
-    point_max_scale: bpy.props.FloatProperty(
-        name='Point max scale',
-        default=0.1
-    )
+    def __init__(self):
+        super().__init__()
+        self.only_2d = False if self.dm.has_subtype(DataSubtype.XYZW) else True
+        if self.only_2d:
+            self.dimensions = '2'
 
     @classmethod
     def poll(cls, context):
@@ -61,17 +64,58 @@ class OBJECT_OT_BubbleChart(OBJECT_OT_GenericChart):
         super().draw(context)
         layout = self.layout
         box = layout.box()
-        box.prop(self, 'point_min_scale')
-        box.prop(self, 'point_max_scale')
+        box.prop(self, 'bubble_size')
 
     def execute(self, context):
-        self.init_data()
+        self.init_data(subtype=self.determine_subtype())
         self.create_container()
 
-        print(self.dm)
-        print(self.dm.subtypes)
+        color_factory = ColoringFactory(self.get_name(), self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
+        color_gen = color_factory.create(self.axis_settings.z_range, 1.0, self.container_object.location[2])
+
+        w_idx = 2 if self.dimensions == '2' else 3
+        w_range = self.dm.get_range('w')
+        v_idx = w_idx - 1
         for i, entry in enumerate(self.data):
             if not self.in_axis_range_bounds_new(entry):
                 continue
+            
+            bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8)
+            bubble_obj = context.active_object
 
+            bubble_obj.scale *= (self.bubble_size[1] - self.bubble_size[0]) * normalize_value(entry[w_idx], w_range[0], w_range[1]) + self.bubble_size[0]
+
+            x_norm = normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1])
+            z_norm = normalize_value(entry[v_idx], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+            if self.dimensions == '2':
+                bubble_obj.location = (x_norm, 0.0, z_norm)
+            else:
+                y_norm = normalize_value(entry[1], self.axis_settings.y_range[0], self.axis_settings.y_range[1])
+                bubble_obj.location = (x_norm, y_norm, z_norm)
+
+            print(self.dm)
+            
+            mat = color_gen.get_material(entry[v_idx])
+            bubble_obj.data.materials.append(mat)
+            bubble_obj.active_material = mat
+
+            bubble_obj.parent = self.container_object
+
+        if self.axis_settings.create:
+            AxisFactory.create(
+                self.container_object,
+                self.axis_settings,
+                int(self.dimensions),
+                self.chart_id,
+                labels=self.labels
+            )
+
+        self.select_container()
         return {'FINISHED'}
+
+    def determine_subtype(self):
+        '''Determines data subtype by user input'''
+        if self.dimensions == '2':
+            return DataSubtype.XYW
+        elif self.dimensions == '3':
+            return DataSubtype.XYZW

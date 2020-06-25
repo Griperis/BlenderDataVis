@@ -49,16 +49,18 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             row = box.row()
             row.prop(self, 'data_type')
 
-        only_2d = hasattr(self, 'dimensions')
         numerical = True
         if hasattr(self, 'data_type'):
             if self.data_type == '1':
                 numerical = False
 
-        only_2d = only_2d or not numerical
-
         if hasattr(self, 'dimensions') and self.dm.predicted_data_type != DataType.Categorical:
-            if numerical:
+            if hasattr(self, 'only_2d') and self.only_2d is True:
+                draw_dims = False
+            else:
+                draw_dims = True
+            
+            if numerical and draw_dims:
                 row = box.row()
                 row.prop(self, 'dimensions')
             else:
@@ -240,13 +242,13 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         mat.diffuse_color = (*color, alpha)
         return mat
 
-    def init_data(self):
+    def init_data(self, subtype=None):
         if hasattr(self, 'label_settings'):
             self.init_labels()
 
         if hasattr(self, 'anim_settings') and self.prev_anim_setting != self.anim_settings.animate:
             self.use_anim_range(self.anim_settings.animate)
-        self.data = self.dm.get_parsed_data()
+        self.data = self.dm.get_parsed_data(subtype=subtype)
 
     def init_labels(self):
         if not self.label_settings.create:

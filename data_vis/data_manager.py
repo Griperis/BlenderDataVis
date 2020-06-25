@@ -158,6 +158,8 @@ class DataManager:
             elif len(min_max) > 2:
                 self.ranges['y'] = min_max[1]
                 self.ranges['z'] = min_max[2]
+                if len(min_max) == 3:
+                    self.ranges['w'] = min_max[2]
                 if len(min_max) >= 4:
                     self.ranges['w'] = min_max[3]
 
@@ -171,8 +173,28 @@ class DataManager:
             if self.predicted_data_type == DataType.Categorical:
                 self.ranges['x'] = (0, len(self.parsed_data) - 1)
 
-        def get_parsed_data(self):
-            return self.parsed_data
+        def get_parsed_data(self, subtype=None):
+            if subtype:
+                if subtype == DataSubtype.XY:
+                    return self.parsed_data
+                elif subtype == DataSubtype.XYW:
+                    if len(self.parsed_data[0]) != 3:
+                        return [[x[0], x[1], x[2]] for x in self.parsed_data]
+                    else:
+                        return self.parsed_data
+                elif subtype == DataSubtype.XY_Anim:
+                    raise NotImplementedError()
+                elif subtype == DataSubtype.XYZ:
+                    return self.parsed_data
+                elif subtype == DataSubtype.XYZW:
+                    if len(self.parsed_data[0]) != 4:
+                        return [[x[0], [1], x[2], x[3]] for x in self.parsed_data]
+                    else:
+                        return self.parsed_data
+                elif subtype == DataSubtype.XYZ_Anim:
+                    raise NotImplementedError()
+            else:
+                return self.parsed_data
 
         def get_labels(self):
             return self.labels
