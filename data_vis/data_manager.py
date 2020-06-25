@@ -164,9 +164,9 @@ class DataManager:
                     self.ranges['w'] = min_max[3]
 
             if self.animable:
-                z_ranges = min_max[len(self.ranges):]
+                z_ranges = min_max[len(self.ranges) - 1:]
                 if self.dimensions == 3 and self.tail_length == 1:
-                    self.ranges['z_anim'] = self.ranges['w']
+                    self.ranges['z_anim'] = self.__merge_ranges(self.ranges['w'], self.ranges['z'])
                 else:
                     self.ranges['z_anim'] = [min(z_ranges, key=lambda x: x[0])[0], max(z_ranges, key=lambda x: x[1])[1]]
 
@@ -271,6 +271,9 @@ class DataManager:
                 self.subtypes += [DataSubtype.XY_Anim, DataSubtype.XYZ, DataSubtype.XYW]
             if self.dimensions == 3 and self.tail_length >= 1:
                 self.subtypes += [DataSubtype.XYZ_Anim, DataSubtype.XYZW]
+
+        def __merge_ranges(self, first, second):
+            return (min(first[0], second[0]), max(first[1], second[1]))
 
         def __str__(self):
             return '{}\nL: {}\nNOFL: {}\nDIMS: {}\nRNGS: {}\nANIM_DATA: {}\nANIM: {}'.format(
