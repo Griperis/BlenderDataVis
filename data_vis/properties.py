@@ -15,7 +15,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
         if self.y_range[0] == self.y_range[1]:
             self.y_range[1] += 1.0
         if self.z_range[0] == self.z_range[1]:
-            self.z_range += 1.0
+            self.z_range[1] += 1.0
 
     create: bpy.props.BoolProperty(
         name='Create Axis Object',

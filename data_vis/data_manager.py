@@ -224,7 +224,9 @@ class DataManager:
                 if data_type == DataType.Categorical:
                     self.ranges['x'] = (0, len(self.parsed_data) - 1)
                 else:
-                    self.parse_data()
+                    if dims == 2 and self.dimensions == 3:
+                        self.ranges['z'] = self.ranges['y']
+                    #self.parse_data()
                 return True
             else:
                 return False

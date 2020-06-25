@@ -214,8 +214,8 @@ class OBJECT_OT_AddChart(bpy.types.Menu):
         layout.operator(OBJECT_OT_LineChart.bl_idname, icon_value=main_icons['line_chart'].icon_id)
         layout.operator(OBJECT_OT_PieChart.bl_idname, icon_value=main_icons['pie_chart'].icon_id)
         layout.operator(OBJECT_OT_PointChart.bl_idname, icon_value=main_icons['point_chart'].icon_id)
+        layout.operator(OBJECT_OT_BubbleChart.bl_idname, icon_value=main_icons['bubble_chart'].icon_id)
         layout.operator(OBJECT_OT_SurfaceChart.bl_idname, icon_value=main_icons['surface_chart'].icon_id)
-        layout.operator(OBJECT_OT_BubbleChart.bl_idname, icon='PLUGIN')
 
 
 def chart_ops(self, context):

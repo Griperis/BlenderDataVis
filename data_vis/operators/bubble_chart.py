@@ -14,7 +14,7 @@ from data_vis.utils.data_utils import normalize_value
 
 
 class OBJECT_OT_BubbleChart(OBJECT_OT_GenericChart):
-    '''Creates Bubble Chart'''
+    '''Creates Bubble Chart, XYW or XYZW data needed'''
     bl_idname = 'object.create_bubble_chart'
     bl_label = 'Bubble Chart'
     bl_options = {'REGISTER', 'UNDO'}
