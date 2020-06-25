@@ -8,7 +8,7 @@ bl_info = {
     'author': 'Zdenek Dolezal',
     'description': 'Data visualisation addon',
     'blender': (2, 80, 0),
-    'version': (1, 3, 3),
+    'version': (1, 3, 4),
     'location': 'Object -> Add Mesh',
     'warning': '',
     'category': 'Generic'
@@ -26,6 +26,7 @@ from .operators.line_chart import OBJECT_OT_LineChart
 from .operators.pie_chart import OBJECT_OT_PieChart
 from .operators.point_chart import OBJECT_OT_PointChart
 from .operators.surface_chart import OBJECT_OT_SurfaceChart
+from .operators.bubble_chart import OBJECT_OT_BubbleChart
 from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup
 from .data_manager import DataManager
 
@@ -111,7 +112,7 @@ class DV_AddonPanel(bpy.types.Panel):
             box.label(text='File: No file loaded')
         else:
             box.label(text='File: ' + str(filename))
-            box.label(text='Dims: ' + str(data_manager.dimensions))
+            box.label(text='Dims: ' + str(data_manager.get_dimensions()))
             box.label(text='Labels: ' + str(data_manager.has_labels))
             lines = data_manager.lines
             if lines >= 150:
@@ -214,6 +215,7 @@ class OBJECT_OT_AddChart(bpy.types.Menu):
         layout.operator(OBJECT_OT_PieChart.bl_idname, icon_value=main_icons['pie_chart'].icon_id)
         layout.operator(OBJECT_OT_PointChart.bl_idname, icon_value=main_icons['point_chart'].icon_id)
         layout.operator(OBJECT_OT_SurfaceChart.bl_idname, icon_value=main_icons['surface_chart'].icon_id)
+        layout.operator(OBJECT_OT_BubbleChart.bl_idname, icon='PLUGIN')
 
 
 def chart_ops(self, context):
@@ -256,6 +258,7 @@ classes = [
     OBJECT_OT_PointChart,
     OBJECT_OT_LineChart,
     OBJECT_OT_SurfaceChart,
+    OBJECT_OT_BubbleChart,
     FILE_OT_DVLoadFile,
     DV_AddonPanel,
 ]

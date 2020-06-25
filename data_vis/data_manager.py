@@ -10,7 +10,6 @@ import csv
 from enum import Enum
 
 
-
 class DataType(Enum):
     Numerical = 0
     Categorical = 1
@@ -100,8 +99,10 @@ class DataManager:
                     if row_info['floats'] == 2 or row_info['floats'] == 3:
                         self.dimensions = row_info['floats']
                         self.animable = False
-                    elif row_info['floats'] >= 3:
+                    elif row_info['floats'] == 3:
                         self.dimensions = 3
+                    elif row_info['floats'] >= 4:
+                        self.dimensions = 4
                         self.animable = True
                     self.predicted_data_type = DataType.Numerical
                 else:
@@ -149,9 +150,11 @@ class DataManager:
             elif len(min_max) > 2:
                 self.ranges['y'] = min_max[1]
                 self.ranges['z'] = min_max[2]
+                if len(min_max) >= 4:
+                    self.ranges['w'] = min_max[3]
 
             if self.animable:
-                z_ranges = min_max[self.dimensions - 1:]
+                z_ranges = min_max[len(self.ranges):]
                 self.ranges['z_anim'] = [min(z_ranges, key=lambda x: x[0])[0], max(z_ranges, key=lambda x: x[1])[1]]
 
             if self.predicted_data_type == DataType.Categorical:
@@ -165,6 +168,7 @@ class DataManager:
 
         def get_range(self, axis):
             if axis == 'z_anim' and 'z_anim' not in self.ranges:
+                print('looking for z anim and z anim is not found')
                 return tuple(self.ranges['z'])
             if axis in self.ranges:
                 return tuple(self.ranges[axis])
@@ -192,8 +196,17 @@ class DataManager:
             else:
                 return False
 
-        def is_type(self, data_type, dims):
-            return data_type == self.predicted_data_type and self.dimensions in dims
+        def get_dimensions(self):
+            return self.dimensions if self.dimensions <= 3 else 3
+
+        def is_type(self, data_type, dims, only_3d=False, only_2d=False):
+            if isinstance(dims, (list, tuple)):
+                dims = max(dims) # TODO Argument fixture
+            if only_3d and self.dimensions < 3:
+                return False
+            if only_2d and self.dimensions < 2:
+                return False
+            return data_type == self.predicted_data_type and self.dimensions >= dims
 
         def __get_row_list(self, row):
             if self.predicted_data_type == DataType.Categorical:

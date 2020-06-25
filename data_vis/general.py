@@ -33,7 +33,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         self.prev_anim_setting = False
         self.prev_auto_step = False
         if hasattr(self, 'dimensions'):
-            self.dimensions = str(self.dm.dimensions)
+            self.dimensions = str(self.dm.get_dimensions())
 
         if hasattr(self, 'data_type'):
             self.data_type = '0' if self.dm.predicted_data_type == DataType.Numerical else '1'
@@ -107,6 +107,9 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
                 self.use_anim_range(self.anim_settings.animate)
                 self.prev_anim_setting = self.anim_settings.animate
 
+            if hasattr(self, 'extend_anim_draw'):
+                extend_anim_draw(box)
+
     def draw_label_settings(self, box):
         if hasattr(self, 'label_settings'):
             row = box.row()
@@ -118,7 +121,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
                 if not self.label_settings.from_data or not self.dm.has_labels:
                     row = box.row()
                     row.prop(self.label_settings, 'x_label')
-                    if self.dm.dimensions == 3:
+                    if self.dm.get_dimensions() == 3:
                         row.prop(self.label_settings, 'y_label')
                     row.prop(self.label_settings, 'z_label')
 
