@@ -108,8 +108,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             self.report({'ERROR'}, 'Cannot convert categorical data into numerical!')
             return {'CANCELLED'}
 
-        if self.dm.override(self.data_type_as_enum(), int(self.dimensions)):
-            self.init_ranges()
+        self.dm.override(self.data_type_as_enum(), int(self.dimensions))
 
         self.create_container()
         color_factory = ColoringFactory(self.get_name(), self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)

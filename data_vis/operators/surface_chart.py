@@ -86,7 +86,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
 
     @classmethod
     def poll(cls, context):
-        return modules_available and DataManager().is_type(DataType.Numerical, [3])
+        return modules_available and DataManager().is_type(DataType.Numerical, [3], only_3d=True)
 
     def draw(self, context):
         super().draw(context)
