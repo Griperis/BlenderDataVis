@@ -16,6 +16,15 @@ class DataType(Enum):
     Invalid = 2
 
 
+class DataSubtype(Enum):
+    XY = 0
+    XY_Anim = 1
+    XYW = 2
+    XYZ = 3
+    XYZ_Anim = 4
+    XYZW = 5
+
+
 class DataManager:
     '''
     Singleton that manages data access across the addon
@@ -53,6 +62,7 @@ class DataManager:
                             continue
                         self.raw_data.append(line)
                 self.analyse_data()
+                self.parse_data()
             except UnicodeDecodeError as e:
                 self.predicted_data_type = DataType.Invalid
                 return 0
@@ -99,17 +109,15 @@ class DataManager:
                     if row_info['floats'] == 2 or row_info['floats'] == 3:
                         self.dimensions = row_info['floats']
                         self.animable = False
-                    elif row_info['floats'] == 3:
+                    elif row_info['floats'] >= 3:
                         self.dimensions = 3
-                    elif row_info['floats'] >= 4:
-                        self.dimensions = 4
                         self.animable = True
                     self.predicted_data_type = DataType.Numerical
                 else:
                     self.predicted_data_type = DataType.Invalid
 
                 self.tail_length = row_info['floats'] - self.dimensions
-                self.parse_data()
+                self.__calculate_subtypes()
 
         def parse_data(self):
             '''Takes raw_data and parses it into parsed_data while finding data ranges'''
@@ -155,7 +163,10 @@ class DataManager:
 
             if self.animable:
                 z_ranges = min_max[len(self.ranges):]
-                self.ranges['z_anim'] = [min(z_ranges, key=lambda x: x[0])[0], max(z_ranges, key=lambda x: x[1])[1]]
+                if self.dimensions == 3 and self.tail_length == 1:
+                    self.ranges['z_anim'] = self.ranges['w']
+                else:
+                    self.ranges['z_anim'] = [min(z_ranges, key=lambda x: x[0])[0], max(z_ranges, key=lambda x: x[1])[1]]
 
             if self.predicted_data_type == DataType.Categorical:
                 self.ranges['x'] = (0, len(self.parsed_data) - 1)
@@ -166,7 +177,7 @@ class DataManager:
         def get_labels(self):
             return self.labels
 
-        def get_range(self, axis):
+        def get_range(self, axis, subtype=None):
             if axis == 'z_anim' and 'z_anim' not in self.ranges:
                 print('looking for z anim and z anim is not found')
                 return tuple(self.ranges['z'])
@@ -199,14 +210,28 @@ class DataManager:
         def get_dimensions(self):
             return self.dimensions if self.dimensions <= 3 else 3
 
-        def is_type(self, data_type, dims, only_3d=False, only_2d=False):
-            if isinstance(dims, (list, tuple)):
-                dims = max(dims) # TODO Argument fixture
+        def get_possible_subtypes(self):
+            return self.subtypes
+
+        def has_compatible_subtype(self, subtypes):
+            '''Checks whether data have at least one of chart supported subtypes'''
+            if not isinstance(subtypes, (list, tuple)):
+                raise ValueError('Subtypes have to be in list')
+            # at least one matches, variatons are decided by chart code
+            return len(set(self.subtypes).intersection(set(subtypes))) > 0
+
+        def has_subtype(self, subtype):
+            '''Checks whether subtype is in possible subtypes for data'''
+            return subtype in self.get_possible_subtypes()
+
+        def is_type(self, data_type, min_dims, only_3d=False, only_2d=False):
+            if isinstance(min_dims, (list, tuple)):
+                min_dims = max(min_dims) # TODO Argument fixture
             if only_3d and self.dimensions < 3:
                 return False
             if only_2d and self.dimensions < 2:
                 return False
-            return data_type == self.predicted_data_type and self.dimensions >= dims
+            return data_type == self.predicted_data_type and min_dims <= self.dimensions
 
         def __get_row_list(self, row):
             if self.predicted_data_type == DataType.Categorical:
@@ -215,6 +240,15 @@ class DataManager:
                 return ret_list
             elif self.predicted_data_type == DataType.Numerical:
                 return [float(x) for x in row]
+
+        def __calculate_subtypes(self):
+            self.subtypes = []
+            if self.dimensions == 2:
+                self.subtypes.append(DataSubtype.XY)
+            if self.dimensions == 3:
+                self.subtypes += [DataSubtype.XY_Anim, DataSubtype.XYZ, DataSubtype.XYW]
+            if self.dimensions == 3 and self.tail_length >= 1:
+                self.subtypes += [DataSubtype.XYZ_Anim, DataSubtype.XYZW]
 
         def __str__(self):
             return '{}\nL: {}\nNOFL: {}\nDIMS: {}\nRNGS: {}\nANIM_DATA: {}\nANIM: {}'.format(
