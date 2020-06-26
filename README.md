@@ -13,7 +13,7 @@
     <a href="https://youtu.be/qIF7QPu2cOI">Video</a> |
     <a href="https://blendermarket.com/products/data-visualisation-addon">Blender Market</a> |
     <a href="https://csv-extractor.herokuapp.com/">Column Extractor</a> |
-    <a href="https://www.buymeacoffee.com/griperis">Support me</a>
+    <a href="https://www.buymeacoffee.com/griperis">Buy me a coffee</a>
 </p>
 
 ## Quickstart
