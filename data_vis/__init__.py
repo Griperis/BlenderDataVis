@@ -29,6 +29,7 @@ from .operators.surface_chart import OBJECT_OT_SurfaceChart
 from .operators.bubble_chart import OBJECT_OT_BubbleChart
 from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup
 from .data_manager import DataManager
+from .ui import DV_UL_ChartList
 
 preview_collections = {}
 data_manager = DataManager()
@@ -121,6 +122,9 @@ class DV_AddonPanel(bpy.types.Panel):
                 lines = str(lines)     
             box.label(text='Lines: ' + lines)
             box.label(text='Type: ' + str(data_manager.predicted_data_type))
+
+        scene = bpy.context.scene
+        layout.template_list('DV_UL_ChartList', '', scene, 'chart_list', scene, 'chart_list_index')
 
 
 def update_space_type(self, context):
@@ -243,6 +247,10 @@ def remove_icons():
     preview_collections.clear()
 
 
+class ChartListItem(bpy.types.PropertyGroup):
+    id: bpy.props.IntProperty(name='Chart ID', default=0)
+
+
 classes = [
     DV_Preferences,
     OBJECT_OT_InstallModules,
@@ -260,6 +268,8 @@ classes = [
     OBJECT_OT_SurfaceChart,
     OBJECT_OT_BubbleChart,
     FILE_OT_DVLoadFile,
+    ChartListItem,
+    DV_UL_ChartList,
     DV_AddonPanel,
 ]
 
@@ -275,13 +285,18 @@ def register():
         bpy.utils.register_class(c)
 
     bpy.types.VIEW3D_MT_add.append(chart_ops)
+    bpy.types.Scene.chart_list = bpy.props.CollectionProperty(type=ChartListItem)
+    bpy.types.Scene.chart_list_index = bpy.props.IntProperty()
 
 
 def unregister():
     remove_icons()
     for c in reversed(classes):
         bpy.utils.unregister_class(c)
+
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
+    del bpy.types.Scene.chart_list
+    del bpy.types.Scene.chart_list_index
 
 
 if __name__ == '__main__':
