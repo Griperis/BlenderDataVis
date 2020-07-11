@@ -19,9 +19,9 @@ class IconManager:
             self.preview_collections['main'] = pcoll
         
         def remove_icons(self):
-            for pcoll in preview_collections.values():
+            for pcoll in self.preview_collections.values():
                 bpy.utils.previews.remove(pcoll)
-            preview_collections.clear()
+            self.preview_collections.clear()
 
         def get_icon(self, name, coll='main'):
             return self.preview_collections[coll][name]

@@ -30,10 +30,12 @@ from .operators.bubble_chart import OBJECT_OT_BubbleChart
 from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup
 from .data_manager import DataManager
 from .icon_manager import IconManager
-from .ui import DV_UL_ChartList
+from .chart_manager import ChartManager, ChartListItem_PG
+from .ui import DV_UL_ChartList, DV_OT_ChartListActions
 
 icon_manager = IconManager()
 data_manager = DataManager()
+chart_manager = None
 
 
 class OBJECT_OT_InstallModules(bpy.types.Operator):
@@ -125,7 +127,14 @@ class DV_AddonPanel(bpy.types.Panel):
             box.label(text='Type: ' + str(data_manager.predicted_data_type))
 
         scene = bpy.context.scene
-        layout.template_list('DV_UL_ChartList', '', scene, 'chart_list', scene, 'chart_list_index')
+        rows = 2
+        row = layout.row()
+        row.template_list('DV_UL_ChartList', '', scene, 'chart_list', scene, 'chart_list_index', rows=rows)
+
+        col = row.column(align=True)
+        col.operator('chart_list.action', icon='PLUS', text='').action = 'ADD'
+        col.operator('chart_list.action', icon='CANCEL', text='').action = 'REMOVE'
+        col.operator('chart_list.action', icon='PLUGIN', text='').action = 'PRINT'
 
 
 def update_space_type(self, context):
@@ -227,10 +236,6 @@ def chart_ops(self, context):
     self.layout.menu(OBJECT_OT_AddChart.bl_idname, icon_value=icon.icon_id)
 
 
-class ChartListItem(bpy.types.PropertyGroup):
-    id: bpy.props.IntProperty(name='Chart ID', default=0)
-
-
 classes = [
     DV_Preferences,
     OBJECT_OT_InstallModules,
@@ -248,8 +253,9 @@ classes = [
     OBJECT_OT_SurfaceChart,
     OBJECT_OT_BubbleChart,
     FILE_OT_DVLoadFile,
-    ChartListItem,
+    ChartListItem_PG,
     DV_UL_ChartList,
+    DV_OT_ChartListActions,
     DV_AddonPanel,
 ]
 
@@ -260,13 +266,13 @@ def reload():
 
 
 def register():
+    global chart_manager
     icon_manager.load_icons()
     for c in classes:
         bpy.utils.register_class(c)
 
+    chart_manager = ChartManager()
     bpy.types.VIEW3D_MT_add.append(chart_ops)
-    bpy.types.Scene.chart_list = bpy.props.CollectionProperty(type=ChartListItem)
-    bpy.types.Scene.chart_list_index = bpy.props.IntProperty()
 
 
 def unregister():
@@ -275,8 +281,7 @@ def unregister():
         bpy.utils.unregister_class(c)
 
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
-    del bpy.types.Scene.chart_list
-    del bpy.types.Scene.chart_list_index
+    chart_manager.clean()
 
 
 if __name__ == '__main__':
