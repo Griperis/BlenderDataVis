@@ -223,28 +223,8 @@ class OBJECT_OT_AddChart(bpy.types.Menu):
 
 
 def chart_ops(self, context):
-    icon = icon_manager.get_icon('addon_icon') #preview_collections['main']['addon_icon']
+    icon = icon_manager.get_icon('addon_icon')
     self.layout.menu(OBJECT_OT_AddChart.bl_idname, icon_value=icon.icon_id)
-
-
-# def load_icons():
-#     '''Loads pngs from icons folder into preview_collections['main']'''
-#     pcoll = bpy.utils.previews.new()
-
-#     icons_dir = os.path.join(os.path.dirname(__file__), 'icons')
-#     for icon in os.listdir(icons_dir):
-#         name, ext = icon.split('.')
-#         if ext == 'png':
-#             pcoll.load(name, os.path.join(icons_dir, icon), 'IMAGE')
-
-#     preview_collections['main'] = pcoll
-
-
-# def remove_icons():
-#     '''Clears icons collection'''
-#     for pcoll in preview_collections.values():
-#         bpy.utils.previews.remove(pcoll)
-#     preview_collections.clear()
 
 
 class ChartListItem(bpy.types.PropertyGroup):
