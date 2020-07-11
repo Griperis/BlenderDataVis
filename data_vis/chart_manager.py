@@ -26,6 +26,7 @@ class ChartManager:
             item.name = obj.name
 
         def remove_chart(self):
+            # TODO not generic
             scn = bpy.context.scene
             chart_id = scn.chart_list[scn.chart_list_index].chart_id
 
