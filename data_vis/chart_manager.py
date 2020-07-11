@@ -25,6 +25,8 @@ class ChartManager:
             item.chart_id = chart_id
             item.name = obj.name
 
+            bpy.context.scene.chart_list_index = len(bpy.context.scene.chart_list) - 1
+
         def remove_chart(self):
             # TODO not generic
             scn = bpy.context.scene
@@ -37,7 +39,7 @@ class ChartManager:
                 if child.children:
                     for subchild in child.children:
                         subchild.select_set(True)
-            bpy.ops.object.delete()
+            bpy.ops.object.delete(confirm=True)
 
             del self.chart_list[str(chart_id)]
             scn.chart_list.remove(scn.chart_list_index)
@@ -46,6 +48,15 @@ class ChartManager:
             bpy.context.scene.chart_list.clear()
             del bpy.types.Scene.chart_list
             del bpy.types.Scene.chart_list_index
+
+        def check_consistency(self):
+            try:
+                for key, chart in self.chart_list.items():
+                    scene_obj = bpy.context.scene.objects.get(chart.name)
+            except ReferenceError:
+                del self.chart_list[key]
+                bpy.context.scene.chart_list.remove(int(key))
+            return 2.0
 
     instance = None
 

@@ -266,12 +266,14 @@ def reload():
 
 
 def register():
-    global chart_manager
     icon_manager.load_icons()
     for c in classes:
         bpy.utils.register_class(c)
 
+    global chart_manager
     chart_manager = ChartManager()
+    bpy.app.timers.register(chart_manager.check_consistency)
+
     bpy.types.VIEW3D_MT_add.append(chart_ops)
 
 
@@ -281,7 +283,9 @@ def unregister():
         bpy.utils.unregister_class(c)
 
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
+    
     chart_manager.clean()
+    
 
 
 if __name__ == '__main__':
