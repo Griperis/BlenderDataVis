@@ -27,15 +27,13 @@ from .operators.pie_chart import OBJECT_OT_PieChart
 from .operators.point_chart import OBJECT_OT_PointChart
 from .operators.surface_chart import OBJECT_OT_SurfaceChart
 from .operators.bubble_chart import OBJECT_OT_BubbleChart
+from .operators.label_align import OBJECT_OT_AlignLabels
 from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup
 from .data_manager import DataManager
 from .icon_manager import IconManager
-from .chart_manager import ChartManager, ChartListItem_PG
-from .ui import DV_UL_ChartList, DV_OT_ChartListActions
 
 icon_manager = IconManager()
 data_manager = DataManager()
-chart_manager = None
 
 
 class OBJECT_OT_InstallModules(bpy.types.Operator):
@@ -126,15 +124,8 @@ class DV_AddonPanel(bpy.types.Panel):
             box.label(text='Lines: ' + lines)
             box.label(text='Type: ' + str(data_manager.predicted_data_type))
 
-        scene = bpy.context.scene
-        rows = 2
         row = layout.row()
-        row.template_list('DV_UL_ChartList', '', scene, 'chart_list', scene, 'chart_list_index', rows=rows)
-
-        col = row.column(align=True)
-        col.operator('chart_list.action', icon='PLUS', text='').action = 'ADD'
-        col.operator('chart_list.action', icon='CANCEL', text='').action = 'REMOVE'
-        col.operator('chart_list.action', icon='PLUGIN', text='').action = 'PRINT'
+        row.operator('object.align_labels')
 
 
 def update_space_type(self, context):
@@ -252,10 +243,8 @@ classes = [
     OBJECT_OT_LineChart,
     OBJECT_OT_SurfaceChart,
     OBJECT_OT_BubbleChart,
+    OBJECT_OT_AlignLabels,
     FILE_OT_DVLoadFile,
-    ChartListItem_PG,
-    DV_UL_ChartList,
-    DV_OT_ChartListActions,
     DV_AddonPanel,
 ]
 
@@ -270,10 +259,6 @@ def register():
     for c in classes:
         bpy.utils.register_class(c)
 
-    global chart_manager
-    chart_manager = ChartManager()
-    bpy.app.timers.register(chart_manager.check_consistency)
-
     bpy.types.VIEW3D_MT_add.append(chart_ops)
 
 
@@ -283,9 +268,6 @@ def unregister():
         bpy.utils.unregister_class(c)
 
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
-    
-    chart_manager.clean()
-    
 
 
 if __name__ == '__main__':

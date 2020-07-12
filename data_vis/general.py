@@ -11,7 +11,6 @@ from data_vis.data_manager import DataManager, DataType
 from data_vis.utils.data_utils import find_axis_range
 from data_vis.colors import ColorType
 from data_vis.properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup
-from data_vis.chart_manager import ChartManager
 
 
 class OBJECT_OT_GenericChart(bpy.types.Operator):
@@ -292,13 +291,11 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         bpy.context.view_layer.objects.active = self.container_object
         self.container_object.select_set(True)
 
-        # TODO, here?
-        ChartManager().add_chart(self.chart_id, self.container_object)
-
     def create_header(self, offset=(0.5, 0, 1.2), rotate=True):
         '''Creates header at container + offset'''
         bpy.ops.object.text_add()
         obj = bpy.context.object
+        obj.name='TextHeader'
         obj.data.align_x = 'CENTER'
         obj.data.body = self.header_settings.text
         obj.location = Vector(offset)
