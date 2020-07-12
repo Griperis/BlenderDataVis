@@ -14,6 +14,11 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
         name='Align header'
     )
 
+    align_axis_labels: bpy.props.BoolProperty(
+        default=True,
+        name='Align axis labels'
+    )
+
     @classmethod
     def poll(cls, context):
         return bpy.context.object and bpy.context.scene.camera
@@ -48,6 +53,8 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
             
         for child in obj.children:
             if child.name.startswith('Text'):
+                if child.name.startswith('TextLabel') and not self.align_axis_labels:
+                    continue
                 if obj_type == 'z':
                     child.rotation_euler = (radians(180), radians(90) - cam_vector[2], radians(90))
                 elif obj_type == 'y':
