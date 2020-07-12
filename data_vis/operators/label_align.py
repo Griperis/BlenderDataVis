@@ -9,14 +9,6 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
     bl_label = 'Align Labels'
     bl_options = {'REGISTER', 'UNDO'}
 
-    behaviour: bpy.props.EnumProperty(
-        items=(
-            ('DEFAULT', 'Default', ''),
-            ('BEST', 'Best', ''),
-            ),
-        name='Behaviour'
-    )
-
     align_header: bpy.props.BoolProperty(
         default=True,
         name='Align header'
