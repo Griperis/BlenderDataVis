@@ -2,6 +2,7 @@ import bpy
 from mathutils import Vector
 from math import radians
 
+
 class OBJECT_OT_AlignLabels(bpy.types.Operator):
     '''Aligns labels to camera for selected chart or makes them default'''
     bl_idname = 'object.align_labels'
@@ -15,6 +16,7 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
             ),
         name='Behaviour'
     )
+
     align_header: bpy.props.BoolProperty(
         default=True,
         name='Align header'
@@ -56,6 +58,8 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
             if child.name.startswith('Text'):
                 if obj_type == 'z':
                     child.rotation_euler = (radians(180), radians(90) - cam_vector[2], radians(90))
+                elif obj_type == 'y':
+                    child.rotation_euler = Vector(cam_vector) - Vector(obj.rotation_euler)
                 else:
                     child.rotation_euler = cam_vector
     
