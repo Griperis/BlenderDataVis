@@ -127,6 +127,10 @@ class DV_AddonPanel(bpy.types.Panel):
         row = layout.row()
         row.operator('object.align_labels')
 
+        scn = bpy.context.scene
+        row = layout.row()
+        row.template_list('DVCL_UL_Items', '', scn, 'chart_list', scn, 'cl_index', rows=2)
+
 
 def update_space_type(self, context):
     try:
@@ -222,6 +226,21 @@ class OBJECT_OT_AddChart(bpy.types.Menu):
         layout.operator(OBJECT_OT_SurfaceChart.bl_idname, icon_value=icon_manager.get_icon('surface_chart').icon_id)
 
 
+class DV_CLItem(bpy.types.PropertyGroup):
+    obj: bpy.props.PointerProperty(
+        name='Chart',
+        type=bpy.types.Object
+    )
+
+
+class DVCL_UL_Items(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        obj = item.obj
+        split = layout.split(factor=0.3)
+        split.label(text='Index %d' % (index))
+        split.prop(obj, 'name')
+
+
 def chart_ops(self, context):
     icon = icon_manager.get_icon('addon_icon')
     self.layout.menu(OBJECT_OT_AddChart.bl_idname, icon_value=icon.icon_id)
@@ -236,6 +255,8 @@ classes = [
     DV_AnimationPropertyGroup,
     DV_HeaderPropertyGroup,
     DV_LegendPropertyGroup,
+    DV_CLItem,
+    DVCL_UL_Items,
     OBJECT_OT_AddChart,
     OBJECT_OT_BarChart,
     OBJECT_OT_PieChart,
@@ -261,6 +282,9 @@ def register():
 
     bpy.types.VIEW3D_MT_add.append(chart_ops)
 
+    # Chart list properties
+    bpy.types.Scene.chart_list = bpy.props.CollectionProperty(type=DV_CLItem)
+    bpy.types.Scene.cl_index = bpy.props.IntProperty()
 
 def unregister():
     icon_manager.remove_icons()

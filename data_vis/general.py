@@ -291,6 +291,9 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         bpy.context.view_layer.objects.active = self.container_object
         self.container_object.select_set(True)
 
+        item = bpy.context.scene.chart_list.add()
+        item.obj = self.container_object 
+
     def create_header(self, offset=(0.5, 0, 1.2), rotate=True):
         '''Creates header at container + offset'''
         bpy.ops.object.text_add()
