@@ -43,8 +43,9 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        box = layout.box()
-        box.label(icon='WORLD_DATA', text='Chart settings:')
+        if hasattr(self, 'data_type') or hasattr(self, 'dimensions'):
+            box = layout.box()
+            box.label(icon='WORLD_DATA', text='Chart settings:')
         if self.dm.predicted_data_type != DataType.Categorical and hasattr(self, 'data_type'):
             row = box.row()
             row.prop(self, 'data_type')
@@ -207,6 +208,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def init_ranges(self):
         self.axis_settings.x_range = self.dm.get_range('x')
         self.axis_settings.y_range = self.dm.get_range('y')
+        if self.dm.dimensions > 2 and hasattr(self, 'dimensions'):
+            self.axis_settings.y_range = self.dm.get_range('z')
         self.axis_settings.z_range = self.dm.get_range('z')
         if hasattr(self, 'anim_settings') and self.anim_settings.animate:
             self.axis_settings.z_range = self.dm.get_range('z_anim')
@@ -295,7 +298,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         '''Creates header at container + offset'''
         bpy.ops.object.text_add()
         obj = bpy.context.object
-        obj.name='TextHeader'
+        obj.name = 'TextHeader'
         obj.data.align_x = 'CENTER'
         obj.data.body = self.header_settings.text
         obj.location = Vector(offset)
