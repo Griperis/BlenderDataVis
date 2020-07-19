@@ -1,6 +1,7 @@
 import bpy
 import os
 
+
 class IconManager:
     class __IconManager:
         def __init__(self):
