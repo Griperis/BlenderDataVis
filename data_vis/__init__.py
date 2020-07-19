@@ -27,10 +27,12 @@ from .operators.pie_chart import OBJECT_OT_PieChart
 from .operators.point_chart import OBJECT_OT_PointChart
 from .operators.surface_chart import OBJECT_OT_SurfaceChart
 from .operators.bubble_chart import OBJECT_OT_BubbleChart
+from .operators.label_align import OBJECT_OT_AlignLabels
 from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup
 from .data_manager import DataManager
+from .icon_manager import IconManager
 
-preview_collections = {}
+icon_manager = IconManager()
 data_manager = DataManager()
 
 
@@ -122,6 +124,9 @@ class DV_AddonPanel(bpy.types.Panel):
             box.label(text='Lines: ' + lines)
             box.label(text='Type: ' + str(data_manager.predicted_data_type))
 
+        row = layout.row()
+        row.operator('object.align_labels')
+
 
 def update_space_type(self, context):
     try:
@@ -209,38 +214,17 @@ class OBJECT_OT_AddChart(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        main_icons = preview_collections['main']
-        layout.operator(OBJECT_OT_BarChart.bl_idname, icon_value=main_icons['bar_chart'].icon_id)
-        layout.operator(OBJECT_OT_LineChart.bl_idname, icon_value=main_icons['line_chart'].icon_id)
-        layout.operator(OBJECT_OT_PieChart.bl_idname, icon_value=main_icons['pie_chart'].icon_id)
-        layout.operator(OBJECT_OT_PointChart.bl_idname, icon_value=main_icons['point_chart'].icon_id)
-        layout.operator(OBJECT_OT_BubbleChart.bl_idname, icon_value=main_icons['bubble_chart'].icon_id)
-        layout.operator(OBJECT_OT_SurfaceChart.bl_idname, icon_value=main_icons['surface_chart'].icon_id)
+        layout.operator(OBJECT_OT_BarChart.bl_idname, icon_value=icon_manager.get_icon('bar_chart').icon_id)
+        layout.operator(OBJECT_OT_LineChart.bl_idname, icon_value=icon_manager.get_icon('line_chart').icon_id)
+        layout.operator(OBJECT_OT_PieChart.bl_idname, icon_value=icon_manager.get_icon('pie_chart').icon_id)
+        layout.operator(OBJECT_OT_PointChart.bl_idname, icon_value=icon_manager.get_icon('point_chart').icon_id)
+        layout.operator(OBJECT_OT_BubbleChart.bl_idname, icon_value=icon_manager.get_icon('bubble_chart').icon_id)
+        layout.operator(OBJECT_OT_SurfaceChart.bl_idname, icon_value=icon_manager.get_icon('surface_chart').icon_id)
 
 
 def chart_ops(self, context):
-    icon = preview_collections['main']['addon_icon']
+    icon = icon_manager.get_icon('addon_icon')
     self.layout.menu(OBJECT_OT_AddChart.bl_idname, icon_value=icon.icon_id)
-
-
-def load_icons():
-    '''Loads pngs from icons folder into preview_collections['main']'''
-    pcoll = bpy.utils.previews.new()
-
-    icons_dir = os.path.join(os.path.dirname(__file__), 'icons')
-    for icon in os.listdir(icons_dir):
-        name, ext = icon.split('.')
-        if ext == 'png':
-            pcoll.load(name, os.path.join(icons_dir, icon), 'IMAGE')
-
-    preview_collections['main'] = pcoll
-
-
-def remove_icons():
-    '''Clears icons collection'''
-    for pcoll in preview_collections.values():
-        bpy.utils.previews.remove(pcoll)
-    preview_collections.clear()
 
 
 classes = [
@@ -259,6 +243,7 @@ classes = [
     OBJECT_OT_LineChart,
     OBJECT_OT_SurfaceChart,
     OBJECT_OT_BubbleChart,
+    OBJECT_OT_AlignLabels,
     FILE_OT_DVLoadFile,
     DV_AddonPanel,
 ]
@@ -270,17 +255,17 @@ def reload():
 
 
 def register():
-    load_icons()
+    icon_manager.load_icons()
     for c in classes:
         bpy.utils.register_class(c)
 
     bpy.types.VIEW3D_MT_add.append(chart_ops)
 
-
 def unregister():
-    remove_icons()
+    icon_manager.remove_icons()
     for c in reversed(classes):
         bpy.utils.unregister_class(c)
+
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
 
 

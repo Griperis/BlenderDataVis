@@ -20,7 +20,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     '''
     bl_idname = 'object.create_chart'
     bl_label = 'Generic chart operator'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     data = None
     axis_mat = None
@@ -205,7 +205,6 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def init_ranges(self):
-        print('init_ranges!', str(self))
         self.axis_settings.x_range = self.dm.get_range('x')
         self.axis_settings.y_range = self.dm.get_range('y')
         self.axis_settings.z_range = self.dm.get_range('z')
@@ -292,10 +291,14 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         bpy.context.view_layer.objects.active = self.container_object
         self.container_object.select_set(True)
 
+        item = bpy.context.scene.chart_list.add()
+        item.obj = self.container_object 
+
     def create_header(self, offset=(0.5, 0, 1.2), rotate=True):
         '''Creates header at container + offset'''
         bpy.ops.object.text_add()
         obj = bpy.context.object
+        obj.name='TextHeader'
         obj.data.align_x = 'CENTER'
         obj.data.body = self.header_settings.text
         obj.location = Vector(offset)

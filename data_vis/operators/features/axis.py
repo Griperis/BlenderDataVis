@@ -235,6 +235,7 @@ class Axis:
         '''Creates axis label (description) with value'''
         obj = self.create_text_object(value)
         obj.parent = self.axis_cont
+        obj.name = 'TextLabel_' + str(self.dir)
         obj.location = (1.2, 0, 0)
         self.rotate_text_object(obj)
 

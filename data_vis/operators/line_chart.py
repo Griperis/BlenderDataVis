@@ -241,6 +241,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         bpy.ops.mesh.primitive_plane_add()
         bevel_obj = bpy.context.active_object
         bevel_obj.scale = self.bevel_obj_size
+        bevel_obj.parent = self.container_object
 
         bpy.ops.object.convert(target='CURVE')
         self.curve_obj.data.bevel_object = bevel_obj

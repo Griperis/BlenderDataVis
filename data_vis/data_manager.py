@@ -250,7 +250,7 @@ class DataManager:
 
         def is_type(self, data_type, min_dims, only_3d=False, only_2d=False):
             if isinstance(min_dims, (list, tuple)):
-                min_dims = max(min_dims) # TODO Argument fixture
+                min_dims = min(min_dims) # TODO Argument fixture
             if only_3d and self.dimensions < 3:
                 return False
             if only_2d and self.dimensions < 2:
