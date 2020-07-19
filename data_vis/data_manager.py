@@ -67,6 +67,9 @@ class DataManager:
                 self.predicted_data_type = DataType.Invalid
                 return 0
             
+            if self.predicted_data_type == DataType.Invalid:
+                return 0
+            
             return len(self.raw_data)
 
         def analyse_data(self):
@@ -82,6 +85,7 @@ class DataManager:
                 self.has_labels = True
 
             prev_row_info = {}
+            row_info = None
             for i in range(1, len(self.raw_data)):
                 row_info = {'floats': 0, 'strings': 0, 'first_string': False}
                 row = self.raw_data[1]
@@ -98,6 +102,10 @@ class DataManager:
                     print('Invalid entry: {}: {}'.format(i), row)
                     self.predicted_data_type = DataType.Invalid
                 prev_row_info = row_info
+
+
+            if row_info is None:
+                self.predicted_data_type = DataType.Invalid
 
             if self.predicted_data_type != DataType.Invalid:
                 if row_info['first_string'] and row_info['strings'] == 1 and row_info['floats'] > 0:
@@ -123,6 +131,11 @@ class DataManager:
             '''Takes raw_data and parses it into parsed_data while finding data ranges'''
             if self.raw_data is None:
                 print('No data has been loaded!')
+                self.parsed_data = [[]]
+                return
+
+            if self.predicted_data_type == DataType.Invalid:
+                print('Invalid data loaded!')
                 self.parsed_data = [[]]
                 return
 
