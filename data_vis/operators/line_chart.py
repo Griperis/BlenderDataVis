@@ -143,9 +143,9 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
 
         tick_labels = []
         if self.data_type_as_enum() == DataType.Numerical:
-            normalized_vert_list = [(normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], self.axis_settings.z_range[0], self.axis_settings.z_range[1])) for entry in sorted_data]
+            normalized_vert_list = [(self.normalize_value(entry[0], 'x'), 0.0, self.normalize_value(entry[1], 'z')) for entry in sorted_data]
         else:
-            normalized_vert_list = [(normalize_value(i, 0, len(self.data)), 0.0, normalize_value(entry[1], self.axis_settings.z_range[0], self.axis_settings.z_range[1])) for i, entry in enumerate(sorted_data)]
+            normalized_vert_list = [(normalize_value(i, 0, len(self.data)), 0.0, self.normalize_value(entry[1], 'z')) for i, entry in enumerate(sorted_data)]
             tick_labels = list(zip(*sorted_data))[0]
 
         edges = [[i - 1, i] for i in range(1, len(normalized_vert_list))]

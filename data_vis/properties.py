@@ -221,3 +221,11 @@ class DV_LegendPropertyGroup(bpy.types.PropertyGroup):
         max=0.5,
         default=0.065,
     )
+
+
+class DV_GeneralPropertyGroup(bpy.types.PropertyGroup):
+    container_size: bpy.props.FloatVectorProperty(
+        name='Container size',
+        default=(1.0, 1.0, 1.0),
+        size=3,
+    )

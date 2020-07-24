@@ -85,12 +85,12 @@ class OBJECT_OT_BubbleChart(OBJECT_OT_GenericChart):
 
             bubble_obj.scale *= (self.bubble_size[1] - self.bubble_size[0]) * normalize_value(entry[w_idx], w_range[0], w_range[1]) + self.bubble_size[0]
 
-            x_norm = normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1])
-            z_norm = normalize_value(entry[v_idx], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+            x_norm = self.normalize_value(entry[0], 'x')
+            z_norm = self.normalize_value(entry[v_idx], 'z')
             if self.dimensions == '2':
                 bubble_obj.location = (x_norm, 0.0, z_norm)
             else:
-                y_norm = normalize_value(entry[1], self.axis_settings.y_range[0], self.axis_settings.y_range[1])
+                y_norm = self.normalize_value(entry[1], 'y')
                 bubble_obj.location = (x_norm, y_norm, z_norm)
 
             print(self.dm)

@@ -103,7 +103,6 @@ class DataManager:
                     self.predicted_data_type = DataType.Invalid
                 prev_row_info = row_info
 
-
             if row_info is None:
                 self.predicted_data_type = DataType.Invalid
 

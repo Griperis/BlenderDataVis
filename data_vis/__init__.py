@@ -8,7 +8,7 @@ bl_info = {
     'author': 'Zdenek Dolezal',
     'description': 'Data visualisation addon',
     'blender': (2, 80, 0),
-    'version': (1, 3, 4),
+    'version': (1, 4, 0),
     'location': 'Object -> Add Mesh',
     'warning': '',
     'category': 'Generic'
@@ -28,13 +28,14 @@ from .operators.point_chart import OBJECT_OT_PointChart
 from .operators.surface_chart import OBJECT_OT_SurfaceChart
 from .operators.bubble_chart import OBJECT_OT_BubbleChart
 from .operators.label_align import OBJECT_OT_AlignLabels
-from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup
+from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup, DV_GeneralPropertyGroup
 from .data_manager import DataManager
 from .icon_manager import IconManager
 
 icon_manager = IconManager()
 data_manager = DataManager()
 
+PERFORMANCE_WARNING_LINE_THRESHOLD = 150
 
 class OBJECT_OT_InstallModules(bpy.types.Operator):
     '''Operator that tries to install scipy and numpy using pip into blender python'''
@@ -117,7 +118,7 @@ class DV_AddonPanel(bpy.types.Panel):
             box.label(text='Dims: ' + str(data_manager.get_dimensions()))
             box.label(text='Labels: ' + str(data_manager.has_labels))
             lines = data_manager.lines
-            if lines >= 150:
+            if lines >= PERFORMANCE_WARNING_LINE_THRESHOLD:
                 lines = str(lines) + ' Warning (performace)!'
             else:
                 lines = str(lines)     
@@ -126,6 +127,13 @@ class DV_AddonPanel(bpy.types.Panel):
 
         row = layout.row()
         row.operator('object.align_labels')
+
+        scn = context.scene
+
+        row = layout.row()
+        row.label(text='Container size')
+        row = layout.row()
+        row.prop(scn.general_props, 'container_size', text='')
 
 
 def update_space_type(self, context):
@@ -236,6 +244,7 @@ classes = [
     DV_AnimationPropertyGroup,
     DV_HeaderPropertyGroup,
     DV_LegendPropertyGroup,
+    DV_GeneralPropertyGroup,
     OBJECT_OT_AddChart,
     OBJECT_OT_BarChart,
     OBJECT_OT_PieChart,
@@ -260,6 +269,8 @@ def register():
         bpy.utils.register_class(c)
 
     bpy.types.VIEW3D_MT_add.append(chart_ops)
+    bpy.types.Scene.general_props = bpy.props.PointerProperty(type=DV_GeneralPropertyGroup)
+
 
 def unregister():
     icon_manager.remove_icons()
@@ -267,6 +278,7 @@ def unregister():
         bpy.utils.unregister_class(c)
 
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
+    del bpy.types.Scene.general_props
 
 
 if __name__ == '__main__':

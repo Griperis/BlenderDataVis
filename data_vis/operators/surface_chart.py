@@ -130,7 +130,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
             for col in range(self.density):
                 x_norm = row / self.density
                 y_norm = col / self.density
-                z_norm = normalize_value(res[row][col], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+                z_norm = self.normalize_value(res[row][col], 'z')
                 verts.append((x_norm, y_norm, z_norm))
                 if row < self.density - 1 and col < self.density - 1:
                     fac = self.face(col, row)
@@ -164,7 +164,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
                 sk = obj.shape_key_add(name='Column: ' + str(n))
 
                 for i in range(len(verts)):
-                    z_norm = normalize_value(res[i % self.density][i // self.density], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+                    z_norm = self.normalize_value(res[i % self.density][i // self.density], 'z')
                     sk.data[i].co.z = z_norm
                     sk.value = 0
 

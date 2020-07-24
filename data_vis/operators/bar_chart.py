@@ -143,16 +143,16 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             else:
                 tick_labels.append(entry[0])
                 x_value = i
-            x_norm = normalize_value(x_value, self.axis_settings.x_range[0], self.axis_settings.x_range[1])
 
-            z_norm = normalize_value(entry[value_index], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+            x_norm = self.normalize_value(x_value, 'x')
+            z_norm = self.normalize_value(entry[value_index], 'z')
             if z_norm >= 0.0 and z_norm <= 0.0005:
                 z_norm = 0.0005
             if self.dimensions == '2':
                 bar_obj.scale = (self.bar_size[0], self.bar_size[1], z_norm * 0.5)
                 bar_obj.location = (x_norm, 0.0, z_norm * 0.5)
             else:
-                y_norm = normalize_value(entry[1], self.axis_settings.y_range[0], self.axis_settings.y_range[1])
+                y_norm = self.normalize_value(entry[1], 'y')
                 bar_obj.scale = (self.bar_size[0], self.bar_size[1], z_norm * 0.5)
                 bar_obj.location = (x_norm, y_norm, z_norm * 0.5)
 
@@ -168,7 +168,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 dif = 2 if self.dimensions == '2' else 1
                 for j in range(value_index + 1, value_index + self.dm.tail_length + dif):
                     frame_n += self.anim_settings.key_spacing
-                    zn_norm = normalize_value(self.data[i][j], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+                    zn_norm = self.normalize_value(self.data[i][j], 'z')
                     if zn_norm >= 0.0 and zn_norm <= 0.0005:
                         zn_norm = 0.0005
                     bar_obj.scale[2] = zn_norm * 0.5

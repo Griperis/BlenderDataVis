@@ -8,7 +8,8 @@ import math
 
 from mathutils import Vector
 from data_vis.data_manager import DataManager, DataType
-from data_vis.utils.data_utils import find_axis_range
+from data_vis.icon_manager import IconManager
+from data_vis.utils.data_utils import find_axis_range, normalize_value
 from data_vis.colors import ColorType
 from data_vis.properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup
 
@@ -32,6 +33,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         self.dm = DataManager()
         self.prev_anim_setting = False
         self.prev_auto_step = False
+        self.container_size = Vector((1, 1, 1))
         if hasattr(self, 'dimensions'):
             self.dimensions = str(self.dm.get_dimensions())
 
@@ -45,7 +47,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         layout = self.layout
         if hasattr(self, 'data_type') or hasattr(self, 'dimensions'):
             box = layout.box()
-            box.label(icon='WORLD_DATA', text='Chart settings:')
+            box.label(icon_value=IconManager().get_icon('addon_icon').icon_id, text='Chart settings:')
         if self.dm.predicted_data_type != DataType.Categorical and hasattr(self, 'data_type'):
             row = box.row()
             row.prop(self, 'data_type')
@@ -203,6 +205,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         if hasattr(self, 'init_props'):
             self.init_props()
 
+        self.container_size = context.scene.general_props.container_size
+
         return context.window_manager.invoke_props_dialog(self)
 
     def init_ranges(self):
@@ -313,3 +317,24 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def get_name(self):
         '''Returns chart container name'''
         return self.container_object.name
+
+    def normalize_value(self, value, direction):
+        axis_range = None
+        size = None
+        if direction == 'x':
+            axis_range = self.axis_settings.x_range
+            size = self.container_size[0]
+        elif direction == 'y':
+            axis_range = self.axis_settings.y_range
+            size = self.container_size[1]
+        elif direction == 'z':
+            axis_range = self.axis_settings.z_range
+            size = self.container_size[2]
+
+        if axis_range is None or size is None:
+            return 0.5
+
+        return size * normalize_value(value, axis_range[0], axis_range[1])
+
+        
+
