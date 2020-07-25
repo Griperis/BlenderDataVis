@@ -3,11 +3,12 @@
 # Licence: GPL 3.0
 # Description: Pie chart implementation
 
+from data_vis.icon_manager import IconManager
 import bpy
 import math
 from mathutils import Matrix, Vector
 
-from data_vis.utils.data_utils import find_data_range
+from data_vis.utils.data_utils import find_data_range, normalize_value
 from data_vis.general import OBJECT_OT_GenericChart, DV_HeaderPropertyGroup, DV_LegendPropertyGroup
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import ColorGen, ColorType
@@ -40,6 +41,18 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         default=0.05
     )
 
+    text_format: bpy.props.EnumProperty(
+        name='Text Format',
+        items=(
+            ('label_percent', 'Label And Percent', 'Text will be formated as label with percents representing portion of pie'),
+            ('label_data', 'Label And Data Value', 'Label with value from data'),
+            ('label_decimal', 'Label And Decimal', 'Label with decimal value (percent / 100)'),
+            ('percent', 'Percent', 'Only percent'),
+            ('decimal', 'Decimal', 'Only decimal (percent / 100)'),
+            ('data', 'Data Value', 'Only value from data'),
+        )
+    )
+
     create_labels: bpy.props.BoolProperty(
         name='Create Labels',
         default=True
@@ -49,6 +62,16 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         name='Label Distance',
         min=0.0,
         default=0.5,
+    )
+
+    scale_z_with_value: bpy.props.BoolProperty(
+        name='Scale Slices With Value',
+        default=False,
+    )
+
+    slice_size: bpy.props.FloatProperty(
+        name='Slice Height',
+        default=1,
     )
 
     color_shade: bpy.props.FloatVectorProperty(
@@ -78,6 +101,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
+        layout.use_property_split = True
         box = layout.box()
         box.label(icon='COLOR', text='Color settings:')
         box.prop(self, 'color_type')
@@ -85,10 +109,17 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             box.prop(self, 'color_shade')
 
         box = layout.box()
+        box.label(text='Pie Chart Settings', icon_value=IconManager().get_icon_id('pie_chart'))
         box.prop(self, 'vertices')
+        box.separator()
+        box.prop(self, 'scale_z_with_value')
+        if self.scale_z_with_value:
+            box.prop(self, 'slice_size')
+        box.separator()
         box.prop(self, 'create_labels')
         if self.create_labels:
             box.prop(self, 'label_distance')
+            box.prop(self, 'text_format')
             box.prop(self, 'text_size')
 
     def execute(self, context):
@@ -132,15 +163,19 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             portion_end_i = prev_i + increment
             slice_obj = self.join_slices(prev_i, portion_end_i)
             if slice_obj is None:
-                raise Exception('Error occurred, try to increase number of vertices, i_from" {}, i_to: {}, inc: {}, val: {}'.format(prev_i, portion_end_i, increment, self.data[i][1]))
+                raise RuntimeError('Error occurred, try to increase number of vertices, i_from" {}, i_to: {}, inc: {}, val: {}'.format(prev_i, portion_end_i, increment, self.data[i][1]))
                 break
 
             slice_mat = color_gen.get_material(data_len - i)
             slice_obj.active_material = slice_mat
+
+            if self.scale_z_with_value:
+                slice_obj.scale.z = self.slice_size * portion
+
             slice_obj.parent = self.container_object
             if self.create_labels:
                 rotation_z = ((prev_i + portion_end_i) * 0.5) / self.vertices
-                label_obj = self.add_value_label(self.label_distance, rotation_z * 2.0 * math.pi + math.pi, self.data[i][0], self.data[i][1])
+                label_obj = self.add_value_label(self.label_distance, rotation_z * 2.0 * math.pi + math.pi, self.data[i][0], self.data[i][1], portion)
                 label_obj.rotation_euler = (0, 0, 0)
             prev_i += increment
 
@@ -192,10 +227,26 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
 
         return obj
 
-    def add_value_label(self, distance, angle, label, value):
+    def get_formated_text(self, label, value, portion):
+        if self.text_format == "label_percent":
+            percent = portion * 100
+            return f'{label}: {percent:3.2f}%'
+        elif self.text_format == "label_data":
+            return f'{label}: {value:0.2f}'
+        elif self.text_format == "label_decimal":
+            return f'{label}: {portion:0.2f}'
+        elif self.text_format == "percent":
+            percent = portion * 100
+            return f'{percent:3.2f}%'
+        elif self.text_format == "decimal":
+            return f'{portion:0.2f}'
+        elif self.text_format == "data":
+            return f'{value:0.2f}'
+
+    def add_value_label(self, distance, angle, label, value, portion):
         bpy.ops.object.text_add()
         to = bpy.context.object
-        to.data.body = '{0}: {1}'.format(label, value)
+        to.data.body = self.get_formated_text(label, value, portion)
         to.data.align_x = 'CENTER'
         to.location = (math.cos(angle) * distance, math.sin(angle) * distance, 0.15)
         to.scale *= self.text_size

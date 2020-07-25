@@ -27,6 +27,9 @@ class IconManager:
         def get_icon(self, name, coll='main'):
             return self.preview_collections[coll][name]
 
+        def get_icon_id(self, name, coll='main'):
+            return self.preview_collections[coll][name].icon_id
+
     instance = None
 
     def __new__(cls):
