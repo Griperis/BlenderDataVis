@@ -20,7 +20,6 @@ import os
 import subprocess
 import sys
 
-from .operators.data_load import FILE_OT_DVLoadFile
 from .operators.bar_chart import OBJECT_OT_BarChart
 from .operators.line_chart import OBJECT_OT_LineChart
 from .operators.pie_chart import OBJECT_OT_PieChart
@@ -95,6 +94,69 @@ class OBJECT_OT_InstallModules(bpy.types.Operator):
             raise Exception('Failed to install pip or scipy into blender python:\n' + str(info))
 
 
+class FILE_OT_DVLoadFile(bpy.types.Operator):
+    '''
+    Loads data from CSV file to property in first scene
+    '''
+    bl_idname = 'ui.dv_load_data'
+    bl_label = 'Load New File'
+    bl_options = {'REGISTER'}
+
+    filepath: bpy.props.StringProperty(
+        name='CSV File',
+        subtype='FILE_PATH'
+    )
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    def execute(self, context):
+        data_manager = DataManager()
+        _, ext = os.path.splitext(self.filepath)
+        if ext != '.csv':
+            self.report({'WARNING'}, 'Only CSV files are supported!')
+            return {'CANCELLED'}
+        line_n = data_manager.load_data(self.filepath)
+
+
+        report_type = {'INFO'}
+        if line_n == 0:
+            report_type = {'WARNING'}
+        else:
+            item = context.scene.data_list.add()
+            _, item.name = os.path.split(self.filepath)
+            item.filepath = self.filepath
+        self.report(report_type, f'File: {self.filepath}, loaded {line_n} lines!')
+        return {'FINISHED'}
+
+
+class DV_OT_ReloadData(bpy.types.Operator):
+    '''Reload data on current index in data list'''
+    bl_idname = 'data_list.reload_data'
+    bl_label = 'Reload Data'
+    bl_option = {'REGISTER'}
+
+    def execute(self, context):
+        data_list = context.scene.data_list
+        data_list_index = context.scene.data_list_index
+        data_list[data_list_index].load(context)
+        self.report({'INFO'}, 'Data reloaded!')
+        return {'FINISHED'}
+
+
+class DV_OT_RemoveData(bpy.types.Operator):
+    '''Removes data entry from DV_UL_DataList'''
+    bl_idname = 'data_list.remove_data'
+    bl_label = 'Remove Item'
+    bl_option = {'REGISTER'}
+
+    def execute(self, context):
+        index = context.scene.data_list_index
+        context.scene.data_list.remove(index)
+        return {'FINISHED'}
+
+
 class DV_AddonPanel(bpy.types.Panel):
     '''Menu panel used for loading data and managing addon settings'''
     bl_label = 'DataVis'
@@ -106,11 +168,15 @@ class DV_AddonPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        row = layout.row()
-        row.operator('ui.dv_load_data')
-
         box = layout.box()
+        box.label(text='Recently Loaded Files')
+        box.template_list('DV_UL_DataList', '', context.scene, 'data_list', context.scene, 'data_list_index')
+        row = box.row()
+        row.operator('ui.dv_load_data')
+        row.operator('data_list.remove_data')
+
         box.label(icon='WORLD_DATA', text='Data Information:')
+
         filename = data_manager.get_filename()
         if filename == '':
             box.label(text='File: No file loaded')
@@ -125,16 +191,29 @@ class DV_AddonPanel(bpy.types.Panel):
                 lines = str(lines)     
             box.label(text='Lines: ' + lines)
             box.label(text='Type: ' + str(data_manager.predicted_data_type))
+            
+            data_list_index = context.scene.data_list_index
+            data_list = context.scene.data_list
+            if data_list_index < len(data_list) and data_list_index >= 0:
+                box.label(text=context.scene.data_list[context.scene.data_list_index].filepath)
 
-        row = layout.row()
-        row.operator('object.align_labels')
+        box = layout.box()
+        box.label(text='Chart Manipulation')
+        box.use_property_split = True
+        row = box.row()
+        row.menu('OBJECT_MT_Add_Chart', text='Create Chart', icon_value=icon_manager.get_icon_id('addon_icon'))
+        row.scale_y = 2
+
+        row = box.row()
+        row.operator('object.align_labels', icon='CAMERA_DATA')
+        row.scale_y = 1.75
 
         scn = context.scene
 
-        row = layout.row()
-        row.label(text='Default Container Size')
-        row = layout.row()
-        row.prop(scn.general_props, 'container_size', text='')
+        box = layout.box()
+        box.label(text='General Chart Settings')
+        box.label(text='Default Container Size')
+        box.prop(scn.general_props, 'container_size', text='')
 
 
 def update_space_type(self, context):
@@ -231,6 +310,29 @@ class OBJECT_OT_AddChart(bpy.types.Menu):
         layout.operator(OBJECT_OT_SurfaceChart.bl_idname, icon_value=icon_manager.get_icon('surface_chart').icon_id)
 
 
+class DV_DL_PropertyGroup(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty(
+        name='Name of item',
+        default='Unnamed',
+    )
+    filepath: bpy.props.StringProperty()
+    data_info: bpy.props.StringProperty()
+
+    def load(self, context):
+        data_manager.load_data(self.filepath)
+
+
+
+class DV_UL_DataList(bpy.types.UIList):
+    '''
+    Loaded data list
+    '''
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        layout.label(icon='ALIGN_JUSTIFY', text=f'{item.name}')
+        if index == context.scene.data_list_index:
+            layout.operator(DV_OT_ReloadData.bl_idname, icon='FILE_REFRESH', text='')
+
+
 def chart_ops(self, context):
     icon = icon_manager.get_icon('addon_icon')
     self.layout.menu(OBJECT_OT_AddChart.bl_idname, icon_value=icon.icon_id)
@@ -246,6 +348,10 @@ classes = [
     DV_HeaderPropertyGroup,
     DV_LegendPropertyGroup,
     DV_GeneralPropertyGroup,
+    DV_DL_PropertyGroup,
+    DV_UL_DataList,
+    DV_OT_RemoveData,
+    DV_OT_ReloadData,
     OBJECT_OT_AddChart,
     OBJECT_OT_BarChart,
     OBJECT_OT_PieChart,
@@ -259,19 +365,26 @@ classes = [
 ]
 
 
+def reload_data(self, context):
+    data_list = context.scene.data_list
+    data_list[self.data_list_index].load(context)
+
+
 def reload():
     unregister()
     register()
 
 
 def register():
+
     icon_manager.load_icons()
     for c in classes:
         bpy.utils.register_class(c)
 
-    bpy.types.VIEW3D_MT_add.append(chart_ops)
     bpy.types.Scene.general_props = bpy.props.PointerProperty(type=DV_GeneralPropertyGroup)
-
+    bpy.types.Scene.data_list = bpy.props.CollectionProperty(type=DV_DL_PropertyGroup)
+    bpy.types.Scene.data_list_index = bpy.props.IntProperty(update=reload_data)
+    bpy.types.VIEW3D_MT_add.append(chart_ops)
 
 def unregister():
     icon_manager.remove_icons()
@@ -280,6 +393,8 @@ def unregister():
 
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
     del bpy.types.Scene.general_props
+    del bpy.types.Scene.data_list_index
+    del bpy.types.Scene.data_list
 
 
 if __name__ == '__main__':

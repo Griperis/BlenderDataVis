@@ -6,7 +6,7 @@ from math import radians
 class OBJECT_OT_AlignLabels(bpy.types.Operator):
     '''Aligns labels to currently active camera '''
     bl_idname = 'object.align_labels'
-    bl_label = 'Align Labels'
+    bl_label = 'Align Labels To Camera'
     bl_options = {'REGISTER', 'UNDO'}
 
     align_header: bpy.props.BoolProperty(

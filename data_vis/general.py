@@ -212,7 +212,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def init_ranges(self):
         self.axis_settings.x_range = self.dm.get_range('x')
         self.axis_settings.y_range = self.dm.get_range('y')
-        if self.dm.dimensions > 2 and hasattr(self, 'dimensions'):
+        if self.dm.dimensions > 2 and hasattr(self, 'dimensions') and self.dimensions == '2':
             self.axis_settings.y_range = self.dm.get_range('z')
         self.axis_settings.z_range = self.dm.get_range('z')
         if hasattr(self, 'anim_settings') and self.anim_settings.animate:

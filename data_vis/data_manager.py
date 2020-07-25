@@ -3,9 +3,9 @@
 # Licence: GPL 3.0
 # Description: Data loading, data analysis and data information interface
 
-import bpy
 import os
 import csv
+import json
 
 from enum import Enum
 
@@ -33,6 +33,9 @@ class DataManager:
     class __DataManager:
 
         def __init__(self):
+            self.default_state()
+
+        def default_state(self):
             self.raw_data = None
             self.parsed_data = None
             self.predicted_data_type = None
@@ -51,7 +54,7 @@ class DataManager:
             return self.raw_data
 
         def load_data(self, filepath, delimiter=','):
-            self.__init__()
+            self.default_state()
             self.filepath = filepath
             try:
                 with open(filepath, 'r', encoding='UTF-8') as file:
@@ -259,6 +262,14 @@ class DataManager:
         def has_subtype(self, subtype):
             '''Checks whether subtype is in possible subtypes for data'''
             return subtype in self.get_possible_subtypes()
+
+        def serialize(self):
+            #TODO
+            return {}
+
+        def actualize(self, data_info_json, data_json):
+            #TODO self.state = parse state_str, data_str
+            ...
 
         def is_type(self, data_type, min_dims, only_3d=False, only_2d=False):
             if isinstance(min_dims, (list, tuple)):
