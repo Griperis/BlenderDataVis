@@ -37,6 +37,7 @@ data_manager = DataManager()
 
 PERFORMANCE_WARNING_LINE_THRESHOLD = 150
 
+
 class OBJECT_OT_InstallModules(bpy.types.Operator):
     '''Operator that tries to install scipy and numpy using pip into blender python'''
     bl_label = 'Install addon dependencies'
@@ -131,7 +132,7 @@ class DV_AddonPanel(bpy.types.Panel):
         scn = context.scene
 
         row = layout.row()
-        row.label(text='Container size')
+        row.label(text='Default Container Size')
         row = layout.row()
         row.prop(scn.general_props, 'container_size', text='')
 

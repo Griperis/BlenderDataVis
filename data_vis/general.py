@@ -298,14 +298,19 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         bpy.context.view_layer.objects.active = self.container_object
         self.container_object.select_set(True)
 
-    def create_header(self, offset=(0.5, 0, 1.2), rotate=True):
+    def create_header(self, location=None, rotate=True):
         '''Creates header at container + offset'''
         bpy.ops.object.text_add()
         obj = bpy.context.object
         obj.name = 'TextHeader'
         obj.data.align_x = 'CENTER'
         obj.data.body = self.header_settings.text
-        obj.location = Vector(offset)
+        if location is None:
+            # default location
+            obj.location = Vector((self.container_size[0] * 0.5, 0, self.container_size[2] + 0.2))
+        else:
+            obj.location = location
+
         obj.scale *= self.header_settings.size
         header_mat = bpy.data.materials.new(name='DV_HeaderMat_' + str(self.chart_id))
         obj.data.materials.append(header_mat)

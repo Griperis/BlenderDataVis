@@ -184,6 +184,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 self.chart_id,
                 labels=self.labels,
                 tick_labels=(tick_labels, [], []),
+                container_size=self.container_size
             )
         
         if self.header_settings.create:

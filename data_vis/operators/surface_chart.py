@@ -128,8 +128,8 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         verts = []
         for row in range(self.density):
             for col in range(self.density):
-                x_norm = row / self.density
-                y_norm = col / self.density
+                x_norm = self.container_size[0] * (row / self.density)
+                y_norm = self.container_size[1] * (col / self.density)
                 z_norm = self.normalize_value(res[row][col], 'z')
                 verts.append((x_norm, y_norm, z_norm))
                 if row < self.density - 1 and col < self.density - 1:
@@ -186,6 +186,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
                 3,
                 self.chart_id,
                 labels=self.labels,
+                container_size=self.container_size,
             )
 
         if self.header_settings.create:

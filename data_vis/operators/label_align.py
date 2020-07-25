@@ -4,7 +4,7 @@ from math import radians
 
 
 class OBJECT_OT_AlignLabels(bpy.types.Operator):
-    '''Aligns labels to camera for selected chart or makes them default'''
+    '''Aligns labels to currently active camera '''
     bl_idname = 'object.align_labels'
     bl_label = 'Align Labels'
     bl_options = {'REGISTER', 'UNDO'}
@@ -25,6 +25,7 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
 
     def execute(self, context):
         axis_count = 0
+        is_pie = False
         for child in bpy.context.object.children:
             if child.name == 'Axis_Container_AxisDir.X':
                 self.align_labels('x', child)
@@ -35,9 +36,14 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
             elif child.name == 'Axis_Container_AxisDir.Z':
                 self.align_labels('z', child)
                 axis_count += 1
+
+            if child.name.startswith('TextPie'):
+                self.align_labels('to', child)
+                is_pie = True
             if child.name == 'TextHeader':
-                self.align_labels('header', child)
-        if axis_count in [2, 3]:
+                self.align_labels('to', child)
+
+        if axis_count in [2, 3] or is_pie:
             self.report({'INFO'}, 'Labels aligned!')
             return {'FINISHED'}
         else:   
@@ -47,7 +53,7 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
     def align_labels(self, obj_type, obj):
         cam_vector = self.get_camera_vector()
 
-        if obj_type == 'header':
+        if obj_type == 'to':
             obj.rotation_euler = cam_vector
             return
             
@@ -62,9 +68,6 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
                 else:
                     child.rotation_euler = cam_vector
     
-
     def get_camera_vector(self):
         camera = bpy.context.scene.camera
-        #v = Vector((0, 0, -1))
-        #v.rotate(camera.rotation_euler)
         return camera.rotation_euler

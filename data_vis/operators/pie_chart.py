@@ -147,7 +147,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             legend_data[str(slice_mat.name)] = self.data[i][0] 
 
         if self.header_settings.create:
-            self.create_header((0, 0.7, 0.15), False)
+            self.create_header(location=(0, 0.7, 0.15), rotate=False)
 
         if self.legend_settings.create:
             Legend(self.chart_id, self.legend_settings).create(self.container_object, legend_data)
@@ -200,6 +200,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         to.location = (math.cos(angle) * distance, math.sin(angle) * distance, 0.15)
         to.scale *= self.text_size
         to.parent = self.container_object
+        to.name = 'TextPie'
 
         mat = bpy.data.materials.get('DV_TextMat_' + str(self.chart_id))
         if mat is None:

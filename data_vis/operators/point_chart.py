@@ -147,7 +147,8 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
                 self.axis_settings,
                 int(self.dimensions),
                 self.chart_id,
-                labels=self.labels
+                labels=self.labels,
+                container_size=self.container_size,
             )
 
         if self.header_settings.create:

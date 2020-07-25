@@ -228,4 +228,6 @@ class DV_GeneralPropertyGroup(bpy.types.PropertyGroup):
         name='Container size',
         default=(1.0, 1.0, 1.0),
         size=3,
+        subtype='XYZ',
+        min=0.2,
     )
