@@ -165,6 +165,11 @@ class DV_AddonPanel(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = 'DataVis'
 
+
+    def draw_header(self, context):
+        layout = self.layout
+        layout.template_icon(icon_value=icon_manager.get_icon_id('addon_icon'))
+
     def draw(self, context):
         layout = self.layout
 

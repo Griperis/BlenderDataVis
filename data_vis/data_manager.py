@@ -263,14 +263,6 @@ class DataManager:
             '''Checks whether subtype is in possible subtypes for data'''
             return subtype in self.get_possible_subtypes()
 
-        def serialize(self):
-            #TODO
-            return {}
-
-        def actualize(self, data_info_json, data_json):
-            #TODO self.state = parse state_str, data_str
-            ...
-
         def is_type(self, data_type, min_dims, only_3d=False, only_2d=False):
             if isinstance(min_dims, (list, tuple)):
                 min_dims = min(min_dims) # TODO Argument fixture
