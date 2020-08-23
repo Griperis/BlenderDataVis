@@ -75,7 +75,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
     )
 
     color_shade: bpy.props.FloatVectorProperty(
-        name='Color',
+        name='Base Color',
         subtype='COLOR',
         default=(0.0, 0.0, 1.0),
         min=0.0,
@@ -116,7 +116,9 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         if self.scale_z_with_value:
             box.prop(self, 'slice_size')
         box.separator()
-        box.prop(self, 'create_labels')
+        row = box.row()
+        row.label(text='Create Slice Labels', icon='TRIA_RIGHT')
+        row.prop(self, 'create_labels')
         if self.create_labels:
             box.prop(self, 'label_distance')
             box.prop(self, 'text_format')

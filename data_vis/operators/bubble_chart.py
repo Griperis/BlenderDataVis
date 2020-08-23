@@ -54,7 +54,7 @@ class OBJECT_OT_BubbleChart(OBJECT_OT_GenericChart):
     )
 
     anim_type: bpy.props.EnumProperty(
-        name='What to animate',
+        name='Animated Property',
         items=(
             ('size', 'Size', 'size'),
             ('z', 'Z', 'z')
@@ -80,9 +80,7 @@ class OBJECT_OT_BubbleChart(OBJECT_OT_GenericChart):
 
     def extend_anim_draw(self, box):
         if self.anim_settings.animate:
-            row = box.row(align=True)
-            row.label(text='Animated property')
-            row.prop_tabs_enum(self, 'anim_type')
+            box.prop(self, 'anim_type')
 
     def execute(self, context):
         self.init_data(subtype=self.determine_subtype())

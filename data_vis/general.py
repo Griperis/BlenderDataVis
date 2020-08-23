@@ -50,6 +50,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             box.label(icon_value=IconManager().get_icon('addon_icon').icon_id, text='Chart settings:')
         if self.dm.predicted_data_type != DataType.Categorical and hasattr(self, 'data_type'):
             row = box.row()
+            row.use_property_split = True
             row.prop(self, 'data_type')
 
         numerical = True
@@ -65,6 +66,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             
             if numerical and draw_dims:
                 row = box.row()
+                row.use_property_split = True
                 row.prop(self, 'dimensions')
             else:
                 self.dimensions = '2'
@@ -81,18 +83,19 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
     def draw_header_settings(self, layout):
         box = layout.box()
-        box.label(text='Header:', icon='BOLD')
+        box.use_property_split = True
         row = box.row()
+        row.label(text='Header:', icon='BOLD')
         row.prop(self.header_settings, 'create')
         if self.header_settings.create:
-            row = box.row()
             if self.header_settings.text == 'None':
                 self.header_settings.text = self.bl_label
-            row.prop(self.header_settings, 'text')
-            row.prop(self.header_settings, 'size')
+            box.prop(self.header_settings, 'text')
+            box.prop(self.header_settings, 'size')
     
     def draw_legend_settings(self, layout):
         box = layout.box()
+        box.use_property_split = True
         row = box.row()
         row.label(icon='WORDWRAP_ON', text='Legend:')
         row.prop(self.legend_settings, 'create')
@@ -104,8 +107,10 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         if not self.dm.animable:
             return
         box = layout.box()
-        box.label(icon='TIME', text='Animation:')
-        box.prop(self.anim_settings, 'animate')
+        box.use_property_split = True
+        row = box.row()
+        row.label(icon='TIME', text='Animation:')
+        row.prop(self.anim_settings, 'animate')
         if self.anim_settings.animate:
             box.prop(self.anim_settings, 'key_spacing')
         if self.anim_settings.animate != self.prev_anim_setting:
@@ -116,6 +121,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             self.extend_anim_draw(box)
 
     def draw_label_settings(self, box):
+        box.use_property_split = True
         row = box.row()
         row.label(icon='FILE_FONT', text='Labels:')
         row.prop(self.label_settings, 'create')
@@ -123,27 +129,32 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             if self.dm.has_labels:
                 box.prop(self.label_settings, 'from_data')
             if not self.label_settings.from_data or not self.dm.has_labels:
-                row = box.row()
-                row.prop(self.label_settings, 'x_label')
+                col = box.column(align=True)
+                col.prop(self.label_settings, 'x_label')
                 if self.dm.get_dimensions() == 3:
-                    row.prop(self.label_settings, 'y_label')
-                row.prop(self.label_settings, 'z_label')
+                   col.prop(self.label_settings, 'y_label')
+                col.prop(self.label_settings, 'z_label')
 
     def draw_color_settings(self, layout):
         if hasattr(self, 'color_settings'):
             box = layout.box()
-            box.label(icon='COLOR', text='Colors:')
-            box.prop(self.color_settings, 'use_shader')
+            box.use_property_split = True
+            row = box.row()
+            row.label(icon='COLOR', text='Colors:')
+            row.prop(self.color_settings, 'use_shader')
             box.prop(self.color_settings, 'color_type')
             if not ColorType.str_to_type(self.color_settings.color_type) == ColorType.Random:
                 box.prop(self.color_settings, 'color_shade')
  
     def draw_axis_settings(self, layout, numerical):
         box = layout.box()
-        box.label(icon='ORIENTATION_VIEW', text='Axis:')
+        row = box.row()
+        row.use_property_split = True
+        row.label(icon='ORIENTATION_VIEW', text='Axis:')
+        row.prop(self.axis_settings, 'create')
 
         row = box.row()
-        row.label(text='Ranges:', icon='ARROW_LEFTRIGHT')
+        row.label(text='Data Ranges:', icon='ARROW_LEFTRIGHT')
         row = box.row()
         if self.dm.predicted_data_type != DataType.Categorical:
             row.prop(self.axis_settings, 'x_range', text='X')
@@ -152,13 +163,13 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             row.prop(self.axis_settings, 'y_range', text='Y')
         row = box.row()
         row.prop(self.axis_settings, 'z_range', text='Z')
-        row = box.row()
-        row.prop(self.axis_settings, 'create')
         
         if not self.axis_settings.create:
             return
 
-        box.prop(self.axis_settings, 'auto_steps')
+        row = box.row()
+        row.use_property_split = True
+        row.prop(self.axis_settings, 'auto_steps')
 
         if self.prev_auto_step != self.axis_settings.auto_steps:
             self.axis_settings.x_step = self.dm.get_step_size('x')
@@ -182,7 +193,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         box.separator()
         row = box.row()
         row.label(text='Ticks:', icon='FONT_DATA')
-        box.prop(self.axis_settings, 'number_format')
+        row = box.row()
+        row.prop(self.axis_settings, 'number_format')
         row = box.row()
         row.prop(self.axis_settings, 'text_size')
         row.prop(self.axis_settings, 'decimal_places')

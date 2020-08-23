@@ -145,18 +145,18 @@ class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
     )
 
     x_label: bpy.props.StringProperty(
-        name='X',
-        default='X Label'
+        name='X Label',
+        default='X'
     )
 
     y_label: bpy.props.StringProperty(
-        name='Y',
-        default='Y Label'
+        name='Y Label',
+        default='Y'
     )
 
     z_label: bpy.props.StringProperty(
-        name='Z',
-        default='Z Label'
+        name='Z Label',
+        default='Z'
     )
 
 
