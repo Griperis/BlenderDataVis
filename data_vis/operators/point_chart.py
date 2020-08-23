@@ -94,7 +94,7 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
 
         self.create_container()
         color_factory = ColoringFactory(self.get_name(), self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
-        color_gen = color_factory.create(self.axis_settings.z_range, 1.0, self.container_object.location[2])
+        color_gen = color_factory.create(self.axis_settings.z_range, self.container_size[2], self.container_object.location[2])
         
         for i, entry in enumerate(self.data):
 

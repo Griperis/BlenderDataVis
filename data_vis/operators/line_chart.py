@@ -153,7 +153,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         self.create_curve(normalized_vert_list, edges)
         self.add_bevel_obj()
         if self.use_shader:
-            mat = NodeShader(self.get_name(), self.color_shade, location_z=self.container_object.location[2]).create_geometry_shader()
+            mat = NodeShader(self.get_name(), self.color_shade, scale=self.container_size[2], location_z=self.container_object.location[2]).create_geometry_shader()
         else:
             mat = ColorGen(self.color_shade, ColorType.Constant, self.axis_settings.z_range).get_material()
 

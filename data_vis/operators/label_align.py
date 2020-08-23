@@ -41,6 +41,8 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
                 self.align_labels('to', child)
                 is_pie = True
             if child.name == 'TextHeader':
+                if not self.align_header:
+                    continue
                 self.align_labels('to', child)
 
         if axis_count in [2, 3] or is_pie:
@@ -56,7 +58,10 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
         if obj_type == 'to':
             obj.rotation_euler = cam_vector
             return
-            
+        
+        if not self.align_axis_labels:
+            return
+
         for child in obj.children:
             if child.name.startswith('Text'):
                 if child.name.startswith('TextLabel') and not self.align_axis_labels:
