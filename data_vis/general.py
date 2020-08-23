@@ -113,7 +113,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             self.prev_anim_setting = self.anim_settings.animate
 
         if hasattr(self, 'extend_anim_draw'):
-            extend_anim_draw(box)
+            self.extend_anim_draw(box)
 
     def draw_label_settings(self, box):
         row = box.row()
