@@ -13,6 +13,7 @@ from data_vis.general import OBJECT_OT_GenericChart
 from data_vis.properties import DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AxisPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
+from data_vis.icon_manager import IconManager
 from data_vis.colors import ColoringFactory, ColorType
 
 
@@ -92,9 +93,12 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         super().draw(context)
         layout = self.layout
         box = layout.box()
-        box.prop(self, 'use_obj')
+        icon_manager = IconManager()
+        box.label(text='Bar Chart Settings:', icon_value=icon_manager.get_icon_id('bar_chart'))
+        col = box.column(align=True)
+        col.prop(self, 'use_obj')
         if self.use_obj == 'Custom':
-            box.prop_search(self, 'custom_obj_name', context.scene, 'objects')
+            col.prop_search(self, 'custom_obj_name', context.scene, 'objects')
 
         row = box.row()
         row.prop(self, 'bar_size')
@@ -108,12 +112,11 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             self.report({'ERROR'}, 'Cannot convert categorical data into numerical!')
             return {'CANCELLED'}
 
-        if self.dm.override(self.data_type_as_enum(), int(self.dimensions)):
-            self.init_ranges()
+        self.dm.override(self.data_type_as_enum(), int(self.dimensions))
 
         self.create_container()
         color_factory = ColoringFactory(self.get_name(), self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
-        color_gen = color_factory.create(self.axis_settings.z_range, 2.0, self.container_object.location[2])
+        color_gen = color_factory.create(self.axis_settings.z_range, 2 * self.container_size[2], self.container_object.location[2])
 
         if self.dimensions == '2':
             value_index = 1
@@ -144,16 +147,16 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             else:
                 tick_labels.append(entry[0])
                 x_value = i
-            x_norm = normalize_value(x_value, self.axis_settings.x_range[0], self.axis_settings.x_range[1])
 
-            z_norm = normalize_value(entry[value_index], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+            x_norm = self.normalize_value(x_value, 'x')
+            z_norm = self.normalize_value(entry[value_index], 'z')
             if z_norm >= 0.0 and z_norm <= 0.0005:
                 z_norm = 0.0005
             if self.dimensions == '2':
                 bar_obj.scale = (self.bar_size[0], self.bar_size[1], z_norm * 0.5)
                 bar_obj.location = (x_norm, 0.0, z_norm * 0.5)
             else:
-                y_norm = normalize_value(entry[1], self.axis_settings.y_range[0], self.axis_settings.y_range[1])
+                y_norm = self.normalize_value(entry[1], 'y')
                 bar_obj.scale = (self.bar_size[0], self.bar_size[1], z_norm * 0.5)
                 bar_obj.location = (x_norm, y_norm, z_norm * 0.5)
 
@@ -169,7 +172,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 dif = 2 if self.dimensions == '2' else 1
                 for j in range(value_index + 1, value_index + self.dm.tail_length + dif):
                     frame_n += self.anim_settings.key_spacing
-                    zn_norm = normalize_value(self.data[i][j], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+                    zn_norm = self.normalize_value(self.data[i][j], 'z')
                     if zn_norm >= 0.0 and zn_norm <= 0.0005:
                         zn_norm = 0.0005
                     bar_obj.scale[2] = zn_norm * 0.5
@@ -185,6 +188,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
                 self.chart_id,
                 labels=self.labels,
                 tick_labels=(tick_labels, [], []),
+                container_size=self.container_size
             )
         
         if self.header_settings.create:

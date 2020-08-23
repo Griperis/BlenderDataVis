@@ -11,6 +11,7 @@ import math
 
 from data_vis.utils.data_utils import float_range
 
+CATEGORICAL_AXIS_DEFAULT_TICKS = 10
 
 class AxisDir(Enum):
     X = 0
@@ -20,7 +21,7 @@ class AxisDir(Enum):
 
 class AxisFactory:
     @staticmethod
-    def create(parent, axis_settings, dim, chart_id, labels=(None, None, None), tick_labels=([], [], []), offset=0.0):
+    def create(parent, axis_settings, dim, chart_id, labels=(None, None, None), tick_labels=([], [], []), offset=0.0, container_size=(1, 1, 1)):
         '''
         Factory method that creates all axis with all values specified by parameters
         parent - parent object for axis containers
@@ -36,14 +37,19 @@ class AxisFactory:
         for i in range(dim):
             if i == 0:
                 direction = AxisDir.X
+                size = container_size[0]
             elif i == 1:
                 # y axis in 2D chart is z in blender 3D space
                 if dim == 2:
                     direction = AxisDir.Z
+                    size = container_size[2]
                 else:
                     direction = AxisDir.Y
+                    size = container_size[1]
+
             elif i == 2:
                 direction = AxisDir.Z
+                size = container_size[2]
             
             dir_idx = i
             if dim == 2 and i == 1:
@@ -55,6 +61,7 @@ class AxisFactory:
                 steps[dir_idx],
                 ranges[dir_idx],
                 direction,
+                size,
                 tick_labels[dir_idx],
                 axis_settings.thickness,
                 axis_settings.tick_mark_height,
@@ -77,17 +84,17 @@ class Axis:
     tick-height - height of tick mark
     auto_step - creates 10 uniform steps across axis
     '''
-    def __init__(self, parent, chart_id, step, ax_range, ax_dir, tick_labels, thickness, tick_height, auto_step=False, text_size=0.05, number_format='0', decimal_places=2):
+    def __init__(self, parent, chart_id, step, ax_range, ax_dir, size, tick_labels, thickness, tick_height, auto_step=False, text_size=0.05, number_format='0', decimal_places=2):
         self.range = ax_range
         if not auto_step:
             self.step = step
         else:
-            self.step = (self.range[1] - self.range[0]) / 10
+            self.step = (self.range[1] - self.range[0]) / CATEGORICAL_AXIS_DEFAULT_TICKS
 
         if len(tick_labels) > 0:
             if auto_step:
-                if len(tick_labels) > 10:
-                    self.step = (len(tick_labels) - 1) / 10
+                if len(tick_labels) > CATEGORICAL_AXIS_DEFAULT_TICKS:
+                    self.step = (len(tick_labels) - 1) / CATEGORICAL_AXIS_DEFAULT_TICKS
                 else:
                     self.step = 1
 
@@ -95,6 +102,7 @@ class Axis:
         self.thickness = thickness
         self.mark_height = tick_height
         self.text_size = text_size
+        self.size = size
         if isinstance(ax_dir, AxisDir):
             self.dir = ax_dir
         else:
@@ -180,7 +188,7 @@ class Axis:
         start_pos - starting position for all ticks (so it can start with offset)
         '''
         for value in float_range(self.range[0], self.range[1], self.step):
-            tick_location = start_pos + (value - self.range[0]) / (self.range[1] - self.range[0])
+            tick_location = self.size * (start_pos + (value - self.range[0]) / (self.range[1] - self.range[0]))
             self.create_tick_mark(tick_location)
             if len(self.tick_labels) == 0:
                 self.create_tick_label(value, tick_location)
@@ -201,7 +209,7 @@ class Axis:
             # add padding for right
             line_len += padding
 
-        axis_line = self.create_axis_line(line_len * 0.5)
+        axis_line = self.create_axis_line(self.size * (line_len * 0.5))
         self.create_ticks(offset)
         if label is not None:
             self.create_label(label)
@@ -235,7 +243,8 @@ class Axis:
         '''Creates axis label (description) with value'''
         obj = self.create_text_object(value)
         obj.parent = self.axis_cont
-        obj.location = (1.2, 0, 0)
+        obj.name = 'TextLabel_' + str(self.dir)
+        obj.location = (self.size + 0.2, 0, 0)
         self.rotate_text_object(obj)
 
     def create_tick_label(self, value, x_location, rotate=False):

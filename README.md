@@ -90,20 +90,23 @@ Currently supported features:
 - Bar chart (Categorical, 2D Numeric, 3D Numeric)
 - Point chart / Scatterplot (2D Numeric, 3D Numeric)
 - Surface chart (Using scipy)
+- Bubble chart (2D, 3D Numeric + animatable size and height)
 - Creating axis with labels from data
 - Ranges of data to visualise can be set
 - Materials and 3 types of coloring of charts (Including default Node Shader for gradients and random colors)
 - Basic animations from data
 - Panel settings (to prevent sidebar cluster)
-
+- Loaded data list
+- Label alignment to active camera
+- Chart container size
 
 Known issues:
 - Charts from larger files (>200 entries) take long time to generate (except surface chart), because of large numbers of manipulations with objects instead of meshes
 
 Planned features:
-- Muliple categories for categorical charts
-- Multiple datasets loaded into Blender
-- Label alignment to camera for render
+- Multiple categories for categorical charts
+- Function plotting
+
 
 Feel free to submit any issues or ideas!
 
@@ -112,4 +115,4 @@ Zdeněk Doležal - Bachelor Thesis
 
 Faculty of information technology BUT
 
-Version 1.3
+Version 2.0

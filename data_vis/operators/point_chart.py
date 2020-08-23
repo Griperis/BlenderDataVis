@@ -94,7 +94,7 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
 
         self.create_container()
         color_factory = ColoringFactory(self.get_name(), self.color_settings.color_shade, ColorType.str_to_type(self.color_settings.color_type), self.color_settings.use_shader)
-        color_gen = color_factory.create(self.axis_settings.z_range, 1.0, self.container_object.location[2])
+        color_gen = color_factory.create(self.axis_settings.z_range, self.container_size[2], self.container_object.location[2])
         
         for i, entry in enumerate(self.data):
 
@@ -121,12 +121,12 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             point_obj.active_material = mat
 
             # normalize height
-            x_norm = normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1])
-            z_norm = normalize_value(entry[value_index], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+            x_norm = self.normalize_value(entry[0], 'x')
+            z_norm = self.normalize_value(entry[value_index], 'z')
             if self.dimensions == '2':
                 point_obj.location = (x_norm, 0.0, z_norm)
             else:
-                y_norm = normalize_value(entry[1], self.axis_settings.y_range[0], self.axis_settings.y_range[1])
+                y_norm = self.normalize_value(entry[1], 'y')
                 point_obj.location = (x_norm, y_norm, z_norm)
 
             point_obj.parent = self.container_object
@@ -137,7 +137,7 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
                 dif = 2 if self.dimensions == '2' else 1
                 for j in range(value_index + 1, value_index + self.dm.tail_length + dif):
                     frame_n += self.anim_settings.key_spacing
-                    zn_norm = normalize_value(self.data[i][j], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+                    zn_norm = self.normalize_value(self.data[i][j], 'z')
                     point_obj.location[2] = zn_norm
                     point_obj.keyframe_insert(data_path='location', frame=frame_n)
 
@@ -147,7 +147,8 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
                 self.axis_settings,
                 int(self.dimensions),
                 self.chart_id,
-                labels=self.labels
+                labels=self.labels,
+                container_size=self.container_size,
             )
 
         if self.header_settings.create:

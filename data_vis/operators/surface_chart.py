@@ -86,7 +86,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
 
     @classmethod
     def poll(cls, context):
-        return modules_available and DataManager().is_type(DataType.Numerical, [3])
+        return modules_available and DataManager().is_type(DataType.Numerical, [3], only_3d=True)
 
     def draw(self, context):
         super().draw(context)
@@ -128,9 +128,9 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         verts = []
         for row in range(self.density):
             for col in range(self.density):
-                x_norm = row / self.density
-                y_norm = col / self.density
-                z_norm = normalize_value(res[row][col], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+                x_norm = self.container_size[0] * (row / self.density)
+                y_norm = self.container_size[1] * (col / self.density)
+                z_norm = self.normalize_value(res[row][col], 'z')
                 verts.append((x_norm, y_norm, z_norm))
                 if row < self.density - 1 and col < self.density - 1:
                     fac = self.face(col, row)
@@ -143,7 +143,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         bpy.context.scene.collection.objects.link(obj)
         obj.parent = self.container_object
 
-        mat = NodeShader(self.get_name(), self.color_shade, location_z=self.container_object.location[2]).create_geometry_shader()
+        mat = NodeShader(self.get_name(), self.color_shade, scale=self.container_size[2], location_z=self.container_object.location[2]).create_geometry_shader()
         obj.data.materials.append(mat)
         obj.active_material = mat
 
@@ -164,7 +164,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
                 sk = obj.shape_key_add(name='Column: ' + str(n))
 
                 for i in range(len(verts)):
-                    z_norm = normalize_value(res[i % self.density][i // self.density], self.axis_settings.z_range[0], self.axis_settings.z_range[1])
+                    z_norm = self.normalize_value(res[i % self.density][i // self.density], 'z')
                     sk.data[i].co.z = z_norm
                     sk.value = 0
 
@@ -186,6 +186,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
                 3,
                 self.chart_id,
                 labels=self.labels,
+                container_size=self.container_size,
             )
 
         if self.header_settings.create:

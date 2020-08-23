@@ -143,9 +143,9 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
 
         tick_labels = []
         if self.data_type_as_enum() == DataType.Numerical:
-            normalized_vert_list = [(normalize_value(entry[0], self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], self.axis_settings.z_range[0], self.axis_settings.z_range[1])) for entry in sorted_data]
+            normalized_vert_list = [(self.normalize_value(entry[0], 'x'), 0.0, self.normalize_value(entry[1], 'z')) for entry in sorted_data]
         else:
-            normalized_vert_list = [(normalize_value(i, self.axis_settings.x_range[0], self.axis_settings.x_range[1]), 0.0, normalize_value(entry[1], self.axis_settings.z_range[0], self.axis_settings.z_range[1])) for i, entry in enumerate(sorted_data)]
+            normalized_vert_list = [(normalize_value(i, 0, len(self.data)), 0.0, self.normalize_value(entry[1], 'z')) for i, entry in enumerate(sorted_data)]
             tick_labels = list(zip(*sorted_data))[0]
 
         edges = [[i - 1, i] for i in range(1, len(normalized_vert_list))]
@@ -153,7 +153,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         self.create_curve(normalized_vert_list, edges)
         self.add_bevel_obj()
         if self.use_shader:
-            mat = NodeShader(self.get_name(), self.color_shade, location_z=self.container_object.location[2]).create_geometry_shader()
+            mat = NodeShader(self.get_name(), self.color_shade, scale=self.container_size[2], location_z=self.container_object.location[2]).create_geometry_shader()
         else:
             mat = ColorGen(self.color_shade, ColorType.Constant, self.axis_settings.z_range).get_material()
 
@@ -167,7 +167,8 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
                 2,
                 self.chart_id,
                 labels=self.labels,
-                tick_labels=(tick_labels, [], [])
+                tick_labels=(tick_labels, [], []),
+                container_size=self.container_size,
             )
 
         if self.series_label:
@@ -241,6 +242,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         bpy.ops.mesh.primitive_plane_add()
         bevel_obj = bpy.context.active_object
         bevel_obj.scale = self.bevel_obj_size
+        bevel_obj.parent = self.container_object
 
         bpy.ops.object.convert(target='CURVE')
         self.curve_obj.data.bevel_object = bevel_obj

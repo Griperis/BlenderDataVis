@@ -8,7 +8,8 @@ import math
 
 from mathutils import Vector
 from data_vis.data_manager import DataManager, DataType
-from data_vis.utils.data_utils import find_axis_range
+from data_vis.icon_manager import IconManager
+from data_vis.utils.data_utils import find_axis_range, normalize_value
 from data_vis.colors import ColorType
 from data_vis.properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup
 
@@ -20,7 +21,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     '''
     bl_idname = 'object.create_chart'
     bl_label = 'Generic chart operator'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     data = None
     axis_mat = None
@@ -32,8 +33,9 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         self.dm = DataManager()
         self.prev_anim_setting = False
         self.prev_auto_step = False
+        self.container_size = Vector((1, 1, 1))
         if hasattr(self, 'dimensions'):
-            self.dimensions = str(self.dm.dimensions)
+            self.dimensions = str(self.dm.get_dimensions())
 
         if hasattr(self, 'data_type'):
             self.data_type = '0' if self.dm.predicted_data_type == DataType.Numerical else '1'
@@ -43,103 +45,116 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        box = layout.box()
-        box.label(icon='WORLD_DATA', text='Chart settings:')
+        if hasattr(self, 'data_type') or hasattr(self, 'dimensions'):
+            box = layout.box()
+            box.label(icon_value=IconManager().get_icon('addon_icon').icon_id, text='Chart settings:')
         if self.dm.predicted_data_type != DataType.Categorical and hasattr(self, 'data_type'):
             row = box.row()
+            row.use_property_split = True
             row.prop(self, 'data_type')
 
-        only_2d = hasattr(self, 'dimensions')
         numerical = True
         if hasattr(self, 'data_type'):
             if self.data_type == '1':
                 numerical = False
 
-        only_2d = only_2d or not numerical
-
         if hasattr(self, 'dimensions') and self.dm.predicted_data_type != DataType.Categorical:
-            if numerical:
+            if hasattr(self, 'only_2d') and self.only_2d is True:
+                draw_dims = False
+            else:
+                draw_dims = True
+            
+            if numerical and draw_dims:
                 row = box.row()
+                row.use_property_split = True
                 row.prop(self, 'dimensions')
             else:
                 self.dimensions = '2'
-        
-        self.draw_header_settings(layout)
-        self.draw_axis_settings(layout, numerical)
-        self.draw_legend_settings(layout)
-        self.draw_color_settings(layout)
-        self.draw_anim_settings(layout)
+        if hasattr(self, 'header_settings'):
+            self.draw_header_settings(layout)
+        if hasattr(self, 'axis_settings'):
+            self.draw_axis_settings(layout, numerical)
+        if hasattr(self, 'legend_settings'):
+            self.draw_legend_settings(layout)
+        if hasattr(self, 'color_settings'):
+            self.draw_color_settings(layout)
+        if hasattr(self, 'anim_settings'):
+            self.draw_anim_settings(layout)
 
     def draw_header_settings(self, layout):
-        if hasattr(self, 'header_settings'):
-
-            box = layout.box()
-            box.label(text='Header:', icon='BOLD')
-            row = box.row()
-            row.prop(self.header_settings, 'create')
-            if self.header_settings.create:
-                row = box.row()
-                if self.header_settings.text == 'None':
-                    self.header_settings.text = self.bl_label
-                row.prop(self.header_settings, 'text')
-                row.prop(self.header_settings, 'size')
+        box = layout.box()
+        box.use_property_split = True
+        row = box.row()
+        row.label(text='Header:', icon='BOLD')
+        row.prop(self.header_settings, 'create')
+        if self.header_settings.create:
+            if self.header_settings.text == 'None':
+                self.header_settings.text = self.bl_label
+            box.prop(self.header_settings, 'text')
+            box.prop(self.header_settings, 'size')
     
     def draw_legend_settings(self, layout):
-        if hasattr(self, 'legend_settings'):
-            box = layout.box()
-            row = box.row()
-            row.label(icon='WORDWRAP_ON', text='Legend:')
-            row.prop(self.legend_settings, 'create')
-            if self.legend_settings.create:
-                box.prop(self.legend_settings, 'position')
-                box.prop(self.legend_settings, 'item_size')
+        box = layout.box()
+        box.use_property_split = True
+        row = box.row()
+        row.label(icon='WORDWRAP_ON', text='Legend:')
+        row.prop(self.legend_settings, 'create')
+        if self.legend_settings.create:
+            box.prop(self.legend_settings, 'position')
+            box.prop(self.legend_settings, 'item_size')
 
     def draw_anim_settings(self, layout):
         if not self.dm.animable:
             return
-        if hasattr(self, 'anim_settings'):
-            box = layout.box()
-            box.label(icon='TIME', text='Animation:')
-            box.prop(self.anim_settings, 'animate')
-            if self.anim_settings.animate:
-                box.prop(self.anim_settings, 'key_spacing')
-            if self.anim_settings.animate != self.prev_anim_setting:
-                self.use_anim_range(self.anim_settings.animate)
-                self.prev_anim_setting = self.anim_settings.animate
+        box = layout.box()
+        box.use_property_split = True
+        row = box.row()
+        row.label(icon='TIME', text='Animation:')
+        row.prop(self.anim_settings, 'animate')
+        if self.anim_settings.animate:
+            box.prop(self.anim_settings, 'key_spacing')
+        if self.anim_settings.animate != self.prev_anim_setting:
+            self.use_anim_range(self.anim_settings.animate)
+            self.prev_anim_setting = self.anim_settings.animate
+
+        if hasattr(self, 'extend_anim_draw'):
+            self.extend_anim_draw(box)
 
     def draw_label_settings(self, box):
-        if hasattr(self, 'label_settings'):
-            row = box.row()
-            row.label(icon='FILE_FONT', text='Labels:')
-            row.prop(self.label_settings, 'create')
-            if self.label_settings.create:
-                if self.dm.has_labels:
-                    box.prop(self.label_settings, 'from_data')
-                if not self.label_settings.from_data or not self.dm.has_labels:
-                    row = box.row()
-                    row.prop(self.label_settings, 'x_label')
-                    if self.dm.dimensions == 3:
-                        row.prop(self.label_settings, 'y_label')
-                    row.prop(self.label_settings, 'z_label')
+        box.use_property_split = True
+        row = box.row()
+        row.label(icon='FILE_FONT', text='Labels:')
+        row.prop(self.label_settings, 'create')
+        if self.label_settings.create:
+            if self.dm.has_labels:
+                box.prop(self.label_settings, 'from_data')
+            if not self.label_settings.from_data or not self.dm.has_labels:
+                col = box.column(align=True)
+                col.prop(self.label_settings, 'x_label')
+                if self.dm.get_dimensions() == 3:
+                   col.prop(self.label_settings, 'y_label')
+                col.prop(self.label_settings, 'z_label')
 
     def draw_color_settings(self, layout):
         if hasattr(self, 'color_settings'):
             box = layout.box()
-            box.label(icon='COLOR', text='Colors:')
-            box.prop(self.color_settings, 'use_shader')
+            box.use_property_split = True
+            row = box.row()
+            row.label(icon='COLOR', text='Colors:')
+            row.prop(self.color_settings, 'use_shader')
             box.prop(self.color_settings, 'color_type')
             if not ColorType.str_to_type(self.color_settings.color_type) == ColorType.Random:
                 box.prop(self.color_settings, 'color_shade')
  
     def draw_axis_settings(self, layout, numerical):
-        if not hasattr(self, 'axis_settings'):
-            return
-
         box = layout.box()
-        box.label(icon='ORIENTATION_VIEW', text='Axis:')
+        row = box.row()
+        row.use_property_split = True
+        row.label(icon='ORIENTATION_VIEW', text='Axis:')
+        row.prop(self.axis_settings, 'create')
 
         row = box.row()
-        row.label(text='Ranges:', icon='ARROW_LEFTRIGHT')
+        row.label(text='Data Ranges:', icon='ARROW_LEFTRIGHT')
         row = box.row()
         if self.dm.predicted_data_type != DataType.Categorical:
             row.prop(self.axis_settings, 'x_range', text='X')
@@ -148,13 +163,13 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             row.prop(self.axis_settings, 'y_range', text='Y')
         row = box.row()
         row.prop(self.axis_settings, 'z_range', text='Z')
-        row = box.row()
-        row.prop(self.axis_settings, 'create')
         
         if not self.axis_settings.create:
             return
 
-        box.prop(self.axis_settings, 'auto_steps')
+        row = box.row()
+        row.use_property_split = True
+        row.prop(self.axis_settings, 'auto_steps')
 
         if self.prev_auto_step != self.axis_settings.auto_steps:
             self.axis_settings.x_step = self.dm.get_step_size('x')
@@ -178,7 +193,8 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         box.separator()
         row = box.row()
         row.label(text='Ticks:', icon='FONT_DATA')
-        box.prop(self.axis_settings, 'number_format')
+        row = box.row()
+        row.prop(self.axis_settings, 'number_format')
         row = box.row()
         row.prop(self.axis_settings, 'text_size')
         row.prop(self.axis_settings, 'decimal_places')
@@ -201,11 +217,15 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         if hasattr(self, 'init_props'):
             self.init_props()
 
+        self.container_size = context.scene.general_props.container_size
+
         return context.window_manager.invoke_props_dialog(self)
 
     def init_ranges(self):
         self.axis_settings.x_range = self.dm.get_range('x')
         self.axis_settings.y_range = self.dm.get_range('y')
+        if self.dm.dimensions > 2 and hasattr(self, 'dimensions') and self.dimensions == '2':
+            self.axis_settings.y_range = self.dm.get_range('z')
         self.axis_settings.z_range = self.dm.get_range('z')
         if hasattr(self, 'anim_settings') and self.anim_settings.animate:
             self.axis_settings.z_range = self.dm.get_range('z_anim')
@@ -237,13 +257,13 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         mat.diffuse_color = (*color, alpha)
         return mat
 
-    def init_data(self):
+    def init_data(self, subtype=None):
         if hasattr(self, 'label_settings'):
             self.init_labels()
 
         if hasattr(self, 'anim_settings') and self.prev_anim_setting != self.anim_settings.animate:
             self.use_anim_range(self.anim_settings.animate)
-        self.data = self.dm.get_parsed_data()
+        self.data = self.dm.get_parsed_data(subtype=subtype)
 
     def init_labels(self):
         if not self.label_settings.create:
@@ -290,13 +310,19 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
         bpy.context.view_layer.objects.active = self.container_object
         self.container_object.select_set(True)
 
-    def create_header(self, offset=(0.5, 0, 1.2), rotate=True):
+    def create_header(self, location=None, rotate=True):
         '''Creates header at container + offset'''
         bpy.ops.object.text_add()
         obj = bpy.context.object
+        obj.name = 'TextHeader'
         obj.data.align_x = 'CENTER'
         obj.data.body = self.header_settings.text
-        obj.location = Vector(offset)
+        if location is None:
+            # default location
+            obj.location = Vector((self.container_size[0] * 0.5, 0, self.container_size[2] + 0.2))
+        else:
+            obj.location = location
+
         obj.scale *= self.header_settings.size
         header_mat = bpy.data.materials.new(name='DV_HeaderMat_' + str(self.chart_id))
         obj.data.materials.append(header_mat)
@@ -308,3 +334,24 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
     def get_name(self):
         '''Returns chart container name'''
         return self.container_object.name
+
+    def normalize_value(self, value, direction):
+        axis_range = None
+        size = None
+        if direction == 'x':
+            axis_range = self.axis_settings.x_range
+            size = self.container_size[0]
+        elif direction == 'y':
+            axis_range = self.axis_settings.y_range
+            size = self.container_size[1]
+        elif direction == 'z':
+            axis_range = self.axis_settings.z_range
+            size = self.container_size[2]
+
+        if axis_range is None or size is None:
+            return 0.5
+
+        return size * normalize_value(value, axis_range[0], axis_range[1])
+
+        
+

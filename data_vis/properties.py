@@ -15,7 +15,7 @@ class DV_AxisPropertyGroup(bpy.types.PropertyGroup):
         if self.y_range[0] == self.y_range[1]:
             self.y_range[1] += 1.0
         if self.z_range[0] == self.z_range[1]:
-            self.z_range += 1.0
+            self.z_range[1] += 1.0
 
     create: bpy.props.BoolProperty(
         name='Create Axis Object',
@@ -145,18 +145,18 @@ class DV_LabelPropertyGroup(bpy.types.PropertyGroup):
     )
 
     x_label: bpy.props.StringProperty(
-        name='X',
-        default='X Label'
+        name='X Label',
+        default='X'
     )
 
     y_label: bpy.props.StringProperty(
-        name='Y',
-        default='Y Label'
+        name='Y Label',
+        default='Y'
     )
 
     z_label: bpy.props.StringProperty(
-        name='Z',
-        default='Z Label'
+        name='Z Label',
+        default='Z'
     )
 
 
@@ -220,4 +220,14 @@ class DV_LegendPropertyGroup(bpy.types.PropertyGroup):
         min=0.01,
         max=0.5,
         default=0.065,
+    )
+
+
+class DV_GeneralPropertyGroup(bpy.types.PropertyGroup):
+    container_size: bpy.props.FloatVectorProperty(
+        name='Chart container size',
+        default=(1.0, 1.0, 1.0),
+        size=3,
+        subtype='XYZ',
+        min=0.2,
     )

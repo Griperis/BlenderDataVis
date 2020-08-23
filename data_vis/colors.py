@@ -120,13 +120,7 @@ class NodeShader:
         cr_node.color_ramp.elements[1].color = self.base_color
 
         sub_node = self.__create_z_sub_node(nodes, material, -700)
-        
-        mul_node = nodes.new('ShaderNodeMath')
-        mul_node.location = (-500, 0)
- 
-        # normalize
-        mul_node.operation = 'MULTIPLY'
-        mul_node.inputs[1].default_value = self.scale
+        mul_node = self.__create_z_mul_node(nodes, material, -500, self.scale)
 
         xyz_sep_node = nodes.new('ShaderNodeSeparateXYZ')
         xyz_sep_node.location = (-900, 0)
@@ -159,17 +153,19 @@ class NodeShader:
 
         # Normalize the position when creating shader
         sub_node = self.__create_z_sub_node(nodes, material, -500)
+        mul_node = self.__create_z_mul_node(nodes, material, -700, self.scale)
 
         xyz_sep_node = nodes.new('ShaderNodeSeparateXYZ')
-        xyz_sep_node.location = (-700, 0)
+        xyz_sep_node.location = (-900, 0)
 
         geometry_node = nodes.new('ShaderNodeNewGeometry')
-        geometry_node.location = (-900, 0)
+        geometry_node.location = (-1200, 0)
 
         links = material.node_tree.links
         links.new(geometry_node.outputs[0], xyz_sep_node.inputs[0])
         links.new(xyz_sep_node.outputs[2], sub_node.inputs[0])
-        links.new(sub_node.outputs[0], cr_node.inputs[0])
+        links.new(sub_node.outputs[0], mul_node.inputs[0])
+        links.new(mul_node.outputs[0], cr_node.inputs[0])
         links.new(cr_node.outputs[0], bsdf_node.inputs[0])
 
         return material
@@ -177,12 +173,32 @@ class NodeShader:
     def get_material(self, *args):
         return self.material
 
+    def __create_z_mul_node(self, nodes, material, location_x, base_scale=1.0):
+        mul_node = nodes.new('ShaderNodeMath')
+        mul_node.location = (location_x, 0)
+        mul_node.operation = 'MULTIPLY'
+        mul_node.name = "MathMulScale"
+
+        drv = material.node_tree.driver_add('nodes["MathMulScale"].inputs[1].default_value')
+        var = drv.driver.variables.new()
+        var.type = 'TRANSFORMS'
+        var.name = 'z_scale'
+
+        target = var.targets[0]
+        target.id = bpy.data.objects.get(self.container_name)
+        target.transform_type = 'SCALE_Z'
+
+        drv.driver.expression = f"{base_scale} * (1.0 / {var.name})"
+
+        return mul_node
+
     def __create_z_sub_node(self, nodes, material, location_x):
         sub_node = nodes.new('ShaderNodeMath')
         sub_node.location = (location_x, 0)
         sub_node.operation = 'SUBTRACT'
+        sub_node.name = "MathSubLoc"
 
-        drv = material.node_tree.driver_add('nodes["Math"].inputs[1].default_value')
+        drv = material.node_tree.driver_add('nodes["MathSubLoc"].inputs[1].default_value')
         var = drv.driver.variables.new()
         var.type = 'TRANSFORMS'
         var.name = 'z_pos'
