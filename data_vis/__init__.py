@@ -8,7 +8,7 @@ bl_info = {
     'author': 'Zdenek Dolezal',
     'description': 'Data visualisation addon',
     'blender': (2, 80, 0),
-    'version': (1, 4, 0),
+    'version': (2, 0, 0),
     'location': 'Object -> Add Mesh',
     'warning': '',
     'category': 'Generic'

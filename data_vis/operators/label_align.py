@@ -27,13 +27,13 @@ class OBJECT_OT_AlignLabels(bpy.types.Operator):
         axis_count = 0
         is_pie = False
         for child in bpy.context.object.children:
-            if child.name == 'Axis_Container_AxisDir.X':
+            if 'Axis_Container_AxisDir.X' in child.name:
                 self.align_labels('x', child)
                 axis_count += 1
-            elif child.name == 'Axis_Container_AxisDir.Y':
+            elif 'Axis_Container_AxisDir.Y' in child.name:
                 self.align_labels('y', child)
                 axis_count += 1
-            elif child.name == 'Axis_Container_AxisDir.Z':
+            elif 'Axis_Container_AxisDir.Z' in child.name:
                 self.align_labels('z', child)
                 axis_count += 1
 

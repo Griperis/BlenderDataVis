@@ -188,7 +188,7 @@ class NodeShader:
         target.id = bpy.data.objects.get(self.container_name)
         target.transform_type = 'SCALE_Z'
 
-        drv.driver.expression = "1.0 / " + var.name
+        drv.driver.expression = f"{base_scale} * (1.0 / {var.name})"
 
         return mul_node
 
