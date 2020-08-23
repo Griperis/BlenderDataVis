@@ -145,6 +145,22 @@ class DV_OT_ReloadData(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class DV_OT_PrintData(bpy.types.Operator):
+    '''Prints data to blender console'''
+    bl_idname = 'data_list.print_data'
+    bl_label = 'Print Data'
+    bl_option = {'REGISTER'}
+
+    @classmethod
+    def poll(cls, context):
+        return data_manager.parsed_data
+
+    def execute(self, context):
+        data_manager.print_data()
+        self.report({'INFO'}, 'Data printed into console!')
+        return {'FINISHED'}
+
+
 class DV_OT_RemoveData(bpy.types.Operator):
     '''Removes data entry from DV_UL_DataList'''
     bl_idname = 'data_list.remove_data'
@@ -176,7 +192,7 @@ class DV_AddonPanel(bpy.types.Panel):
         box = layout.box()
         box.label(text='Recently Loaded Files')
         box.template_list('DV_UL_DataList', '', context.scene, 'data_list', context.scene, 'data_list_index')
-        row = box.row()
+        row = box.row(align=True)
         row.operator('ui.dv_load_data')
         row.operator('data_list.remove_data')
 
@@ -184,7 +200,7 @@ class DV_AddonPanel(bpy.types.Panel):
 
         filename = data_manager.get_filename()
         if filename == '':
-            box.label(text='File: No file loaded')
+            box.label(text='File: No file loaded. Reload!')
         else:
             box.label(text='File: ' + str(filename))
             box.label(text='Dims: ' + str(data_manager.get_dimensions()))
@@ -251,6 +267,10 @@ def update_region_type(self, context):
         print('Setting Region Type error: ', str(e))
 
 
+def get_preferences(context):
+    return context.preferences.addons['data_vis'].preferences
+
+
 class DV_Preferences(bpy.types.AddonPreferences):
     '''Preferences for data visualisation addon'''
     bl_idname = 'data_vis'
@@ -270,6 +290,11 @@ class DV_Preferences(bpy.types.AddonPreferences):
         name='Panel Category',
         default='DataVis',
         update=update_category
+    )
+
+    debug: bpy.props.BoolProperty(
+        name='Toggle Debug Options',
+        default=True
     )
 
     def draw(self, context):
@@ -296,6 +321,10 @@ class DV_Preferences(bpy.types.AddonPreferences):
         box.prop(self, 'ui_space_type')
         box.prop(self, 'ui_category')
         box.label(text='Check console for possible errors!', icon='ERROR')
+
+        box = layout.box()
+        box.label(text='Other Settings', icon='PLUGIN')
+        box.prop(self, 'debug')
 
 
 class OBJECT_OT_AddChart(bpy.types.Menu):
@@ -335,7 +364,10 @@ class DV_UL_DataList(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         layout.label(icon='ALIGN_JUSTIFY', text=f'{item.name}')
         if index == context.scene.data_list_index:
-            layout.operator(DV_OT_ReloadData.bl_idname, icon='FILE_REFRESH', text='')
+            row = layout.row(align=True)
+            row.operator(DV_OT_ReloadData.bl_idname, icon='FILE_REFRESH', text='')
+            if get_preferences(context).debug:
+                row.operator(DV_OT_PrintData.bl_idname, icon='OUTPUT', text='')
 
 
 def chart_ops(self, context):
@@ -355,6 +387,7 @@ classes = [
     DV_GeneralPropertyGroup,
     DV_DL_PropertyGroup,
     DV_UL_DataList,
+    DV_OT_PrintData,
     DV_OT_RemoveData,
     DV_OT_ReloadData,
     OBJECT_OT_AddChart,
