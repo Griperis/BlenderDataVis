@@ -203,7 +203,7 @@ class DataManager:
                     return self.parsed_data
                 elif subtype == DataSubtype.XYZW:
                     if len(self.parsed_data[0]) != 4:
-                        return [[x[0], [1], x[2], x[3]] for x in self.parsed_data]
+                        return [[x[0], x[1], x[2], x[3]] for x in self.parsed_data]
                     else:
                         return self.parsed_data
                 elif subtype == DataSubtype.XYZ_Anim:
@@ -216,8 +216,7 @@ class DataManager:
 
         def get_range(self, axis, subtype=None):
             if axis == 'z_anim' and 'z_anim' not in self.ranges:
-                print('looking for z anim and z anim is not found')
-                return tuple(self.ranges['z'])
+                raise RuntimeError('looking for z anim and z anim is not found')
             if axis in self.ranges:
                 return tuple(self.ranges[axis])
             else:
@@ -272,6 +271,13 @@ class DataManager:
                 return False
             return data_type == self.predicted_data_type and min_dims <= self.dimensions
 
+        def print_data(self, nice=True):
+            if not nice:
+                print(self.parsed_data)
+            else:
+                for row in self.parsed_data:
+                    print(row)
+
         def __get_row_list(self, row):
             if self.predicted_data_type == DataType.Categorical:
                 ret_list = [str(row[0])]
@@ -293,8 +299,9 @@ class DataManager:
             return (min(first[0], second[0]), max(first[1], second[1]))
 
         def __str__(self):
-            return '{}\nL: {}\nNOFL: {}\nDIMS: {}\nRNGS: {}\nANIM_DATA: {}\nANIM: {}'.format(
+            return '{}\nSUBTYPES: {}\nL: {}\nNOFL: {}\nDIMS: {}\nRNGS: {}\nANIM_DATA: {}\nANIM: {}'.format(
                 self.predicted_data_type,
+                self.subtypes,
                 self.has_labels,
                 self.lines,
                 self.dimensions,
