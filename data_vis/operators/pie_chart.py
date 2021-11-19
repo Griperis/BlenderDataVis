@@ -69,6 +69,11 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         default=False,
     )
 
+    scale_y_with_data2: bpy.props.BoolProperty(
+        name='Scale size with data[2]',
+        default=False,
+    )
+
     slice_size: bpy.props.FloatProperty(
         name='Slice Height',
         default=1,
@@ -113,6 +118,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         box.prop(self, 'vertices')
         box.separator()
         box.prop(self, 'scale_z_with_value')
+        box.prop(self, 'scale_y_with_data2')
         if self.scale_z_with_value:
             box.prop(self, 'slice_size')
         box.separator()
@@ -139,15 +145,23 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         rot = 0
         rot_inc = 2.0 * math.pi / self.vertices
         scale = 1.0 / self.vertices * math.pi
-        for i in range(0, self.vertices):
-            cyl_slice = self.create_slice()
-            cyl_slice.scale.y *= scale
-            cyl_slice.rotation_euler.z = rot
-            rot += rot_inc
-            self.slices.append(cyl_slice)
 
         values_sum = sum(float(entry[1]) for entry in self.data)
         data_len = len(self.data)
+
+        slice_data=[]
+        prev_i = 0
+        for i in range(data_len):
+            portion = self.data[i][1] / values_sum
+            increment = round(portion * self.vertices)
+            for di in range(prev_i, prev_i+increment):
+                cyl_slice = self.create_slice(self.data[i][2]/self.data[i][1] if self.scale_y_with_data2 else 1)
+                cyl_slice.scale.y *= scale
+                cyl_slice.rotation_euler.z = rot
+                rot += rot_inc
+                self.slices.append(cyl_slice)
+            prev_i += increment
+
         color_gen = ColorGen(self.color_shade, ColorType.str_to_type(self.color_type), (0, data_len))
 
         prev_i = 0
@@ -208,11 +222,10 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         else:
             return None
 
-    def create_slice(self):
+    def create_slice(self, slice_size):
         '''
         Creates a triangle (slice of pie chart)
         '''
-        slice_size = 0.5
         verts = [(0, 0, 0.1), (-slice_size, slice_size, 0.1), (-slice_size, -slice_size, 0.1),
                  (0, 0, 0), (-slice_size, slice_size, 0), (-slice_size, -slice_size, 0)]
 
