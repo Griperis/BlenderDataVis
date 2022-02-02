@@ -355,3 +355,21 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
         
 
+# Code inspired from thread at blender.stackexchange
+# https://blender.stackexchange.com/questions/109711/how-to-popup-simple-message-box-from-python-console
+class DV_ShowPopup(bpy.types.Operator):
+    bl_idname = 'data_vis.show_popup'
+    bl_label = 'Show Popup'
+
+    msg: bpy.props.StringProperty()
+    title: bpy.props.StringProperty(default='Info')
+    icon: bpy.props.StringProperty(default='QUESTION')
+
+    def execute(self, context):
+        def draw(self_, context):
+            column = self_.layout.column(align=True)
+            for line in self.msg.split("\n"):
+                column.label(text=line)
+
+        context.window_manager.popup_menu(draw, title=self.title, icon=self.icon)
+        return {'FINISHED'}

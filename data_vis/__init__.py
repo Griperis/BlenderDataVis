@@ -28,13 +28,16 @@ from .operators.surface_chart import OBJECT_OT_SurfaceChart
 from .operators.bubble_chart import OBJECT_OT_BubbleChart
 from .operators.label_align import OBJECT_OT_AlignLabels
 from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup, DV_GeneralPropertyGroup
-from .data_manager import DataManager
+from .data_manager import DataManager, get_example_data_doc
 from .icon_manager import IconManager
+from .general import DV_ShowPopup
 
 icon_manager = IconManager()
 data_manager = DataManager()
 
+
 PERFORMANCE_WARNING_LINE_THRESHOLD = 150
+EXAMPLE_DATA_FOLDER = 'example_data'
 
 
 class OBJECT_OT_InstallModules(bpy.types.Operator):
@@ -108,6 +111,9 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
     )
 
     def invoke(self, context, event):
+        if self.filepath != '':
+            return self.execute(context)
+
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -188,9 +194,34 @@ class DV_AddonPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        preferences = get_preferences(context)
 
         box = layout.box()
-        box.label(text='Recently Loaded Files')
+        row = box.row(align=True)
+        col = row.column()
+        col.label(text='Recently Loaded Files')
+        col = row.column()
+        col.alignment = 'RIGHT'
+        col.prop(preferences, 'show_data_examples', icon='INFO', text="")
+
+        if preferences.show_data_examples:
+            col = box.column(align=True)
+            row = col.row()
+            row.enabled = False
+            row.label(text='Data Examples')
+            col.prop(preferences, 'example_category', text='')
+            row = col.row(align=True)
+            row.prop(preferences, 'example_data', text='')
+            example_filepath = os.path.join(
+                get_example_data_path(),
+                preferences.example_category,
+                preferences.example_data
+            )
+            popup = row.operator(DV_ShowPopup.bl_idname, icon='QUESTION', text="")
+            popup.title = 'Data Information'
+            popup.msg = get_example_data_doc(preferences.example_data)
+            row.operator(FILE_OT_DVLoadFile.bl_idname, icon='IMPORT', text="").filepath = example_filepath
+    
         box.template_list('DV_UL_DataList', '', context.scene, 'data_list', context.scene, 'data_list_index')
         row = box.row(align=True)
         row.operator('ui.dv_load_data')
@@ -268,7 +299,15 @@ def update_region_type(self, context):
 
 
 def get_preferences(context):
-    return context.preferences.addons['data_vis'].preferences
+    return context.preferences.addons[__package__].preferences
+
+def get_example_data_path():
+    return os.path.join(
+        bpy.utils.script_path_user(),
+        "addons",
+        __package__,
+        EXAMPLE_DATA_FOLDER
+    )
 
 
 class DV_Preferences(bpy.types.AddonPreferences):
@@ -296,6 +335,45 @@ class DV_Preferences(bpy.types.AddonPreferences):
         name='Toggle Debug Options',
         default=True
     )
+
+    show_data_examples: bpy.props.BoolProperty(
+        name='Show Data Examples',
+        description='If true then data examples are shown and can be loaded',
+        default=False,
+    )
+
+    example_category: bpy.props.EnumProperty(
+        name='Data Type',
+        description='Types of example data',
+        items=lambda self, context: self.get_example_data_categories(context)
+    )
+
+    example_data: bpy.props.EnumProperty(
+        name='Example Data',
+        description='Select example data to load',
+        items=lambda self, context: self.get_example_data(context)
+    )
+
+    def get_example_data_categories(self, context):
+        enum_items = []
+        for i, _dir in enumerate(os.listdir(get_example_data_path())):
+            # infer icon from data type
+            icon = 'QUESTION'
+            if _dir == 'categorical':
+                icon = 'LINENUMBERS_ON'
+            elif _dir == 'numerical':
+                icon = 'FORCE_HARMONIC' 
+
+            enum_items.append((_dir, _dir, _dir, icon, i))
+
+        return enum_items
+
+    def get_example_data(self, context):
+        enum_items = []
+        for file in os.listdir(os.path.join(get_example_data_path(), self.example_category)):
+            enum_items.append((file, file, file))
+
+        return sorted(enum_items)
 
     def draw(self, context):
         layout = self.layout
@@ -377,6 +455,7 @@ def chart_ops(self, context):
 
 classes = [
     DV_Preferences,
+    DV_ShowPopup,
     OBJECT_OT_InstallModules,
     DV_LabelPropertyGroup,
     DV_ColorPropertyGroup,

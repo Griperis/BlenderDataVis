@@ -322,3 +322,32 @@ class DataManager:
 
     def __setattr__(self, name):
         return setattr(self.instance, name)
+
+
+SPECIFIC_DOCS = {
+    'famous-marketshare_2D.csv': 'data suitable for [pie chart], check apple\'s first iphone presentation',
+    'species_2D.csv': 'distribution of species in some area, good for [pie chart] or [bar chart]',
+    'species_2D_anim.csv': 'changing distribution of species in some area, good for animated [bar chart]',
+    'survey-result_2D.csv': 'result of user-experience questionaire for data-vis, good for [bar chart]',
+    'time-data_1_2D.csv': 'datapoints in a timeline - combine with "time-data_2_2D.csv" in a [line chart]',
+    'x+y-small_3D_anim.csv': 'small example of 3D x+y function, good for [bar chart, buibble chart, point chart]',
+    'tan_1000-val_3D.csv': 'large example of tan function, best suitable for [surface chart]'
+}
+
+def get_example_data_doc(example: str) -> str:
+    '''Generates documentaion string from example filename'''
+    docs = []
+
+    if '2D' in example:
+        docs.append('2D data, suitable for flat visualisations')
+    elif '3D' in example:
+        docs.append('3D data that can be displayed in space or flat')
+        docs.append('valid 3D data can be used to generate 2D charts')
+    if 'anim' in example:
+        docs.append('example containing animations')
+    
+    if example in SPECIFIC_DOCS:
+        docs.append(SPECIFIC_DOCS[example])
+
+    docs = [f'- {d}' for d in docs]
+    return '\n'.join(docs)
