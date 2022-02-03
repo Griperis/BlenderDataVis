@@ -64,8 +64,14 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
         if ext != '.csv':
             self.report({'WARNING'}, 'Only CSV files are supported!')
             return {'CANCELLED'}
-        line_n = data_manager.load_data(self.filepath)
 
+        for i, item in enumerate(context.scene.data_list):
+            if item.filepath == self.filepath:
+                context.scene.data_list_index = i
+                self.report({'WARNING'}, f'File {self.filepath} already loaded!')
+                return {'CANCELLED'}
+                
+        line_n = data_manager.load_data(self.filepath)
 
         report_type = {'INFO'}
         if line_n == 0:
@@ -74,6 +80,8 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
             item = context.scene.data_list.add()
             _, item.name = os.path.split(self.filepath)
             item.filepath = self.filepath
+
+            context.scene.data_list_index = len(context.scene.data_list) - 1
         self.report(report_type, f'File: {self.filepath}, loaded {line_n} lines!')
         return {'FINISHED'}
 

@@ -54,6 +54,9 @@ class DataManager:
             return self.raw_data
 
         def load_data(self, filepath, delimiter=','):
+            if not os.path.exists(filepath):
+                return 0
+
             self.default_state()
             self.filepath = filepath
             try:
