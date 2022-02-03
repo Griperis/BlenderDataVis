@@ -8,7 +8,7 @@ bl_info = {
     'author': 'Zdenek Dolezal',
     'description': 'Data visualisation addon',
     'blender': (2, 80, 0),
-    'version': (2, 0, 0),
+    'version': (2, 1, 0),
     'location': 'Object -> Add Mesh',
     'warning': '',
     'category': 'Generic'
@@ -17,8 +17,6 @@ bl_info = {
 import bpy
 import bpy.utils.previews
 import os
-import subprocess
-import sys
 
 from .operators.bar_chart import OBJECT_OT_BarChart
 from .operators.line_chart import OBJECT_OT_LineChart
@@ -26,12 +24,13 @@ from .operators.pie_chart import OBJECT_OT_PieChart
 from .operators.point_chart import OBJECT_OT_PointChart
 from .operators.surface_chart import OBJECT_OT_SurfaceChart
 from .operators.bubble_chart import OBJECT_OT_BubbleChart
-from .operators.label_align import OBJECT_OT_AlignLabels
+from .operators.label_align import DV_AlignLabels
 from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup, DV_GeneralPropertyGroup
 from .data_manager import DataManager
 from .docs import get_example_data_doc, draw_tooltip_button
 from .icon_manager import IconManager
 from .general import DV_ShowPopup, DV_DataInspect
+from .utils import env_utils
 
 icon_manager = IconManager()
 data_manager = DataManager()
@@ -39,63 +38,6 @@ data_manager = DataManager()
 
 PERFORMANCE_WARNING_LINE_THRESHOLD = 150
 EXAMPLE_DATA_FOLDER = 'example_data'
-
-
-class OBJECT_OT_InstallModules(bpy.types.Operator):
-    '''Operator that tries to install scipy and numpy using pip into blender python'''
-    bl_label = 'Install addon dependencies'
-    bl_idname = 'object.install_modules'
-    bl_options = {'REGISTER'}
-
-    def execute(self, context):
-        version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
-
-        python_path = os.path.join(os.getcwd(), version, 'python', 'bin', 'python')
-        try:
-            self.install(python_path)
-        except Exception as e:
-            self.report({'ERROR'}, 'Error ocurred, try to install dependencies manually. \n Exception: {}'.format(str(e)))
-        return {'FINISHED'}
-
-    def install(self, python_path):
-        import platform
-
-        info = ''
-        bp_pip = -1
-        bp_res = -1
-
-        p_pip = -1
-        p_res = -1
-
-        p3_pip = -1
-        p3_res = -1
-        try:
-            bp_pip = subprocess.check_call([python_path, '-m', 'ensurepip', '--user'])
-            bp_res = subprocess.check_call([python_path, '-m', 'pip', 'install', '--user', 'scipy'])
-        except OSError as e:
-            info = 'Python in blender folder failed: ' + str(e) + '\n'
-
-        if bp_pip != 0 or bp_res != 0:
-            if platform.system() == 'Linux':
-                try:
-                    p_pip = subprocess.check_call(['python', '-m', 'ensurepip', '--user'])
-                    p_res = subprocess.check_call(['python', '-m', 'pip', 'install', '--user', 'scipy'])
-                except OSError as e:
-                    info += 'Python in PATH failed: ' + str(e) + '\n'
-
-                if p_pip != 0 or p_res != 0:  
-                    try:
-                        # python3
-                        p3_pip = subprocess.check_call(['python3', '-m', 'ensurepip', '--user'])
-                        p3_res = subprocess.check_call(['python3', '-m', 'pip', 'install', '--user', 'scipy'])
-                    except OSError as e:
-                        info += 'Python3 in PATH failed: ' + str(e) + '\n'
-
-        # if one approach worked
-        if (bp_pip == 0 and bp_res == 0) or (p_pip == 0 and p_res == 0) or (p3_pip == 0 and p3_res == 0):
-            self.report({'INFO'}, 'Scipy module should be succesfully installed, restart Blender now please! (Best effort approach)')
-        else:
-            raise Exception('Failed to install pip or scipy into blender python:\n' + str(info))
 
 
 class FILE_OT_DVLoadFile(bpy.types.Operator):
@@ -122,8 +64,14 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
         if ext != '.csv':
             self.report({'WARNING'}, 'Only CSV files are supported!')
             return {'CANCELLED'}
-        line_n = data_manager.load_data(self.filepath)
 
+        for i, item in enumerate(context.scene.data_list):
+            if item.filepath == self.filepath:
+                context.scene.data_list_index = i
+                self.report({'WARNING'}, f'File {self.filepath} already loaded!')
+                return {'CANCELLED'}
+
+        line_n = data_manager.load_data(self.filepath)
 
         report_type = {'INFO'}
         if line_n == 0:
@@ -132,6 +80,8 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
             item = context.scene.data_list.add()
             _, item.name = os.path.split(self.filepath)
             item.filepath = self.filepath
+
+            context.scene.data_list_index = len(context.scene.data_list) - 1
         self.report(report_type, f'File: {self.filepath}, loaded {line_n} lines!')
         return {'FINISHED'}
 
@@ -234,7 +184,7 @@ class DV_AddonPanel(bpy.types.Panel):
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.operator(FILE_OT_DVLoadFile.bl_idname, text='Load File', icon='ADD')
+        row.operator(FILE_OT_DVLoadFile.bl_idname, text='Load File', icon='ADD').filepath = ''
         row.operator(DV_OT_RemoveData.bl_idname, text='Remove', icon='REMOVE')
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -272,7 +222,7 @@ class DV_AddonPanel(bpy.types.Panel):
         row.scale_y = 2
 
         row = layout.row()
-        row.operator('object.align_labels', icon='CAMERA_DATA')
+        row.operator(DV_AlignLabels.bl_idname, icon='CAMERA_DATA')
         row.scale_y = 1.5
 
         scn = context.scene
@@ -398,22 +348,6 @@ class DV_Preferences(bpy.types.AddonPreferences):
     def draw(self, context):
         layout = self.layout
         box = layout.box()
-        box.label(text='Python dependencies', icon='PLUS')
-        row = box.row()
-        row.scale_y = 2.0
-        try:
-            import scipy
-            import numpy
-            row.label(text='Dependencies already installed...')
-        except ImportError:
-            row.operator('object.install_modules')
-            row = box.row()
-            version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
-            row.label(text='Or use pip to install scipy into python which Blender uses!')
-            row = box.row()
-            row.label(text='Blender has to be restarted after this process!')
-
-        box = layout.box()
         box.label(text='Customize position of addon panel', icon='TOOL_SETTINGS')
         box.prop(self, 'ui_region_type')
         box.prop(self, 'ui_space_type')
@@ -478,7 +412,6 @@ classes = [
     DV_Preferences,
     DV_ShowPopup,
     DV_DataInspect,
-    OBJECT_OT_InstallModules,
     DV_LabelPropertyGroup,
     DV_ColorPropertyGroup,
     DV_AxisPropertyGroup,
@@ -498,7 +431,7 @@ classes = [
     OBJECT_OT_LineChart,
     OBJECT_OT_SurfaceChart,
     OBJECT_OT_BubbleChart,
-    OBJECT_OT_AlignLabels,
+    DV_AlignLabels,
     FILE_OT_DVLoadFile,
     DV_AddonPanel,
 ]
@@ -515,6 +448,8 @@ def reload():
 
 
 def register():
+    for module in ['scipy', 'numpy']:
+        env_utils.ensure_python_module(module)
 
     icon_manager.load_icons()
     for c in classes:

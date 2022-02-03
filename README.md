@@ -97,8 +97,10 @@ Currently supported features:
 - Basic animations from data
 - Panel settings (to prevent sidebar cluster)
 - Loaded data list
-- Label alignment to active camera
+- Data inspector
+- Label alignment to active camera or active view
 - Chart container size
+- Example data available in addon
 
 Known issues:
 - Charts from larger files (>200 entries) take long time to generate (except surface chart), because of large numbers of manipulations with objects instead of meshes
@@ -115,4 +117,4 @@ Zdeněk Doležal - Bachelor Thesis
 
 Faculty of information technology BUT
 
-Version 2.0
+Version 2.1

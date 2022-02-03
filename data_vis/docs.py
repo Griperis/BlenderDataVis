@@ -13,7 +13,8 @@ SPECIFIC_DATA_DOCS = {
     'species_2D_anim.csv': 'changing distribution of species in some area, good for animated [bar chart]',
     'survey-result_2D.csv': 'result of user-experience questionaire for data-vis, good for [bar chart]',
     'time-data_1_2D.csv': 'datapoints in a timeline - combine with "time-data_2_2D.csv" in a [line chart]',
-    'x+y-small_3D_anim.csv': 'small example of 3D x+y function, good for [bar chart, buibble chart, point chart]',
+    'x+y-small_3D.csv': 'small example of 3D x+y function, good for [bar chart, bubble chart, point chart]',
+    'function-fancy_3D_anim.csv': 'animated 3d function, good for [surface chart, bar chart, point chart]',
     'tan_1000-val_3D.csv': 'large example of tan function, best suitable for [surface chart]'
 }
 
