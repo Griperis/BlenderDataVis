@@ -28,7 +28,8 @@ from .operators.surface_chart import OBJECT_OT_SurfaceChart
 from .operators.bubble_chart import OBJECT_OT_BubbleChart
 from .operators.label_align import OBJECT_OT_AlignLabels
 from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup, DV_GeneralPropertyGroup
-from .data_manager import DataManager, get_example_data_doc
+from .data_manager import DataManager
+from .docs import get_example_data_doc, draw_tooltip_button
 from .icon_manager import IconManager
 from .general import DV_ShowPopup, DV_DataInspect
 
@@ -98,12 +99,10 @@ class OBJECT_OT_InstallModules(bpy.types.Operator):
 
 
 class FILE_OT_DVLoadFile(bpy.types.Operator):
-    '''
-    Loads data from CSV file to property in first scene
-    '''
     bl_idname = 'ui.dv_load_data'
     bl_label = 'Load New File'
     bl_options = {'REGISTER'}
+    bl_description = 'Loads data from CSV file to property in first scene'
 
     filepath: bpy.props.StringProperty(
         name='CSV File',
@@ -179,6 +178,7 @@ class DV_OT_RemoveData(bpy.types.Operator):
         return {'FINISHED'}
 
 
+
 class DV_AddonPanel(bpy.types.Panel):
     '''Menu panel used for loading data and managing addon settings'''
     bl_label = 'DataVis'
@@ -192,20 +192,24 @@ class DV_AddonPanel(bpy.types.Panel):
         layout = self.layout
         layout.template_icon(icon_value=icon_manager.get_icon_id('addon_icon'))
 
-    def draw(self, context):
-        layout = self.layout
-        preferences = get_preferences(context)
+    def create_label_row(self, layout, label, value):
+        row = layout.row(align=True)
+        label_col = row.column(align=True)
+        label_col.enabled = False
+        label_col.label(text=str(label))
+        row.label(text=str(value))
+        return row
 
-        box = layout.box()
-        row = box.row(align=True)
-        col = row.column()
-        col.label(text='Recently Loaded Files')
-        col = row.column()
+    def draw_data_list(self, context, layout):
+        preferences = get_preferences(context)
+        row = layout.row(align=True)
+        row.label(text='Recently Loaded Files', icon='ALIGN_JUSTIFY')
+        col = row.column(align=True)
         col.alignment = 'RIGHT'
-        col.prop(preferences, 'show_data_examples', icon='INFO', text="")
+        col.prop(preferences, 'show_data_examples', icon='HELP', text='')
 
         if preferences.show_data_examples:
-            col = box.column(align=True)
+            col = layout.column()
             row = col.row()
             row.enabled = False
             row.label(text='Data Examples')
@@ -217,56 +221,71 @@ class DV_AddonPanel(bpy.types.Panel):
                 preferences.example_category,
                 preferences.example_data
             )
-            popup = row.operator(DV_ShowPopup.bl_idname, icon='QUESTION', text="")
+
+            # Column with no emboss for the data information popup
+            col = row.column(align=False)
+            col.emboss = 'NONE'
+            popup = col.operator(DV_ShowPopup.bl_idname, icon='QUESTION', text='')
             popup.title = 'Data Information'
             popup.msg = get_example_data_doc(preferences.example_data)
-            row.operator(FILE_OT_DVLoadFile.bl_idname, icon='IMPORT', text="").filepath = example_filepath
+            row.operator(FILE_OT_DVLoadFile.bl_idname, icon='IMPORT', text='').filepath = example_filepath
     
-        box.template_list('DV_UL_DataList', '', context.scene, 'data_list', context.scene, 'data_list_index')
-        row = box.row(align=True)
-        row.operator('ui.dv_load_data')
-        row.operator('data_list.remove_data')
-        row.operator(DV_DataInspect.bl_idname, text='Inspect', icon='ZOOM_ALL')
+        layout.template_list('DV_UL_DataList', '', context.scene, 'data_list', context.scene, 'data_list_index')
 
-        box.label(icon='WORLD_DATA', text='Data Information:')
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.operator(FILE_OT_DVLoadFile.bl_idname, text='Load File', icon='ADD')
+        row.operator(DV_OT_RemoveData.bl_idname, text='Remove', icon='REMOVE')
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.label(icon='WORLD_DATA', text='Data Information')
+        draw_tooltip_button(row, 'data')
 
         filename = data_manager.get_filename()
         if filename == '':
-            box.label(text='File: No file loaded. Reload!')
+            col.label(text='File: No file loaded. Reload!')
         else:
-            box.label(text='File: ' + str(filename))
-            box.label(text='Dims: ' + str(data_manager.get_dimensions()))
-            box.label(text='Labels: ' + str(data_manager.has_labels))
+            self.create_label_row(col, 'File', str(filename))
+            self.create_label_row(col, 'Dims', str(data_manager.get_dimensions()))
+            self.create_label_row(col, 'Labels', str(data_manager.has_labels))
+
             lines = data_manager.lines
+            row = self.create_label_row(col, 'Lines', lines)
             if lines >= PERFORMANCE_WARNING_LINE_THRESHOLD:
-                lines = str(lines) + ' Warning (performace)!'
-            else:
-                lines = str(lines)     
-            box.label(text='Lines: ' + lines)
-            box.label(text='Type: ' + str(data_manager.predicted_data_type))
+                row = col.row()
+                row.alert = True
+                row.label(text='Large data size, charts may generate slowly!', icon='ERROR')
+            
+            self.create_label_row(col, 'Type', str(data_manager.predicted_data_type).split('.')[1])
             
             data_list_index = context.scene.data_list_index
             data_list = context.scene.data_list
             if data_list_index < len(data_list) and data_list_index >= 0:
-                box.label(text=context.scene.data_list[context.scene.data_list_index].filepath)
+                col.label(text=context.scene.data_list[context.scene.data_list_index].filepath)
 
-        box = layout.box()
-        box.label(text='Chart Manipulation')
-        box.use_property_split = True
-        row = box.row()
+    def draw(self, context):
+        layout = self.layout
+        self.draw_data_list(context, layout)
+
+        row = layout.row()
         row.menu('OBJECT_MT_Add_Chart', text='Create Chart', icon_value=icon_manager.get_icon_id('addon_icon'))
         row.scale_y = 2
 
-        row = box.row()
+        row = layout.row()
         row.operator('object.align_labels', icon='CAMERA_DATA')
-        row.scale_y = 1.75
+        row.scale_y = 1.5
 
         scn = context.scene
 
-        box = layout.box()
-        box.label(text='General Chart Settings')
-        box.label(text='Default Container Size')
-        box.prop(scn.general_props, 'container_size', text='')
+        layout = layout.box()
+        col = layout.column(align=True)
+        col.label(text='General Chart Settings', icon='PREFERENCES')
+        row = col.row(align=True)
+        text_col = row.column(align=True)
+        text_col.enabled = False
+        text_col.label(text='Container Size')
+        draw_tooltip_button(row, 'container_size')
+        col.prop(scn.general_props, 'container_size', text='')
 
 
 def update_space_type(self, context):
@@ -441,7 +460,7 @@ class DV_UL_DataList(bpy.types.UIList):
     Loaded data list
     '''
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        layout.label(icon='ALIGN_JUSTIFY', text=f'{item.name}')
+        layout.label(text=f'{item.name}')
         if index == context.scene.data_list_index:
             row = layout.row(align=True)
             row.operator(DV_OT_ReloadData.bl_idname, icon='FILE_REFRESH', text='')
