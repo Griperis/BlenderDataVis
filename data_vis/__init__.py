@@ -234,7 +234,7 @@ class DV_AddonPanel(bpy.types.Panel):
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.operator(FILE_OT_DVLoadFile.bl_idname, text='Load File', icon='ADD')
+        row.operator(FILE_OT_DVLoadFile.bl_idname, text='Load File', icon='ADD').filepath = ''
         row.operator(DV_OT_RemoveData.bl_idname, text='Remove', icon='REMOVE')
         col = layout.column(align=True)
         row = col.row(align=True)
