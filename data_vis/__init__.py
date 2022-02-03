@@ -334,7 +334,7 @@ class DV_Preferences(bpy.types.AddonPreferences):
 
     debug: bpy.props.BoolProperty(
         name='Toggle Debug Options',
-        default=True
+        default=False
     )
 
     show_data_examples: bpy.props.BoolProperty(
