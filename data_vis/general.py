@@ -373,3 +373,94 @@ class DV_ShowPopup(bpy.types.Operator):
 
         context.window_manager.popup_menu(draw, title=self.title, icon=self.icon)
         return {'FINISHED'}
+
+
+class DV_DataInspect(bpy.types.Operator):
+    bl_idname = 'data_vis.data_inspect'
+    bl_label = 'Inspect Data'
+    bl_description = 'Displays active data from data list'
+
+    start_col_index: bpy.props.IntProperty(
+        default=0,
+        options={'HIDDEN'}
+    )
+
+    max_displayed_cols: bpy.props.IntProperty(
+        name='Max Displayed Columns',
+        description='How many columns to display',
+        default=5,
+        min=0,
+    )
+
+    should_scroll_right: bpy.props.BoolProperty(
+        name='Scroll Right',
+        description='When clicked display next columns',
+        default=False
+    )
+    should_scroll_left: bpy.props.BoolProperty(
+        name='Scroll Left',
+        description='When clicked display previous columns',
+        # Fake first scroll to not have complicated redraw logic
+        default=True
+    )
+
+    def handle_property_input(self, data):
+        if data is None:
+            return
+
+        cols = len(data[1])
+        if self.should_scroll_left:
+            self.should_scroll_left = False
+            if self.start_col_index > 0:
+                self.start_col_index -= 1
+
+        if self.should_scroll_right:
+            self.should_scroll_right = False
+            if self.start_col_index <= cols - 1:
+                self.start_col_index += 1
+
+    def draw(self, context):
+        layout = self.layout
+        metadata_index = context.scene.data_list_index
+        metadata_list = context.scene.data_list
+        # valid index is ensured by invoke method
+        metadata = metadata_list[metadata_index]
+        col = layout.column(align=True)
+        col.enabled = False
+        col.label(text=f'Name: {metadata.name}')
+        col.label(text=f'Filepath: {metadata.filepath}')
+        col.label(text=f'Info: {metadata.data_info}')
+
+        row = layout.row(align=True)
+        row.prop(self, 'should_scroll_left', text='', icon='TRIA_LEFT')
+        row.prop(self, 'max_displayed_cols', text='Displayed Columns')
+        row.prop(self, 'should_scroll_right', text='', icon='TRIA_RIGHT')
+
+        data_manager = DataManager()
+        # TODO: not super fast, but gets the job done
+        parsed_data = data_manager.get_parsed_data()
+        self.handle_property_input(parsed_data)
+
+        row = layout.row()
+        start_index = self.start_col_index
+        max_index = start_index + self.max_displayed_cols - 1
+        for i in range(len(parsed_data[1])):
+            if i < start_index or i > max_index:
+                continue
+            col = row.column()
+            for j in range(len(parsed_data)):
+                col.label(text=str(parsed_data[j][i]))
+        
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def invoke(self, context: bpy.types.Context, event):
+        metadata_index = context.scene.data_list_index
+        metadata_list = context.scene.data_list
+        if metadata_index < 0 or metadata_index >= len(metadata_list):
+            self.report({'ERROR'}, 'Invalid data index!')
+            return {'CANCELLED'}
+
+        metadata = metadata_list[metadata_index]
+        metadata.load()
+        return context.window_manager.invoke_props_dialog(self, width=500)

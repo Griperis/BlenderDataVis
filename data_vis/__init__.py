@@ -30,7 +30,7 @@ from .operators.label_align import OBJECT_OT_AlignLabels
 from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup, DV_GeneralPropertyGroup
 from .data_manager import DataManager, get_example_data_doc
 from .icon_manager import IconManager
-from .general import DV_ShowPopup
+from .general import DV_ShowPopup, DV_DataInspect
 
 icon_manager = IconManager()
 data_manager = DataManager()
@@ -146,7 +146,7 @@ class DV_OT_ReloadData(bpy.types.Operator):
     def execute(self, context):
         data_list = context.scene.data_list
         data_list_index = context.scene.data_list_index
-        data_list[data_list_index].load(context)
+        data_list[data_list_index].load()
         self.report({'INFO'}, 'Data reloaded!')
         return {'FINISHED'}
 
@@ -226,6 +226,7 @@ class DV_AddonPanel(bpy.types.Panel):
         row = box.row(align=True)
         row.operator('ui.dv_load_data')
         row.operator('data_list.remove_data')
+        row.operator(DV_DataInspect.bl_idname, text='Inspect', icon='ZOOM_ALL')
 
         box.label(icon='WORLD_DATA', text='Data Information:')
 
@@ -430,7 +431,7 @@ class DV_DL_PropertyGroup(bpy.types.PropertyGroup):
     filepath: bpy.props.StringProperty()
     data_info: bpy.props.StringProperty()
 
-    def load(self, context):
+    def load(self):
         data_manager.load_data(self.filepath)
 
 
@@ -444,6 +445,7 @@ class DV_UL_DataList(bpy.types.UIList):
         if index == context.scene.data_list_index:
             row = layout.row(align=True)
             row.operator(DV_OT_ReloadData.bl_idname, icon='FILE_REFRESH', text='')
+            row.operator(DV_DataInspect.bl_idname, icon='VIEWZOOM', text='')
             if get_preferences(context).debug:
                 row.operator(DV_OT_PrintData.bl_idname, icon='OUTPUT', text='')
 
@@ -456,6 +458,7 @@ def chart_ops(self, context):
 classes = [
     DV_Preferences,
     DV_ShowPopup,
+    DV_DataInspect,
     OBJECT_OT_InstallModules,
     DV_LabelPropertyGroup,
     DV_ColorPropertyGroup,
@@ -484,7 +487,7 @@ classes = [
 
 def reload_data(self, context):
     data_list = context.scene.data_list
-    data_list[self.data_list_index].load(context)
+    data_list[self.data_list_index].load()
 
 
 def reload():
