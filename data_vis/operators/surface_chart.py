@@ -3,24 +3,14 @@
 # Licence: GPL 3.0
 # Description: Surface chart implementation
 
-
 import bpy
-import math
 
 from data_vis.general import OBJECT_OT_GenericChart
-from data_vis.properties import DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_ColorPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
-from data_vis.utils.data_utils import normalize_value
+from data_vis.properties import DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_AnimationPropertyGroup, DV_HeaderPropertyGroup
 from data_vis.colors import NodeShader
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
-
-try:
-    import numpy as np
-    from scipy import interpolate
-    modules_available = True
-except ImportError as e:
-    print('Warning: Modules not installed in blender python: numpy, scipy')
-    modules_available = False
+from data_vis.utils import env_utils
 
 
 class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
@@ -86,7 +76,11 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
 
     @classmethod
     def poll(cls, context):
-        return modules_available and DataManager().is_type(DataType.Numerical, [3], only_3d=True)
+        for mod in ['scipy', 'numpy']:
+            if not env_utils.is_module_installed(mod):
+                return False
+
+        return DataManager().is_type(DataType.Numerical, [3], only_3d=True)
 
     def draw(self, context):
         super().draw(context)
@@ -109,6 +103,9 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
                 column * self.density + 1 + row)
 
     def execute(self, context):
+        import numpy as np
+        from scipy import interpolate
+
         self.init_data()
 
         self.create_container()

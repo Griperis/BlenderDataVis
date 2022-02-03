@@ -17,8 +17,6 @@ bl_info = {
 import bpy
 import bpy.utils.previews
 import os
-import subprocess
-import sys
 
 from .operators.bar_chart import OBJECT_OT_BarChart
 from .operators.line_chart import OBJECT_OT_LineChart
@@ -32,6 +30,7 @@ from .data_manager import DataManager
 from .docs import get_example_data_doc, draw_tooltip_button
 from .icon_manager import IconManager
 from .general import DV_ShowPopup, DV_DataInspect
+from .utils import env_utils
 
 icon_manager = IconManager()
 data_manager = DataManager()
@@ -39,63 +38,6 @@ data_manager = DataManager()
 
 PERFORMANCE_WARNING_LINE_THRESHOLD = 150
 EXAMPLE_DATA_FOLDER = 'example_data'
-
-
-class OBJECT_OT_InstallModules(bpy.types.Operator):
-    '''Operator that tries to install scipy and numpy using pip into blender python'''
-    bl_label = 'Install addon dependencies'
-    bl_idname = 'object.install_modules'
-    bl_options = {'REGISTER'}
-
-    def execute(self, context):
-        version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
-
-        python_path = os.path.join(os.getcwd(), version, 'python', 'bin', 'python')
-        try:
-            self.install(python_path)
-        except Exception as e:
-            self.report({'ERROR'}, 'Error ocurred, try to install dependencies manually. \n Exception: {}'.format(str(e)))
-        return {'FINISHED'}
-
-    def install(self, python_path):
-        import platform
-
-        info = ''
-        bp_pip = -1
-        bp_res = -1
-
-        p_pip = -1
-        p_res = -1
-
-        p3_pip = -1
-        p3_res = -1
-        try:
-            bp_pip = subprocess.check_call([python_path, '-m', 'ensurepip', '--user'])
-            bp_res = subprocess.check_call([python_path, '-m', 'pip', 'install', '--user', 'scipy'])
-        except OSError as e:
-            info = 'Python in blender folder failed: ' + str(e) + '\n'
-
-        if bp_pip != 0 or bp_res != 0:
-            if platform.system() == 'Linux':
-                try:
-                    p_pip = subprocess.check_call(['python', '-m', 'ensurepip', '--user'])
-                    p_res = subprocess.check_call(['python', '-m', 'pip', 'install', '--user', 'scipy'])
-                except OSError as e:
-                    info += 'Python in PATH failed: ' + str(e) + '\n'
-
-                if p_pip != 0 or p_res != 0:  
-                    try:
-                        # python3
-                        p3_pip = subprocess.check_call(['python3', '-m', 'ensurepip', '--user'])
-                        p3_res = subprocess.check_call(['python3', '-m', 'pip', 'install', '--user', 'scipy'])
-                    except OSError as e:
-                        info += 'Python3 in PATH failed: ' + str(e) + '\n'
-
-        # if one approach worked
-        if (bp_pip == 0 and bp_res == 0) or (p_pip == 0 and p_res == 0) or (p3_pip == 0 and p3_res == 0):
-            self.report({'INFO'}, 'Scipy module should be succesfully installed, restart Blender now please! (Best effort approach)')
-        else:
-            raise Exception('Failed to install pip or scipy into blender python:\n' + str(info))
 
 
 class FILE_OT_DVLoadFile(bpy.types.Operator):
@@ -398,22 +340,6 @@ class DV_Preferences(bpy.types.AddonPreferences):
     def draw(self, context):
         layout = self.layout
         box = layout.box()
-        box.label(text='Python dependencies', icon='PLUS')
-        row = box.row()
-        row.scale_y = 2.0
-        try:
-            import scipy
-            import numpy
-            row.label(text='Dependencies already installed...')
-        except ImportError:
-            row.operator('object.install_modules')
-            row = box.row()
-            version = '{}.{}'.format(bpy.app.version[0], bpy.app.version[1])
-            row.label(text='Or use pip to install scipy into python which Blender uses!')
-            row = box.row()
-            row.label(text='Blender has to be restarted after this process!')
-
-        box = layout.box()
         box.label(text='Customize position of addon panel', icon='TOOL_SETTINGS')
         box.prop(self, 'ui_region_type')
         box.prop(self, 'ui_space_type')
@@ -478,7 +404,6 @@ classes = [
     DV_Preferences,
     DV_ShowPopup,
     DV_DataInspect,
-    OBJECT_OT_InstallModules,
     DV_LabelPropertyGroup,
     DV_ColorPropertyGroup,
     DV_AxisPropertyGroup,
@@ -515,6 +440,8 @@ def reload():
 
 
 def register():
+    for module in ['scipy', 'numpy']:
+        env_utils.ensure_python_module(module)
 
     icon_manager.load_icons()
     for c in classes:
