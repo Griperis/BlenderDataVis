@@ -228,13 +228,22 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         '''Bevels curve object'''
         bpy.ops.object.mode_set(mode='EDIT')
         opts = self.bevel_settings['rounded'] if self.rounded == '1' else self.bevel_settings['sharp']
-        bpy.ops.mesh.bevel(
-            segments=opts['segments'],
-            offset=opts['offset'],
-            offset_type='OFFSET',
-            profile=opts['profile'],
-            vertex_only=True
-        )
+        # vertex_only argument doesn't exists above 2.83.0
+        if bpy.app.version > (2, 83, 0):
+            bpy.ops.mesh.bevel(
+                segments=opts['segments'],
+                offset=opts['offset'],
+                offset_type='OFFSET',
+                profile=opts['profile'],
+            )
+        else:
+            bpy.ops.mesh.bevel(
+                segments=opts['segments'],
+                offset=opts['offset'],
+                offset_type='OFFSET',
+                profile=opts['profile'],
+                vertex_only=True
+            )
         bpy.ops.object.mode_set(mode='OBJECT')
 
     def add_bevel_obj(self):
@@ -245,6 +254,8 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
         bevel_obj.parent = self.container_object
 
         bpy.ops.object.convert(target='CURVE')
+        if hasattr(self.curve_obj.data, 'bevel_mode'):
+            self.curve_obj.data.bevel_mode = 'OBJECT'
         self.curve_obj.data.bevel_object = bevel_obj
         return bevel_obj
 
