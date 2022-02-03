@@ -8,7 +8,7 @@ bl_info = {
     'author': 'Zdenek Dolezal',
     'description': 'Data visualisation addon',
     'blender': (2, 80, 0),
-    'version': (2, 0, 0),
+    'version': (2, 1, 0),
     'location': 'Object -> Add Mesh',
     'warning': '',
     'category': 'Generic'
@@ -70,7 +70,7 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
                 context.scene.data_list_index = i
                 self.report({'WARNING'}, f'File {self.filepath} already loaded!')
                 return {'CANCELLED'}
-                
+
         line_n = data_manager.load_data(self.filepath)
 
         report_type = {'INFO'}
