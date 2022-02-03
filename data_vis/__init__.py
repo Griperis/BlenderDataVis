@@ -24,7 +24,7 @@ from .operators.pie_chart import OBJECT_OT_PieChart
 from .operators.point_chart import OBJECT_OT_PointChart
 from .operators.surface_chart import OBJECT_OT_SurfaceChart
 from .operators.bubble_chart import OBJECT_OT_BubbleChart
-from .operators.label_align import OBJECT_OT_AlignLabels
+from .operators.label_align import DV_AlignLabels
 from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_ColorPropertyGroup, DV_HeaderPropertyGroup, DV_LabelPropertyGroup, DV_LegendPropertyGroup, DV_GeneralPropertyGroup
 from .data_manager import DataManager
 from .docs import get_example_data_doc, draw_tooltip_button
@@ -214,7 +214,7 @@ class DV_AddonPanel(bpy.types.Panel):
         row.scale_y = 2
 
         row = layout.row()
-        row.operator('object.align_labels', icon='CAMERA_DATA')
+        row.operator(DV_AlignLabels.bl_idname, icon='CAMERA_DATA')
         row.scale_y = 1.5
 
         scn = context.scene
@@ -423,7 +423,7 @@ classes = [
     OBJECT_OT_LineChart,
     OBJECT_OT_SurfaceChart,
     OBJECT_OT_BubbleChart,
-    OBJECT_OT_AlignLabels,
+    DV_AlignLabels,
     FILE_OT_DVLoadFile,
     DV_AddonPanel,
 ]
