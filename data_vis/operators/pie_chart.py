@@ -96,7 +96,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
     @classmethod
     def poll(cls, context):
         dm = DataManager()
-        return not dm.has_labels and dm.is_type(DataType.Categorical, [2])
+        return dm.is_type(DataType.Categorical, [2])
 
     def draw(self, context):
         super().draw(context)
@@ -132,6 +132,13 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         data_min = min(self.data, key=lambda entry: entry[1])[1]
         if data_min <= 0:
             self.report({'ERROR'}, 'Pie chart support only positive values!')
+            return {'CANCELLED'}
+
+        data_len = len(self.data)
+        if data_len >= self.vertices:
+            self.report({'ERROR'}, 'There are more data than possible slices, ' +
+                'please increase the vertices value!')
+            return {'CANCELLED'}
 
         self.create_container()
 
@@ -147,7 +154,6 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             self.slices.append(cyl_slice)
 
         values_sum = sum(float(entry[1]) for entry in self.data)
-        data_len = len(self.data)
         color_gen = ColorGen(self.color_shade, ColorType.str_to_type(self.color_type), (0, data_len))
 
         prev_i = 0
@@ -155,7 +161,6 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
         for i in range(data_len):
 
             portion = self.data[i][1] / values_sum
-
             increment = round(portion * self.vertices)
             # Ignore data with zero value
             if increment == 0:
@@ -166,7 +171,6 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             slice_obj = self.join_slices(prev_i, portion_end_i)
             if slice_obj is None:
                 raise RuntimeError('Error occurred, try to increase number of vertices, i_from" {}, i_to: {}, inc: {}, val: {}'.format(prev_i, portion_end_i, increment, self.data[i][1]))
-                break
 
             slice_mat = color_gen.get_material(data_len - i)
             slice_obj.active_material = slice_mat
