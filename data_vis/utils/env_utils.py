@@ -1,3 +1,8 @@
+# File: env_utils.py
+# Author: Zdenek Dolezal
+# Licence: GPL 3.0
+# Description: Python environment utilities
+
 import os
 import sys
 import bpy
@@ -16,7 +21,7 @@ def get_python_path():
 
 
 def get_modules_path():
-    return os.path.join(bpy.utils.script_path_user(), 'data_vis', MODULES_FOLDER)
+    return os.path.join(bpy.utils.script_path_user(), 'addons', 'data_vis', MODULES_FOLDER)
 
 
 def ensure_module_path_in_sys_path():
