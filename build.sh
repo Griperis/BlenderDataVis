@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="2.1.0"
+VERSION="2.1.1"
 BUILDS_FOLDER="builds"
 
 rm -rf ${BUILDS_FOLDER}/data_vis
