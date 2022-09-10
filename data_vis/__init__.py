@@ -368,6 +368,10 @@ class OBJECT_OT_AddChart(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
+        if len(context.scene.data_list) == 0:
+            layout.label(text="Load data in the N panel first!", icon='ERROR')
+            layout.separator()
+            
         layout.operator(OBJECT_OT_BarChart.bl_idname, icon_value=icon_manager.get_icon('bar_chart').icon_id)
         layout.operator(OBJECT_OT_LineChart.bl_idname, icon_value=icon_manager.get_icon('line_chart').icon_id)
         layout.operator(OBJECT_OT_PieChart.bl_idname, icon_value=icon_manager.get_icon('pie_chart').icon_id)
