@@ -448,8 +448,7 @@ def reload():
 
 
 def register():
-    for module in ['scipy', 'numpy']:
-        env_utils.ensure_python_module(module)
+    env_utils.ensure_python_modules_new_thread(["numpy", "scipy"])
 
     icon_manager.load_icons()
     for c in classes:
