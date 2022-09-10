@@ -7,6 +7,8 @@ import os
 import sys
 import bpy
 import importlib
+import typing
+import threading
 import subprocess
 
 
@@ -21,7 +23,14 @@ def get_python_path():
 
 
 def get_modules_path():
-    return os.path.join(bpy.utils.script_path_user(), 'addons', 'data_vis', MODULES_FOLDER)
+    return os.path.realpath(
+        os.path.join(
+            bpy.utils.script_path_user(),
+            'addons',
+            'data_vis', 
+            MODULES_FOLDER
+        )
+    )
 
 
 def ensure_module_path_in_sys_path():
@@ -31,6 +40,7 @@ def ensure_module_path_in_sys_path():
 
 
 def ensure_python_module(module_name: str):
+    ensure_module_path_in_sys_path()
     if is_module_installed(module_name):
         return
 
@@ -39,7 +49,15 @@ def ensure_python_module(module_name: str):
     print(f'Running command \'{command}\'', file=sys.stderr)
     subprocess.run(command)
 
-    ensure_module_path_in_sys_path()
+
+def ensure_python_modules(module_names: typing.List[str]):
+    for module_name in module_names:
+        ensure_python_module(module_name)
+
+
+def ensure_python_modules_new_thread(module_names: typing.List[str]):
+    thread = threading.Thread(target=ensure_python_modules, args=(module_names,))
+    thread.start()
 
 
 def is_module_installed(module_name: str):

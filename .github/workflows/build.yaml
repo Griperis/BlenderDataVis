@@ -1,0 +1,24 @@
+name: 'Addon Build'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  addon-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Create Addon Zip
+        run: ./build.sh
+
+      - name: Addon Zip Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: addon-zip
+          path: data_vis_*.zip
