@@ -5,7 +5,7 @@
 
 import os
 import csv
-import json
+import typing
 
 from enum import Enum
 
@@ -23,6 +23,14 @@ class DataSubtype(Enum):
     XYZ = 3
     XYZ_Anim = 4
     XYZW = 5
+
+
+class ChartData:
+    def __init__(self, parsed_data):
+        self.parsed_data = parsed_data
+        
+    def as_vertices(self) -> typing.List[typing.Tuple[float, float, float]]:
+        return [(d[0], d[1], d[2]) for d in self.parsed_data]
 
 
 class DataManager:
@@ -213,6 +221,9 @@ class DataManager:
                     raise NotImplementedError()
             else:
                 return self.parsed_data
+
+        def get_chart_data(self):
+            return ChartData(self.parsed_data)
 
         def get_labels(self):
             return self.labels

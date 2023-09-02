@@ -29,7 +29,7 @@ from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_Colo
 from .data_manager import DataManager
 from .docs import get_example_data_doc, draw_tooltip_button
 from .icon_manager import IconManager
-from .general import DV_ShowPopup, DV_DataInspect
+from .general import DV_ShowPopup, DV_DataInspect, DV_DataToVertices
 from .utils import env_utils
 
 icon_manager = IconManager()
@@ -236,6 +236,8 @@ class DV_AddonPanel(bpy.types.Panel):
         text_col.label(text='Container Size')
         draw_tooltip_button(row, 'container_size')
         col.prop(scn.general_props, 'container_size', text='')
+        
+        layout.operator(DV_DataToVertices.bl_idname)
 
 
 def update_space_type(self, context):
@@ -428,6 +430,7 @@ classes = [
     DV_OT_PrintData,
     DV_OT_RemoveData,
     DV_OT_ReloadData,
+    DV_DataToVertices,
     OBJECT_OT_AddChart,
     OBJECT_OT_BarChart,
     OBJECT_OT_PieChart,
