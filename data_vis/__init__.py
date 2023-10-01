@@ -141,6 +141,10 @@ class DV_AddonPanel(bpy.types.Panel):
     def draw_header(self, context):
         layout = self.layout
         layout.template_icon(icon_value=icon_manager.get_icon_id('addon_icon'))
+    
+    def draw_header_preset(self, context):
+        # TODO: Link to github!
+        pass
 
     def create_label_row(self, layout, label, value):
         row = layout.row(align=True)
@@ -215,8 +219,20 @@ class DV_AddonPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.prop(get_preferences(context), 'addon_mode', text="")
+        layout.separator()
         self.draw_data_list(context, layout)
 
+        prefs = get_preferences(context)
+        if prefs.addon_mode == 'LEGACY':
+            self._draw_legacy_ui(context, layout)
+        elif prefs.addon_mode == 'GEONODES':
+            self._draw_geonodes_ui(context, layout)
+
+    def _draw_geonodes_ui(self, context, layout):
+        layout.operator(DV_DataToVertices.bl_idname)
+
+    def _draw_legacy_ui(self, context, layout):
         row = layout.row()
         row.menu('OBJECT_MT_Add_Chart', text='Create Chart', icon_value=icon_manager.get_icon_id('addon_icon'))
         row.scale_y = 2
@@ -236,8 +252,6 @@ class DV_AddonPanel(bpy.types.Panel):
         text_col.label(text='Container Size')
         draw_tooltip_button(row, 'container_size')
         col.prop(scn.general_props, 'container_size', text='')
-        
-        layout.operator(DV_DataToVertices.bl_idname)
 
 
 def update_space_type(self, context):
@@ -324,6 +338,16 @@ class DV_Preferences(bpy.types.AddonPreferences):
         name='Example Data',
         description='Select example data to load',
         items=lambda self, context: self.get_example_data(context)
+    )
+
+    addon_mode: bpy.props.EnumProperty(
+        name='Addon Mode',
+        description='Select mode for generating charts. Mode "Geometry Nodes" is recommended',
+        items=(
+            ('LEGACY', 'Mode: Legacy', 'Charts are generated as objects, this was only option to version 3.0'),
+            ('GEONODES', 'Mode: Geometry Nodes', 'Charts and chart components are generated using geometry nodes') 
+        ),
+        default='GEONODES'
     )
 
     def get_example_data_categories(self, context):
