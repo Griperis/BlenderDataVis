@@ -8,7 +8,6 @@ import math
 import typing
 
 from mathutils import Vector
-from data_vis.engines.geonodes import GeonodesChartEngine
 from data_vis.data_manager import DataManager, DataType
 from data_vis.icon_manager import IconManager
 from data_vis.utils.data_utils import find_axis_range, normalize_value
@@ -495,8 +494,9 @@ class DV_DataToVertices(bpy.types.Operator):
 
     def execute(self, context):
         dm = DataManager()
-        chart_engine = GeonodesChartEngine(dm.get_chart_data())
-        mesh = chart_engine.data_as_mesh()
+        mesh = bpy.data.meshes.new('Mesh') 
+        verts = dm.get_chart_data().as_vertices()
+        mesh.from_pydata(vertices=verts, edges=[], faces=[])
         obj = bpy.data.objects.new('test', mesh)
         obj.location = (0, 0, 0)
         obj.scale = (1, 1, 1)

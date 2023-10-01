@@ -26,11 +26,22 @@ class DataSubtype(Enum):
 
 
 class ChartData:
+    '''V3.0 abstraction of data access, simpler to use'''
     def __init__(self, parsed_data):
         self.parsed_data = parsed_data
         
     def as_vertices(self) -> typing.List[typing.Tuple[float, float, float]]:
-        return [(d[0], d[1], d[2]) for d in self.parsed_data]
+        ret = []
+        for d in self.parsed_data:
+            if len(d) == 1:
+                # TODO: Does this even happen this way for categorical charts??
+                ...
+            elif len(d) == 2:
+                ret.append((d[0], 0.0, d[1]))
+            elif len(d) > 3:
+                ret.append((d[0], d[1], d[2]))
+
+        return ret
 
 
 class DataManager:
