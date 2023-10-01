@@ -5,6 +5,7 @@
 
 import bpy
 import math
+import typing
 
 from mathutils import Vector
 from data_vis.engines.geonodes import GeonodesChartEngine
@@ -405,6 +406,12 @@ class DV_DataInspect(bpy.types.Operator):
         default=True
     )
 
+    show_values: bpy.props.BoolProperty(
+        name='Show Values',
+        description='When clicked data values are shown',
+        default=False
+    )
+
     def handle_property_input(self, data):
         if data is None:
             return
@@ -432,12 +439,23 @@ class DV_DataInspect(bpy.types.Operator):
         col.label(text=f'Filepath: {metadata.filepath}')
         col.label(text=f'Info: {metadata.data_info}')
 
+        data_manager = DataManager()
+
+        col = layout.column(align=True)
+        col.label(text=f'Range X: {self._format_range(data_manager.get_range("x"))}')
+        col.label(text=f'Range Y: {self._format_range(data_manager.get_range("y"))}')
+        col.label(text=f'Range Z: {self._format_range(data_manager.get_range("z"))}')
+        
+        row = layout.row()
+        row.prop(self, 'show_values')
+        if not self.show_values:
+            return
+
         row = layout.row(align=True)
         row.prop(self, 'should_scroll_left', text='', icon='TRIA_LEFT')
         row.prop(self, 'max_displayed_cols', text='Displayed Columns')
         row.prop(self, 'should_scroll_right', text='', icon='TRIA_RIGHT')
 
-        data_manager = DataManager()
         # TODO: not super fast, but gets the job done
         parsed_data = data_manager.get_parsed_data()
         self.handle_property_input(parsed_data)
@@ -466,6 +484,9 @@ class DV_DataInspect(bpy.types.Operator):
         metadata.load()
         return context.window_manager.invoke_props_dialog(self, width=500)
 
+    def _format_range(self, range: typing.Tuple) -> str:
+        return str(tuple(f"{x:.2f}" for x in range)).replace("'", "")
+    
 
 class DV_DataToVertices(bpy.types.Operator):
     bl_idname = 'data_vis.data_to_vertices'
