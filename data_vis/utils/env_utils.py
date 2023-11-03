@@ -48,6 +48,7 @@ def ensure_python_module(module_name: str):
     command = [str(python_path), '-m', 'pip', 'install', module_name, '--target', get_modules_path()]
     print(f'Running command \'{command}\'', file=sys.stderr)
     subprocess.run(command)
+    print(f'Finished running command \'{command}\'', file=sys.stderr)
 
 
 def ensure_python_modules(module_names: typing.List[str]):
