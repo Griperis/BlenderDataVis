@@ -31,6 +31,8 @@ from .docs import get_example_data_doc, draw_tooltip_button
 from .icon_manager import IconManager
 from .general import DV_ShowPopup, DV_DataInspect, DV_DataToVertices
 from .utils import env_utils
+from . import preferences as prefs
+from .preferences import DV_Preferences, get_preferences, get_example_data_path
 
 icon_manager = IconManager()
 data_manager = DataManager()
@@ -254,135 +256,8 @@ class DV_AddonPanel(bpy.types.Panel):
         col.prop(scn.general_props, 'container_size', text='')
 
 
-def update_space_type(self, context):
-    try:
-        if hasattr(bpy.types, 'DV_PT_data_load'):
-            bpy.utils.unregister_class(DV_AddonPanel)
-        DV_AddonPanel.bl_space_type = self.ui_space_type
-        bpy.utils.register_class(DV_AddonPanel)
-    except Exception as e:
-        print('Setting Space Type error: ', str(e))
-
-
-def update_category(self, context):
-    try:
-        if hasattr(bpy.types, 'DV_PT_data_load'):
-            bpy.utils.unregister_class(DV_AddonPanel)
-        DV_AddonPanel.bl_category = self.ui_category
-        bpy.utils.register_class(DV_AddonPanel)
-    except Exception as e:
-        print('Setting Category error: ', str(e))
-
-
-def update_region_type(self, context):
-    try:
-        if hasattr(bpy.types, 'DV_PT_data_load'):
-            bpy.utils.unregister_class(DV_AddonPanel)
-        DV_AddonPanel.bl_region_type = self.ui_region_type
-        bpy.utils.register_class(DV_AddonPanel)
-    except Exception as e:
-        print('Setting Region Type error: ', str(e))
-
-
-def get_preferences(context):
-    return context.preferences.addons[__package__].preferences
-
-def get_example_data_path():
-    return os.path.join(
-        bpy.utils.script_path_user(),
-        "addons",
-        __package__,
-        EXAMPLE_DATA_FOLDER
-    )
-
-
-class DV_Preferences(bpy.types.AddonPreferences):
-    '''Preferences for data visualisation addon'''
-    bl_idname = 'data_vis'
-
-    ui_region_type: bpy.props.StringProperty(
-        name='Region Type',
-        default='UI',
-        update=update_region_type
-    )
-    ui_space_type: bpy.props.StringProperty(
-        name='Space Type',
-        default='VIEW_3D',
-        update=update_space_type
-    )
-
-    ui_category: bpy.props.StringProperty(
-        name='Panel Category',
-        default='DataVis',
-        update=update_category
-    )
-
-    debug: bpy.props.BoolProperty(
-        name='Toggle Debug Options',
-        default=False
-    )
-
-    show_data_examples: bpy.props.BoolProperty(
-        name='Show Data Examples',
-        description='If true then data examples are shown and can be loaded',
-        default=False,
-    )
-
-    example_category: bpy.props.EnumProperty(
-        name='Data Type',
-        description='Types of example data',
-        items=lambda self, context: self.get_example_data_categories(context)
-    )
-
-    example_data: bpy.props.EnumProperty(
-        name='Example Data',
-        description='Select example data to load',
-        items=lambda self, context: self.get_example_data(context)
-    )
-
-    addon_mode: bpy.props.EnumProperty(
-        name='Addon Mode',
-        description='Select mode for generating charts. Mode "Geometry Nodes" is recommended',
-        items=(
-            ('LEGACY', 'Mode: Legacy', 'Charts are generated as objects, this was only option to version 3.0'),
-            ('GEONODES', 'Mode: Geometry Nodes', 'Charts and chart components are generated using geometry nodes') 
-        ),
-        default='GEONODES'
-    )
-
-    def get_example_data_categories(self, context):
-        enum_items = []
-        for i, _dir in enumerate(os.listdir(get_example_data_path())):
-            # infer icon from data type
-            icon = 'QUESTION'
-            if _dir == 'categorical':
-                icon = 'LINENUMBERS_ON'
-            elif _dir == 'numerical':
-                icon = 'FORCE_HARMONIC' 
-
-            enum_items.append((_dir, _dir, _dir, icon, i))
-
-        return enum_items
-
-    def get_example_data(self, context):
-        enum_items = []
-        for file in os.listdir(os.path.join(get_example_data_path(), self.example_category)):
-            enum_items.append((file, file, file))
-
-        return sorted(enum_items)
-
-    def draw(self, context):
-        layout = self.layout
-        box = layout.box()
-        box.label(text='Customize position of addon panel', icon='TOOL_SETTINGS')
-        box.prop(self, 'ui_region_type')
-        box.prop(self, 'ui_space_type')
-        box.prop(self, 'ui_category')
-        box.label(text='Check console for possible errors!', icon='ERROR')
-
-        box = layout.box()
-        box.label(text='Other Settings', icon='PLUGIN')
-        box.prop(self, 'debug')
+# Provide the PANEL_CLASS reference to preferences, so UI position can be updated
+prefs.PANEL_CLASS = DV_AddonPanel
 
 
 class OBJECT_OT_AddChart(bpy.types.Menu):
