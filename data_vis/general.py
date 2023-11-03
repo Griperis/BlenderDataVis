@@ -486,21 +486,3 @@ class DV_DataInspect(bpy.types.Operator):
     def _format_range(self, range: typing.Tuple) -> str:
         return str(tuple(f"{x:.2f}" for x in range)).replace("'", "")
     
-
-class DV_DataToVertices(bpy.types.Operator):
-    bl_idname = 'data_vis.data_to_vertices'
-    bl_label = 'TODO'
-    bl_description = 'TODO'
-
-    def execute(self, context):
-        dm = DataManager()
-        mesh = bpy.data.meshes.new('Mesh') 
-        verts = dm.get_chart_data().as_vertices()
-        mesh.from_pydata(vertices=verts, edges=[], faces=[])
-        obj = bpy.data.objects.new('test', mesh)
-        obj.location = (0, 0, 0)
-        obj.scale = (1, 1, 1)
-        context.collection.objects.link(obj)
-        return {'FINISHED'}
-
-    

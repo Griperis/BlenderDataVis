@@ -1,6 +1,8 @@
 import os
 import bpy
 
+from .geonodes.data import DV_DataProperties
+
 EXAMPLE_DATA_FOLDER = 'example_data'
 PANEL_CLASS = None
 
@@ -101,6 +103,8 @@ class DV_Preferences(bpy.types.AddonPreferences):
         ),
         default='GEONODES'
     )
+
+    data: bpy.props.PointerProperty(type=DV_DataProperties)
 
     def get_example_data_categories(self, context):
         enum_items = []

@@ -4,6 +4,7 @@
 # Description: Data loading, data analysis and data information interface
 
 import os
+import numpy as np
 import csv
 import typing
 
@@ -28,20 +29,23 @@ class DataSubtype(Enum):
 class ChartData:
     '''V3.0 abstraction of data access, simpler to use'''
     def __init__(self, parsed_data):
-        self.parsed_data = parsed_data
-        
-    def as_vertices(self) -> typing.List[typing.Tuple[float, float, float]]:
-        ret = []
-        for d in self.parsed_data:
-            if len(d) == 1:
-                # TODO: Does this even happen this way for categorical charts??
-                ...
-            elif len(d) == 2:
-                ret.append((d[0], 0.0, d[1]))
-            elif len(d) > 3:
-                ret.append((d[0], d[1], d[2]))
+        self.parsed_data = np.array(parsed_data)
+        self.lines = len(parsed_data)
+    
+class NumericData(ChartData):
+    def __init__(self, parsed_data):
+        super().__init__(parsed_data)
 
-        return ret
+
+class CategoricData2D(ChartData):
+    def __init__(self, parsed_data):
+        super().__init__(parsed_data)
+
+
+class CategoricData3D(ChartData):
+    def __init__(self, parsed_data):
+        super().__init__(parsed_data)
+
 
 
 class DataManager:
@@ -233,7 +237,9 @@ class DataManager:
             else:
                 return self.parsed_data
 
-        def get_chart_data(self):
+        def get_chart_data(self) -> typing.Optional[ChartData]:
+            if self.raw_data is None:
+                return None
             return ChartData(self.parsed_data)
 
         def get_labels(self):

@@ -29,9 +29,10 @@ from .properties import DV_AnimationPropertyGroup, DV_AxisPropertyGroup, DV_Colo
 from .data_manager import DataManager
 from .docs import get_example_data_doc, draw_tooltip_button
 from .icon_manager import IconManager
-from .general import DV_ShowPopup, DV_DataInspect, DV_DataToVertices
+from .general import DV_ShowPopup, DV_DataInspect
 from .utils import env_utils
 from . import preferences as prefs
+from . import geonodes
 from .preferences import DV_Preferences, get_preferences, get_example_data_path
 
 icon_manager = IconManager()
@@ -232,7 +233,8 @@ class DV_AddonPanel(bpy.types.Panel):
             self._draw_geonodes_ui(context, layout)
 
     def _draw_geonodes_ui(self, context, layout):
-        layout.operator(DV_DataToVertices.bl_idname)
+        layout.label(text=f"WIP: 3.0")
+        layout.operator(geonodes.DV_GN_BarChart.bl_idname)
 
     def _draw_legacy_ui(self, context, layout):
         row = layout.row()
@@ -329,7 +331,6 @@ classes = [
     DV_OT_PrintData,
     DV_OT_RemoveData,
     DV_OT_ReloadData,
-    DV_DataToVertices,
     OBJECT_OT_AddChart,
     OBJECT_OT_BarChart,
     OBJECT_OT_PieChart,
@@ -357,6 +358,7 @@ def register():
     env_utils.ensure_python_modules_new_thread(["numpy", "scipy"])
 
     icon_manager.load_icons()
+    geonodes.register()
     for c in classes:
         bpy.utils.register_class(c)
 
@@ -369,6 +371,8 @@ def unregister():
     icon_manager.remove_icons()
     for c in reversed(classes):
         bpy.utils.unregister_class(c)
+
+    geonodes.unregister()
 
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
     del bpy.types.Scene.general_props
