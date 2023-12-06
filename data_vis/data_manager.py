@@ -28,9 +28,10 @@ class DataSubtype(Enum):
 
 class ChartData:
     '''V3.0 abstraction of data access, simpler to use'''
-    def __init__(self, parsed_data):
+    def __init__(self, parsed_data, labels: typing.Optional[typing.List[str]] = None):
         self.parsed_data = np.array(parsed_data)
         self.lines = len(parsed_data)
+        self.labels = labels
     
 class NumericData(ChartData):
     def __init__(self, parsed_data):
@@ -240,7 +241,7 @@ class DataManager:
         def get_chart_data(self) -> typing.Optional[ChartData]:
             if self.raw_data is None:
                 return None
-            return ChartData(self.parsed_data)
+            return ChartData(self.parsed_data, self.labels if self.has_labels else [])
 
         def get_labels(self):
             return self.labels

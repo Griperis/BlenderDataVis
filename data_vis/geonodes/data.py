@@ -14,6 +14,10 @@ class DataType:
     Data3DW = '3D+W'
     Data3DA = '3D+A'
 
+    @staticmethod
+    def is_animated(data: str) -> bool:
+        return data.endswith("+A")
+
 
 def get_data_types() -> typing.Set[str]:
         types = set()

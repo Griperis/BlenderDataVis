@@ -33,6 +33,7 @@ from .general import DV_ShowPopup, DV_DataInspect
 from .utils import env_utils
 from . import preferences as prefs
 from . import geonodes
+from .geonodes import modifier_utils
 from .preferences import DV_Preferences, get_preferences, get_example_data_path
 
 icon_manager = IconManager()
@@ -235,6 +236,10 @@ class DV_AddonPanel(bpy.types.Panel):
     def _draw_geonodes_ui(self, context, layout):
         layout.label(text=f"WIP: 3.0")
         layout.operator(geonodes.DV_GN_BarChart.bl_idname)
+        # col = layout.column()
+        # for mod in context.active_object.modifiers:
+        #     modifier_utils.draw_modifier_inputs(mod, col)
+        
 
     def _draw_legacy_ui(self, context, layout):
         row = layout.row()
