@@ -233,6 +233,12 @@ class DV_AddonPanel(bpy.types.Panel):
         if prefs.addon_mode == 'LEGACY':
             self._draw_legacy_ui(context, layout)
         elif prefs.addon_mode == 'GEONODES':
+            if bpy.app.version < (4, 0, 0):
+                row = layout.row()
+                row.alert = True
+                row.label(text="Geometry nodes mode is available in 4.0 and higher!", icon='ERROR')
+                return
+            
             self._draw_geonodes_ui(context, layout)
 
     def _draw_geonodes_ui(self, context, layout):

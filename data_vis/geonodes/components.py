@@ -163,6 +163,10 @@ class DV_AxisPanel(bpy.types.Panel):
     bl_category = "DataVis"
     bl_label = "Axis"
 
+    @classmethod
+    def poll(cls, context: bpy.types.Context) -> bool:
+        return bpy.app.version >= (4, 0, 0)
+
     def draw_header(self, context: bpy.types.Context):
         self.layout.label(text="", icon='ORIENTATION_VIEW')
 
@@ -206,7 +210,11 @@ class DV_DataLabelsPanel(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = "DataVis"
     bl_label = "Data Labels"
-
+    
+    @classmethod
+    def poll(cls, context: bpy.types.Context) -> bool:
+        return bpy.app.version >= (4, 0, 0)
+    
     def draw_header(self, context: bpy.types.Context):
         self.layout.label(text="", icon='SYNTAX_OFF')
     

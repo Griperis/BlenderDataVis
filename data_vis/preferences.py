@@ -100,14 +100,30 @@ class DV_Preferences(bpy.types.AddonPreferences):
     addon_mode: bpy.props.EnumProperty(
         name='Addon Mode',
         description='Select mode for generating charts. Mode "Geometry Nodes" is recommended',
-        items=(
-            ('LEGACY', 'Mode: Legacy', 'Charts are generated as objects, this was only option to version 3.0'),
-            ('GEONODES', 'Mode: Geometry Nodes', 'Charts and chart components are generated using geometry nodes') 
-        ),
-        default='GEONODES'
+        items=lambda self, context: self.get_addon_mode(context),
     )
 
     data: bpy.props.PointerProperty(type=DV_DataProperties)
+
+
+    def get_addon_mode(self, context: bpy.types.Context):
+        ret = []
+        if bpy.app.version >= (4, 0, 0):
+            ret.append(
+                (
+                    'GEONODES',
+                    'Mode: Geometry Nodes',
+                    'Charts and chart components are generated using geometry nodes'
+                )
+            )
+        ret.append(
+            (
+                'LEGACY',
+                'Mode: Legacy',
+                'Charts are generated as objects, this was only option to addon version 3.0'
+            )
+        )
+        return ret
 
     def get_example_data_categories(self, context):
         enum_items = []
