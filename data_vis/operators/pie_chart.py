@@ -6,9 +6,9 @@
 from data_vis.icon_manager import IconManager
 import bpy
 import math
-from mathutils import Matrix, Vector
+import logging
+logger = logging.getLogger("data_vis")
 
-from data_vis.utils.data_utils import find_data_range, normalize_value
 from data_vis.general import OBJECT_OT_GenericChart, DV_HeaderPropertyGroup, DV_LegendPropertyGroup
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import ColorGen, ColorType
@@ -164,7 +164,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             increment = round(portion * self.vertices)
             # Ignore data with zero value
             if increment == 0:
-                print('Warning: Data with zero value i: {}, value: {}! Useless for pie chart.'.format(i, self.data[i][1]))
+                logger.warning('Warning: Data with zero value i: {}, value: {}! Useless for pie chart.'.format(i, self.data[i][1]))
                 continue
 
             portion_end_i = prev_i + increment
@@ -202,7 +202,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             i_to = len(self.slices)
         for i in range(i_from, i_to):
             if i > len(self.slices) - 1:
-                print('IndexError: Cannot portion slices properly: i: {}, len(slices): {}, i_from: {}, i_to: {}'.format(i, len(self.slices), i_from, i_to))
+                logger.error('IndexError: Cannot portion slices properly: i: {}, len(slices): {}, i_from: {}, i_to: {}'.format(i, len(self.slices), i_from, i_to))
                 break
             self.slices[i].select_set(state=True)
             bpy.context.view_layer.objects.active = self.slices[i]

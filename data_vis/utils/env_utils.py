@@ -10,6 +10,8 @@ import importlib
 import typing
 import threading
 import subprocess
+import logging
+logger = logging.getLogger("data_vis")
 
 
 MODULES_FOLDER = 'site-packages'
@@ -46,9 +48,9 @@ def ensure_python_module(module_name: str):
 
     python_path = get_python_path()
     command = [str(python_path), '-m', 'pip', 'install', module_name, '--target', get_modules_path()]
-    print(f'Running command \'{command}\'', file=sys.stderr)
+    logger.info(f'Running command \'{command}\'')
     subprocess.run(command)
-    print(f'Finished running command \'{command}\'', file=sys.stderr)
+    logger.info(f'Finished running command \'{command}\'')
 
 
 def ensure_python_modules(module_names: typing.List[str]):

@@ -3,7 +3,9 @@
 # Licence: GPL 3.0
 # Description: Utility functions for working with data
 
-from data_vis.data_manager import DataType
+import math
+import logging
+logger = logging.getLogger("data_vis")
 
 
 def find_axis_range(data, val_idx):
@@ -88,7 +90,8 @@ def normalize_value(value, minimum, maximum):
     Normalizes value into <0, 1> interval, range of data where value is included
     is specified by minimum and maximum
     '''
-    if maximum - minimum == 0:
-        print('Division by zero in normalize value!')
+    if math.isclose(maximum - minimum, 0):
+        logger.error('Division by zero in normalize value!')
         return 1.0
+    
     return (value - minimum) / (maximum - minimum)

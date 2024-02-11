@@ -1,7 +1,10 @@
 import os
 import bpy
+import logging
+logger = logging.getLogger("data_vis")
 
 from .geonodes.data import DV_DataProperties
+
 
 EXAMPLE_DATA_FOLDER = 'example_data'
 PANEL_CLASS = None
@@ -15,7 +18,7 @@ def update_space_type(self, context):
         PANEL_CLASS.bl_space_type = self.ui_space_type
         bpy.utils.register_class(PANEL_CLASS)
     except Exception as e:
-        print('Setting Space Type error: ', str(e))
+        logger.exception('Setting Space Type error')
 
 
 def update_category(self, context):
@@ -27,7 +30,7 @@ def update_category(self, context):
         PANEL_CLASS.bl_category = self.ui_category
         bpy.utils.register_class(PANEL_CLASS)
     except Exception as e:
-        print('Setting Category error: ', str(e))
+        logger.exception('Setting Category error')
 
 
 def update_region_type(self, context):
@@ -39,7 +42,7 @@ def update_region_type(self, context):
         PANEL_CLASS.bl_region_type = self.ui_region_type
         bpy.utils.register_class(PANEL_CLASS)
     except Exception as e:
-        print('Setting Region Type error: ', str(e))
+        logger.exception('Setting Region Type error')
 
 
 def get_example_data_path():

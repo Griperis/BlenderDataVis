@@ -7,6 +7,8 @@ import os
 import numpy as np
 import csv
 import typing
+import logging
+logger = logging.getLogger("data_vis")
 
 from enum import Enum
 
@@ -129,7 +131,7 @@ class DataManager:
                         row_info['strings'] += 1
 
                 if prev_row_info and prev_row_info != row_info:
-                    print('Invalid entry: {}: {}'.format(i), row)
+                    logger.error('Invalid entry: {}: {}'.format(i), row)
                     self.predicted_data_type = DataType.Invalid
                 prev_row_info = row_info
 
@@ -159,12 +161,12 @@ class DataManager:
         def parse_data(self):
             '''Takes raw_data and parses it into parsed_data while finding data ranges'''
             if self.raw_data is None:
-                print('No data has been loaded!')
+                logger.warning('No data has been loaded!')
                 self.parsed_data = [[]]
                 return
 
             if self.predicted_data_type == DataType.Invalid:
-                print('Invalid data loaded!')
+                logger.error('Invalid data loaded!')
                 self.parsed_data = [[]]
                 return
 
