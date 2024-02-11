@@ -1,11 +1,13 @@
 import bpy
-import typing
 from . import library
+from . import components
 from . import data
 from . import modifier_utils
 from .. import preferences
+from .. import utils
 
 
+@utils.logging.logged_operator
 class DV_GN_BarChart(bpy.types.Operator):
     bl_idname = "data_vis.geonodes_bar_chart"
     bl_label = "Bar Chart"
@@ -28,10 +30,7 @@ class DV_GN_BarChart(bpy.types.Operator):
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
-        empty_root = bpy.data.objects.new("DV_BarChart_Root", None)
         obj: bpy.types.Object = data.create_data_object("DV_BarChart", prefs.data.data_type)
-        obj.parent = empty_root
-        context.collection.objects.link(obj)
         
         node_group = library.load_chart("DV_BarChart")
         modifier: bpy.types.NodesModifier = obj.modifiers.new("Bar Chart", 'NODES')
@@ -39,6 +38,10 @@ class DV_GN_BarChart(bpy.types.Operator):
         if data.DataType.is_animated(prefs.data.data_type):
             modifier_utils.set_input(modifier.node_group, "Override Z Range", None)
 
+        components.mark_as_chart([obj])
+        context.collection.objects.link(obj)
+        context.view_layer.objects.active = obj
+        obj.select_set(True)
         return {'FINISHED'}
     
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):

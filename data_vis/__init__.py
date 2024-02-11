@@ -17,6 +17,8 @@ bl_info = {
 import bpy
 import bpy.utils.previews
 import os
+# import logging first, so it is initialized before all other modules
+from . utils import logging
 
 from .operators.bar_chart import OBJECT_OT_BarChart
 from .operators.line_chart import OBJECT_OT_LineChart
@@ -236,6 +238,8 @@ class DV_AddonPanel(bpy.types.Panel):
     def _draw_geonodes_ui(self, context, layout):
         layout.label(text=f"WIP: 3.0")
         layout.operator(geonodes.DV_GN_BarChart.bl_idname)
+        # layout.operator(geonodes.components.DV_AddHeading.bl_idname)
+        # layout.operator(geonodes.components.DV_AddAxisLabel.bl_idname)
         # col = layout.column()
         # for mod in context.active_object.modifiers:
         #     modifier_utils.draw_modifier_inputs(mod, col)
@@ -345,7 +349,6 @@ classes = [
     OBJECT_OT_BubbleChart,
     DV_AlignLabels,
     FILE_OT_DVLoadFile,
-    DV_AddonPanel,
 ]
 
 
@@ -361,6 +364,9 @@ def reload():
 
 def register():
     env_utils.ensure_python_modules_new_thread(["numpy", "scipy"])
+
+    # Register the addon panel first, so other panels can depend on it
+    bpy.utils.register_class(DV_AddonPanel)
 
     icon_manager.load_icons()
     geonodes.register()
@@ -378,6 +384,7 @@ def unregister():
         bpy.utils.unregister_class(c)
 
     geonodes.unregister()
+    bpy.utils.unregister_class(DV_AddonPanel)
 
     bpy.types.VIEW3D_MT_add.remove(chart_ops)
     del bpy.types.Scene.general_props
