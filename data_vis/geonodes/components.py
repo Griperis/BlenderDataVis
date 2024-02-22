@@ -70,6 +70,9 @@ class DV_AddNumericAxis(bpy.types.Operator):
         description="Axis modifier will be setup based on the given direction"
     )
 
+
+    pass_invoke: bpy.props.BoolProperty(options={'HIDDEN'}, default=True)
+
     def draw(self, context: bpy.types.Context):
         layout = self.layout
         layout.prop(self, "axis")
@@ -112,6 +115,9 @@ class DV_AddNumericAxis(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
+        if self.pass_invoke:
+            return self.execute(context)
+        
         self.existing_axis = get_axis_on_chart(context.active_object)
         return context.window_manager.invoke_props_dialog(self)
 
@@ -198,7 +204,9 @@ class DV_AxisPanel(bpy.types.Panel):
         
         for axis, mod in get_axis_on_chart(obj).items():
             if mod is None:
-                layout.operator(DV_AddNumericAxis.bl_idname, text=f"Add {axis}", icon='ADD').axis = axis
+                op = layout.operator(DV_AddNumericAxis.bl_idname, text=f"Add {axis}", icon='ADD')
+                op.axis = axis
+                op.pass_invoke = True
             else:
                 self.draw_axis_inputs(mod, layout)
 
