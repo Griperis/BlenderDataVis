@@ -5,6 +5,7 @@ import math
 from . import library
 from . import modifier_utils
 from .. import utils
+from .. import preferences
 import re
 
 DV_COMPONENT_PROPERTY = "DV_Component"
@@ -161,17 +162,19 @@ class DV_AddHeading(bpy.types.Operator):
         return {'FINISHED'}
     
 
-class DV_AxisPanel(bpy.types.Panel):
+class DV_GN_PanelMixin:
     bl_parent_id = "DV_PT_data_load"
-    bl_idname = "DV_PT_axis_panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = "DataVis"
-    bl_label = "Axis"
 
     @classmethod
     def poll(cls, context: bpy.types.Context) -> bool:
-        return bpy.app.version >= (4, 0, 0)
+        return preferences.get_preferences(context).addon_mode == 'GEONODES'
+
+class DV_AxisPanel(bpy.types.Panel, DV_GN_PanelMixin):
+    bl_idname = "DV_PT_axis_panel"
+    bl_label = "Axis"
 
     def draw_header(self, context: bpy.types.Context):
         self.layout.label(text="", icon='ORIENTATION_VIEW')
@@ -211,17 +214,9 @@ class DV_AxisPanel(bpy.types.Panel):
                 self.draw_axis_inputs(mod, layout)
 
 
-class DV_DataLabelsPanel(bpy.types.Panel):
-    bl_parent_id = "DV_PT_data_load"
+class DV_DataLabelsPanel(bpy.types.Panel, DV_GN_PanelMixin):
     bl_idname = "DV_PT_data_labels_panel"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "DataVis"
     bl_label = "Data Labels"
-    
-    @classmethod
-    def poll(cls, context: bpy.types.Context) -> bool:
-        return bpy.app.version >= (4, 0, 0)
     
     def draw_header(self, context: bpy.types.Context):
         self.layout.label(text="", icon='SYNTAX_OFF')
