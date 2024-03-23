@@ -1,10 +1,9 @@
 import bpy
 import typing
 import numpy as np
-from ..data_manager import DataManager, ChartData
-
+from ..data_manager import DataManager
 W_ATTRIBUTE_NAME = "@w"
-
+DATA_TYPE_PROPERTY = "DV_DataType"
 
 class DataType:
     Data2D = '2D'
@@ -63,6 +62,14 @@ class DV_DataProperties(bpy.types.PropertyGroup):
         return [(t, t, t) for t in types]
 
 
+def _mark_chart_data_type(obj: bpy.types.Object, data_type: str) -> None:
+    obj[DATA_TYPE_PROPERTY] = data_type
+
+
+def get_chart_data_type(obj: bpy.types.Object) -> str | None:
+    return obj.get(DATA_TYPE_PROPERTY, None)
+
+
 def create_data_object(
     name: str,
     data_type: str,
@@ -108,27 +115,17 @@ def create_data_object(
     obj.location = (0, 0, 0)
     obj.scale = (1, 1, 1)
 
-    frame_n = bpy.context.scene.frame_current
     if z_ns is not None:
         # Create shape keys
-        sk_basis = obj.shape_key_add(name='Basis')
-        sk_basis.keyframe_insert(data_path='value', frame=frame_n)
+        obj.shape_key_add(name='Basis')
         for i, z_col in enumerate(z_ns.transpose()):
             sk = obj.shape_key_add(name=f'Column: {i}')
             sk.value = 0
             for j, z in enumerate(z_col):
                 sk.data[j].co.z = z
-        
-        for sk in obj.data.shape_keys.key_blocks:
-            # Set current shape key to active by using the value and disable others
-            frame_n += key_spacing
-            sk.value = 1
-            sk.keyframe_insert(data_path='value', frame=frame_n)
-            for sko in obj.data.shape_keys.key_blocks:
-                if sko != sk:
-                    sko.value = 0
-                    sko.keyframe_insert(data_path='value', frame=frame_n)
-
+    
+        obj.data.shape_keys.name = "DV_Animation"
+    _mark_chart_data_type(obj, data_type)
     return obj
 
 

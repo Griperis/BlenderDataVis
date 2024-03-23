@@ -4,8 +4,8 @@ import math
 
 from . import library
 from . import modifier_utils
-from .. import utils
-from .. import preferences
+from . import panel
+from data_vis import utils
 import re
 
 DV_COMPONENT_PROPERTY = "DV_Component"
@@ -52,6 +52,10 @@ def get_axis_on_chart(
                 if axis in {"X", "Y", "Z"}:
                     ret[axis] = mod
     return ret
+
+
+def get_chart_modifier(obj: bpy.types.Object) -> bpy.types.Modifier | None:
+    return obj.modifiers[0] if len(obj.modifiers) > 0 else None
 
 
 @utils.logging.logged_operator
@@ -101,14 +105,17 @@ class DV_AddNumericAxis(bpy.types.Operator):
         if self.axis == "X":
             modifier_utils.set_input(mod, "Rotation", (0.0, 0.0, 0.0))
             modifier_utils.set_input(mod, "Offset", (0.0, -0.1, 0.0))
+            modifier_utils.set_input(mod, "Auto Range Mode", 1)
             mod.name = "Numeric Axis X"
         elif self.axis == "Y":
             modifier_utils.set_input(mod, "Rotation", (0.0, 0.0, math.radians(90.0)))
             modifier_utils.set_input(mod, "Offset", (0.0, 0.1, 0.0))
+            modifier_utils.set_input(mod, "Auto Range Mode", 2)
             mod.name = "Numeric Axis Y"
         elif self.axis == "Z":
             modifier_utils.set_input(mod, "Rotation", (0.0, math.radians(-90.0), 0.0))
             modifier_utils.set_input(mod, "Offset", (0.0, -0.1, 0.1))
+            modifier_utils.set_input(mod, "Auto Range Mode", 3)
             mod.name = "Numeric Axis Z"
         else:
             raise ValueError(f"Unknown axis {self.axis}")
@@ -162,17 +169,7 @@ class DV_AddHeading(bpy.types.Operator):
         return {'FINISHED'}
     
 
-class DV_GN_PanelMixin:
-    bl_parent_id = "DV_PT_data_load"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = "DataVis"
-
-    @classmethod
-    def poll(cls, context: bpy.types.Context) -> bool:
-        return preferences.get_preferences(context).addon_mode == 'GEONODES'
-
-class DV_AxisPanel(bpy.types.Panel, DV_GN_PanelMixin):
+class DV_AxisPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
     bl_idname = "DV_PT_axis_panel"
     bl_label = "Axis"
 
@@ -181,12 +178,11 @@ class DV_AxisPanel(bpy.types.Panel, DV_GN_PanelMixin):
 
     def draw_header_preset(self, context: bpy.types.Context):
         layout = self.layout
-        layout.operator(DV_AddNumericAxis.bl_idname, text="", icon='ADD')
+        layout.operator(DV_AddNumericAxis.bl_idname, text="", icon='ADD').pass_invoke = False
 
     def draw_axis_inputs(self, mod: bpy.types.NodesModifier, layout: bpy.types.UILayout) -> None:
         box = layout.box()
         row = box.row()
-        # TODO: Allow removing the axis modifier from here
         row.prop(mod, "show_expanded", text="")
         row.label(text=mod.name)
         row.operator(
@@ -214,7 +210,7 @@ class DV_AxisPanel(bpy.types.Panel, DV_GN_PanelMixin):
                 self.draw_axis_inputs(mod, layout)
 
 
-class DV_DataLabelsPanel(bpy.types.Panel, DV_GN_PanelMixin):
+class DV_DataLabelsPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
     bl_idname = "DV_PT_data_labels_panel"
     bl_label = "Data Labels"
     

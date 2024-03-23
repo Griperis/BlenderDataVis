@@ -34,21 +34,6 @@ class ChartData:
         self.parsed_data = np.array(parsed_data)
         self.lines = len(parsed_data)
         self.labels = labels
-    
-class NumericData(ChartData):
-    def __init__(self, parsed_data):
-        super().__init__(parsed_data)
-
-
-class CategoricData2D(ChartData):
-    def __init__(self, parsed_data):
-        super().__init__(parsed_data)
-
-
-class CategoricData3D(ChartData):
-    def __init__(self, parsed_data):
-        super().__init__(parsed_data)
-
 
 
 class DataManager:

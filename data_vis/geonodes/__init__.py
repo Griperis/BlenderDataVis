@@ -2,6 +2,7 @@ import bpy
 from .bar_chart import DV_GN_BarChart
 from .data import DV_DataProperties
 from .components import DV_AddNumericAxis, DV_AddHeading, DV_AddAxisLabel, DV_AddDataLabels, DV_AxisPanel, DV_DataLabelsPanel
+from .animations import DV_AddInAnimation, DV_AddOutAnimation, DV_RemoveInOutAnimation, DV_AnimateData, DV_AnimatePanel 
 from .modifier_utils import DV_RemoveModifier
 
 CLASSES = [
@@ -13,7 +14,12 @@ CLASSES = [
     DV_AddAxisLabel,
     DV_AddDataLabels,
     DV_AxisPanel,
-    DV_DataLabelsPanel
+    DV_DataLabelsPanel,
+    DV_AddInAnimation,
+    DV_AddOutAnimation,
+    DV_RemoveInOutAnimation,
+    DV_AnimateData,
+    DV_AnimatePanel
 ]
 
 

@@ -35,8 +35,6 @@ class DV_GN_BarChart(bpy.types.Operator):
         node_group = library.load_chart("DV_BarChart")
         modifier: bpy.types.NodesModifier = obj.modifiers.new("Bar Chart", 'NODES')
         modifier.node_group = node_group
-        if data.DataType.is_animated(prefs.data.data_type):
-            modifier_utils.set_input(modifier.node_group, "Override Z Range", None)
 
         components.mark_as_chart([obj])
         context.collection.objects.link(obj)
