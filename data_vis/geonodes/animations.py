@@ -96,14 +96,6 @@ class DV_AddInAnimation(DV_AnimationOperator):
             self.report({'WARNING'}, "In animation already present, remove it first.")
             return {'CANCELLED'}
         
-        obj = context.active_object
-        sk = obj.shape_key_add(name=self.type_, from_mix=True)
-        sk.value = 0
-        if self.type_ == AnimationNames.GROW_FROM_ZERO:
-            for data in sk.data:
-                data.co = (data.co[0], data.co[1], 0)
-        else:
-            raise RuntimeError(f"Unknown animation type '{self.type_}'")
         
         # Infer the keyframe spacing from the existing keyframes, if they exist
         action = get_action(obj)
@@ -117,6 +109,15 @@ class DV_AddInAnimation(DV_AnimationOperator):
         if frame_n - frame_spacing <= 0:
             self.report({'ERROR'}, f"There is no space for in animation, please adjust the keyframes.")
             return {'CANCELLED'}
+        
+        obj = context.active_object
+        sk = obj.shape_key_add(name=self.type_, from_mix=True)
+        sk.value = 0
+        if self.type_ == AnimationNames.GROW_FROM_ZERO:
+            for data in sk.data:
+                data.co = (data.co[0], data.co[1], 0)
+        else:
+            raise RuntimeError(f"Unknown animation type '{self.type_}'")
         
         sk.value = 1
         sk.keyframe_insert(data_path='value', frame=frame_n - frame_spacing)
