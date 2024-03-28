@@ -74,7 +74,7 @@ def create_data_object(
     name: str,
     data_type: str,
     connect_edges: bool = False,
-    key_spacing: int = 20
+    create_faces: bool = False,
 ) -> bpy.types.Object:
     dm = DataManager()
     mesh = bpy.data.meshes.new(name) 

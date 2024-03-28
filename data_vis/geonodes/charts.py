@@ -85,3 +85,37 @@ class DV_GN_PointChart(DV_GN_Chart):
         context.view_layer.objects.active = obj
         obj.select_set(True)
         return {'FINISHED'}
+
+
+class DV_GN_LineChart(DV_GN_Chart):
+    ACCEPTABLE_DATA_TYPES = {
+        data.DataType.Data2D,
+        data.DataType.Data2DA,
+    }
+
+    def draw(self, context: bpy.types.Context) -> None:
+        prefs = preferences.get_preferences(context)
+        layout = self.layout
+        layout.prop(prefs.data, "data_type")
+
+    def execute(self, context: bpy.types.Context):
+        prefs = preferences.get_preferences(context)
+        obj: bpy.types.Object = data.create_data_object("DV_LineChart", prefs.data.data_type, connect_edges=True)
+        
+        node_group = library.load_chart("DV_LineChart")
+        modifier: bpy.types.NodesModifier = obj.modifiers.new("Line Chart", 'NODES')
+        modifier.node_group = node_group
+
+        components.mark_as_chart([obj])
+        context.collection.objects.link(obj)
+        context.view_layer.objects.active = obj
+        obj.select_set(True)
+        return {'FINISHED'}
+    
+
+class DV_GN_SurfaceChart(DV_GN_Chart):
+    ...
+
+
+class DV_GN_PieChart(DV_GN_Chart):
+    ...
