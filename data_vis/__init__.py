@@ -243,12 +243,8 @@ class DV_AddonPanel(bpy.types.Panel):
 
     def _draw_geonodes_ui(self, context, layout):
         layout.label(text=f"WIP: 3.0")
-        layout.operator(geonodes.DV_GN_BarChart.bl_idname)
-        # layout.operator(geonodes.components.DV_AddHeading.bl_idname)
-        # layout.operator(geonodes.components.DV_AddAxisLabel.bl_idname)
-        # col = layout.column()
-        # for mod in context.active_object.modifiers:
-        #     modifier_utils.draw_modifier_inputs(mod, col)
+        layout.operator(geonodes.charts.DV_GN_BarChart.bl_idname)
+        layout.operator(geonodes.charts.DV_GN_PointChart.bl_idname)
         
 
     def _draw_legacy_ui(self, context, layout):
