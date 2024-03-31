@@ -105,17 +105,17 @@ class DV_AddNumericAxis(bpy.types.Operator):
         if self.axis == "X":
             modifier_utils.set_input(mod, "Rotation", (0.0, 0.0, 0.0))
             modifier_utils.set_input(mod, "Offset", (0.0, -0.1, 0.0))
-            modifier_utils.set_input(mod, "Auto Range Mode", 1)
+            modifier_utils.set_input(mod, "Range Source", 1)
             mod.name = "Numeric Axis X"
         elif self.axis == "Y":
             modifier_utils.set_input(mod, "Rotation", (0.0, 0.0, math.radians(90.0)))
             modifier_utils.set_input(mod, "Offset", (0.0, 0.1, 0.0))
-            modifier_utils.set_input(mod, "Auto Range Mode", 2)
+            modifier_utils.set_input(mod, "Range Source", 2)
             mod.name = "Numeric Axis Y"
         elif self.axis == "Z":
             modifier_utils.set_input(mod, "Rotation", (0.0, math.radians(-90.0), 0.0))
             modifier_utils.set_input(mod, "Offset", (0.0, -0.1, 0.1))
-            modifier_utils.set_input(mod, "Auto Range Mode", 3)
+            modifier_utils.set_input(mod, "Range Source", 3)
             mod.name = "Numeric Axis Z"
         else:
             raise ValueError(f"Unknown axis {self.axis}")
