@@ -245,6 +245,8 @@ class DV_AddonPanel(bpy.types.Panel):
         layout.label(text=f"WIP: 3.0")
         layout.operator(geonodes.charts.DV_GN_BarChart.bl_idname)
         layout.operator(geonodes.charts.DV_GN_PointChart.bl_idname)
+        layout.operator(geonodes.charts.DV_GN_LineChart.bl_idname)
+        layout.operator(geonodes.charts.DV_GN_SurfaceChart.bl_idname)
         
 
     def _draw_legacy_ui(self, context, layout):

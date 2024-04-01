@@ -74,10 +74,10 @@ class DV_GN_PointChart(DV_GN_Chart):
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
-        obj: bpy.types.Object = data.create_data_object("DV_BubbleChart", prefs.data.data_type)
+        obj: bpy.types.Object = data.create_data_object("DV_PointChart", prefs.data.data_type)
         
-        node_group = library.load_chart("DV_BubbleChart")
-        modifier: bpy.types.NodesModifier = obj.modifiers.new("Bubble Chart", 'NODES')
+        node_group = library.load_chart("DV_PointChart")
+        modifier: bpy.types.NodesModifier = obj.modifiers.new("Point Chart", 'NODES')
         modifier.node_group = node_group
 
         components.mark_as_chart([obj])
@@ -88,6 +88,9 @@ class DV_GN_PointChart(DV_GN_Chart):
 
 
 class DV_GN_LineChart(DV_GN_Chart):
+    bl_idname = "data_vis.geonodes_line_chart"
+    bl_label = "Line Chart"
+
     ACCEPTABLE_DATA_TYPES = {
         data.DataType.Data2D,
         data.DataType.Data2DA,
@@ -114,7 +117,45 @@ class DV_GN_LineChart(DV_GN_Chart):
     
 
 class DV_GN_SurfaceChart(DV_GN_Chart):
-    ...
+    bl_idname = "data_vis.geonodes_surface_chart"
+    bl_label = "Surface Chart"
+
+    ACCEPTABLE_DATA_TYPES = {
+        data.DataType.Data3D,
+        data.DataType.Data3DA,
+    }
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        try:
+            import scipy
+        except ImportError:
+            return False
+        
+        return super().poll(context)
+
+    def draw(self, context: bpy.types.Context) -> None:
+        prefs = preferences.get_preferences(context)
+        layout = self.layout
+        layout.prop(prefs.data, "data_type")
+
+    def execute(self, context: bpy.types.Context):
+        prefs = preferences.get_preferences(context)
+        obj: bpy.types.Object = data.create_data_object(
+            "DV_SurfaceChart",
+            prefs.data.data_type,
+            interpolation_config=data.InterpolationConfig(method='linear', m=10, n=10)
+        )
+        
+        node_group = library.load_chart("DV_SurfaceChart")
+        modifier: bpy.types.NodesModifier = obj.modifiers.new("Surface Chart", 'NODES')
+        modifier.node_group = node_group
+
+        components.mark_as_chart([obj])
+        context.collection.objects.link(obj)
+        context.view_layer.objects.active = obj
+        obj.select_set(True)
+        return {'FINISHED'}
 
 
 class DV_GN_PieChart(DV_GN_Chart):

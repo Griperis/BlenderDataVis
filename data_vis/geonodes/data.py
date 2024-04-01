@@ -1,6 +1,7 @@
 import bpy
 import typing
 import numpy as np
+import dataclasses
 from ..data_manager import DataManager
 W_ATTRIBUTE_NAME = "@w"
 DATA_TYPE_PROPERTY = "DV_DataType"
@@ -70,15 +71,7 @@ def get_chart_data_type(obj: bpy.types.Object) -> str | None:
     return obj.get(DATA_TYPE_PROPERTY, None)
 
 
-def create_data_object(
-    name: str,
-    data_type: str,
-    connect_edges: bool = False,
-    create_faces: bool = False,
-) -> bpy.types.Object:
-    dm = DataManager()
-    mesh = bpy.data.meshes.new(name) 
-    data = dm.get_chart_data().parsed_data
+def _preprocess_data(data, data_type: str):
     vert_positions = None
     ws = None
     z_ns = None
@@ -101,15 +94,74 @@ def create_data_object(
     else:
         raise RuntimeError(f'Unknown DataType {data_type}')
     
+    return vert_positions, ws, z_ns
+
+
+@dataclasses.dataclass
+class InterpolationConfig:
+    method: str
+    m: int
+    n: int
+
+
+def _convert_data_to_geometry(
+    data_type: str,
+    connect_edges: bool = False,
+    interpolation_config: InterpolationConfig | None = None,
+):
+    vert_positions, ws, z_ns = _preprocess_data(DataManager().get_chart_data().parsed_data, data_type)
+    verts = []
     edges = []
-    if connect_edges:
-        edges = [(i, i + 1) for i in range(len(vert_positions) - 1)]
+    faces = []
+    if interpolation_config is not None:
+        try:
+            from scipy import interpolate
+            import numpy as np
+        except ImportError:
+            raise RuntimeError("SciPy is required for this operation")
+        x = np.linspace(vert_positions[:, 0].min(), vert_positions[:, 0].max(), interpolation_config.m)
+        y = np.linspace(vert_positions[:, 1].min(), vert_positions[:, 1].max(), interpolation_config.n)
+        X, Y = np.meshgrid(x, y)
     
-    mesh.from_pydata(vertices=vert_positions, edges=edges, faces=[])
+        res = interpolate.Rbf(
+            vert_positions[:, 0], 
+            vert_positions[:, 1], 
+            vert_positions[:, 2], 
+            function=interpolation_config.method
+        )(X, Y)
+
+        for row in range(interpolation_config.m):
+            for col in range(interpolation_config.n):
+                verts.append((col / interpolation_config.m, row / interpolation_config.n, res[col][row]))
+                if row < interpolation_config.m - 1 and col < interpolation_config.n - 1:
+                    faces.append((
+                        col * interpolation_config.m + row,
+                        (col + 1) * interpolation_config.m + row,
+                        (col + 1) * interpolation_config.m + 1 + row,
+                        col * interpolation_config.m + 1 + row
+                    ))
+
+        return verts, edges, faces, ws, z_ns
+    else:
+        if connect_edges:
+            edges = [(i, i + 1) for i in range(len(vert_positions) - 1)]
+        
+        return vert_positions, edges, faces, ws, z_ns
+
+
+def create_data_object(
+    name: str,
+    data_type: str,
+    connect_edges: bool = False,
+    interpolation_config: InterpolationConfig | None = None,
+) -> bpy.types.Object:
+    verts, edges, faces, ws, z_ns = _convert_data_to_geometry(data_type, connect_edges, interpolation_config)
+    
+    mesh = bpy.data.meshes.new(name) 
+    mesh.from_pydata(vertices=verts, edges=edges, faces=faces)
     if ws is not None:
         attr = mesh.attributes.new(W_ATTRIBUTE_NAME, 'FLOAT', 'POINT')
         attr.data.foreach_set('value', ws)
-
 
     obj = bpy.data.objects.new(name, mesh)
     obj.location = (0, 0, 0)
@@ -125,6 +177,7 @@ def create_data_object(
                 sk.data[j].co.z = z
     
         obj.data.shape_keys.name = "DV_Animation"
+
     _mark_chart_data_type(obj, data_type)
     return obj
 
