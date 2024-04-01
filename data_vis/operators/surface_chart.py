@@ -10,7 +10,7 @@ from data_vis.properties import DV_AxisPropertyGroup, DV_LabelPropertyGroup, DV_
 from data_vis.colors import NodeShader
 from data_vis.operators.features.axis import AxisFactory
 from data_vis.data_manager import DataManager, DataType
-from data_vis.utils import env_utils
+from data_vis.utils import env_utils, interpolation
 
 
 class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
@@ -35,16 +35,8 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
     )
 
     rbf_function: bpy.props.EnumProperty(
-        name='RBF Method',
-        items=(
-            ('multiquadric', 'Multiquadric', '[DEFAULT] sqrt((r/self.epsilon)**2 + 1'),
-            ('inverse', 'Inverse', '1.0/sqrt((r/self.epsilon)**2 + 1'),
-            ('gaussian', 'Gaussian', 'exp(-(r/self.epsilon)**2'),
-            ('linear', 'Linear', 'r'),
-            ('cubic', 'Cubic', 'r**3'),
-            ('quintic', 'Quintic', 'r**5'),
-            ('thin_plate', 'Thin Plate', 'r**2 * log(r)'),
-        ),
+        name='Interpolation Method',
+        items=interpolation.TYPES_ENUM,
         description='See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html',
     )
 

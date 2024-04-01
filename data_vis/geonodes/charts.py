@@ -1,5 +1,4 @@
 import bpy
-import typing
 from . import library
 from . import components
 from . import data
@@ -125,6 +124,26 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
         data.DataType.Data3DA,
     }
 
+    rbf_function: bpy.props.EnumProperty(
+        name="Interpolation Method",
+        items=utils.interpolation.TYPES_ENUM,
+        description="See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html"
+    )
+
+    grid_x: bpy.props.IntProperty(
+        name="Grid X",
+        description="Size of the interpolated grid across X axis",
+        min=1,
+        default=20
+    )
+
+    grid_y: bpy.props.IntProperty(
+        name="Grid Y",
+        description="Size of the interpolated grid across Y axis",
+        min=1,
+        default=20
+    )
+
     @classmethod
     def poll(cls, context: bpy.types.Context):
         try:
@@ -138,13 +157,20 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
         prefs = preferences.get_preferences(context)
         layout = self.layout
         layout.prop(prefs.data, "data_type")
+        layout.prop(self, "rbf_function")
+        layout.prop(self, "grid_x")
+        layout.prop(self, "grid_y")
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
         obj: bpy.types.Object = data.create_data_object(
             "DV_SurfaceChart",
             prefs.data.data_type,
-            interpolation_config=data.InterpolationConfig(method='linear', m=10, n=10)
+            interpolation_config=data.InterpolationConfig(
+                method=self.rbf_function,
+                m=self.grid_x,
+                n=self.grid_y
+            )
         )
         
         node_group = library.load_chart("DV_SurfaceChart")
