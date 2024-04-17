@@ -2,17 +2,24 @@ import bpy
 import typing
 import numpy as np
 import dataclasses
-from ..data_manager import DataManager
+from ..data_manager import DataManager, DataType
+
+
 W_ATTRIBUTE_NAME = "@w"
 DATA_TYPE_PROPERTY = "DV_DataType"
 
-class DataType:
+class DataTypeValue:
+    """
+    Individual values for data types that can be then compared and
+    it can be easily detected what charts are suitable for given data.
+    """
     Data2D = '2D'
     Data2DW = '2D+W'
     Data2DA = '2D+A'
     Data3D = '3D'
     Data3DW = '3D+W'
     Data3DA = '3D+A'
+    CATEGORIC_Data2D = 'Cat_2D'
 
     @staticmethod
     def is_animated(data: str) -> bool:
@@ -20,39 +27,28 @@ class DataType:
 
 
 def get_data_types() -> typing.Set[str]:
-        types = set()
-        shape = DataManager().get_chart_data().parsed_data.shape
+    types = set()
+    dm = DataManager()
+    shape = dm.get_chart_data().parsed_data.shape
+    if dm.predicted_data_type == DataType.Numerical: 
         if shape[0] > 1:
-            types.update({DataType.Data2D})
+            types.update({DataTypeValue.Data2D})
         if shape[0] > 2:
-            types.update({DataType.Data2DA, DataType.Data2DW, DataType.Data3D})
+            types.update({DataTypeValue.Data2DA, DataTypeValue.Data2DW, DataTypeValue.Data3D})
         if shape[0] > 3:
-            types.update({DataType.Data3DW, DataType.Data3DA})
+            types.update({DataTypeValue.Data3DW, DataTypeValue.Data3DA})
+    elif dm.predicted_data_type == DataType.Categorical:
+        types.update({DataTypeValue.CATEGORIC_Data2D})
 
-        return types 
+    return types 
 
 
 class DV_DataProperties(bpy.types.PropertyGroup):
     current_types: set[str] = set()
     data_type: bpy.props.EnumProperty(
+        name="Selected Data Type",
+        description="How to visualise given data",
         items=lambda self, context: self._get_data_types_enum(context)
-        # (
-        #     # 2 columns exactly
-        #     (DataType.Data2D, '2D', '2D'),
-        #     (DataType.Data2DW, '2D+W', '2D+W'),
-        #     # 3+ columns
-        #     (DataType.Data2DA, '2D+A', '2D+A'),
-        #     # 3 columns exactly
-        #     (DataType.Data3D, '3D', '3D'),
-        #     # 4 columns exactly
-        #     (DataType.Data3DW, '3D+W', '3D+W'),
-        #     # 4+ columns
-        #     (DataType.Data3DA, '3D+A', '3D+A'),
-
-        #     # TODO: 
-        #     # 2D+WA, 3D+WA - animated several @ws
-        #     # 2D+W+A, 3D+W+A - @ws with animated z_ns
-        # )
     )
 
     def set_current_types(self, current_types: set[str]) -> None:
@@ -75,21 +71,21 @@ def _preprocess_data(data, data_type: str):
     vert_positions = None
     ws = None
     z_ns = None
-    if data_type.startswith(DataType.Data2D):
+    if data_type.startswith(DataTypeValue.Data2D):
         # Add 0 to make positions always [x, 0, z]
         vert_positions = np.hstack((data[:, :1], np.zeros((data.shape[0], 1)), data[:, 1:]))[:,:3]
-        if data_type == DataType.Data2DW:
+        if data_type == DataTypeValue.Data2DW:
             # Create [x, 0, z] positions assign w attribute
             ws = data[:, 2]
-        elif data_type == DataType.Data2DA:
+        elif data_type == DataTypeValue.Data2DA:
             # Create [x, 0, z] and [x, 0, z_n] shape keys
             z_ns = data[:, 2:]
-    elif data_type.startswith(DataType.Data3D):
+    elif data_type.startswith(DataTypeValue.Data3D):
         # Trim to 3 dims
         vert_positions = data[:, :3]
-        if data_type == DataType.Data3DW:
+        if data_type == DataTypeValue.Data3DW:
             ws = data[:, 3]
-        elif data_type == DataType.Data3DA:
+        elif data_type == DataTypeValue.Data3DA:
             z_ns = data[:, 3:]
     else:
         raise RuntimeError(f'Unknown DataType {data_type}')

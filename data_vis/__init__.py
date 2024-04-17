@@ -18,7 +18,7 @@ import bpy
 import bpy.utils.previews
 import os
 # import logging first, so it is initialized before all other modules
-from . utils import logging
+from .utils import logging
 
 from .operators.bar_chart import OBJECT_OT_BarChart
 from .operators.line_chart import OBJECT_OT_LineChart
@@ -35,7 +35,6 @@ from .general import DV_ShowPopup, DV_DataInspect
 from .utils import env_utils
 from . import preferences as prefs
 from . import geonodes
-from .geonodes import modifier_utils
 from .preferences import DV_Preferences, get_preferences, get_example_data_path
 
 icon_manager = IconManager()
@@ -247,6 +246,7 @@ class DV_AddonPanel(bpy.types.Panel):
         layout.operator(geonodes.charts.DV_GN_PointChart.bl_idname)
         layout.operator(geonodes.charts.DV_GN_LineChart.bl_idname)
         layout.operator(geonodes.charts.DV_GN_SurfaceChart.bl_idname)
+        layout.operator(geonodes.charts.DV_GN_PieChart.bl_idname)
         
 
     def _draw_legacy_ui(self, context, layout):

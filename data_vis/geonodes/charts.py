@@ -4,6 +4,8 @@ from . import components
 from . import data
 from .. import preferences
 from .. import utils
+from . import modifier_utils
+from ..data_manager import DataManager
 
 
 class DV_GN_Chart(bpy.types.Operator):
@@ -31,10 +33,10 @@ class DV_GN_BarChart(DV_GN_Chart):
     bl_label = "Bar Chart"
 
     ACCEPTABLE_DATA_TYPES = {
-        data.DataType.Data2D,
-        data.DataType.Data2DA,
-        data.DataType.Data3D,
-        data.DataType.Data3DA
+        data.DataTypeValue.Data2D,
+        data.DataTypeValue.Data2DA,
+        data.DataTypeValue.Data3D,
+        data.DataTypeValue.Data3DA
     }
     
     def draw(self, context: bpy.types.Context) -> None:
@@ -61,12 +63,12 @@ class DV_GN_PointChart(DV_GN_Chart):
     bl_label = "Point Chart"
 
     ACCEPTABLE_DATA_TYPES = {
-        data.DataType.Data2D,
-        data.DataType.Data2DA,
-        data.DataType.Data3D,
-        data.DataType.Data3DA,
-        data.DataType.Data2DW,
-        data.DataType.Data3DW,
+        data.DataTypeValue.Data2D,
+        data.DataTypeValue.Data2DA,
+        data.DataTypeValue.Data3D,
+        data.DataTypeValue.Data3DA,
+        data.DataTypeValue.Data2DW,
+        data.DataTypeValue.Data3DW,
         # TODO: A + W
     }
 
@@ -93,8 +95,8 @@ class DV_GN_LineChart(DV_GN_Chart):
     bl_label = "Line Chart"
 
     ACCEPTABLE_DATA_TYPES = {
-        data.DataType.Data2D,
-        data.DataType.Data2DA,
+        data.DataTypeValue.Data2D,
+        data.DataTypeValue.Data2DA,
     }
 
     def draw(self, context: bpy.types.Context) -> None:
@@ -120,8 +122,8 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
     bl_label = "Surface Chart"
 
     ACCEPTABLE_DATA_TYPES = {
-        data.DataType.Data3D,
-        data.DataType.Data3DA,
+        data.DataTypeValue.Data3D,
+        data.DataTypeValue.Data3DA,
     }
 
     rbf_function: bpy.props.EnumProperty(
@@ -183,4 +185,42 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
 
 
 class DV_GN_PieChart(DV_GN_Chart):
-    ...
+    bl_idname = "data_vis.geonodes_pie_chart"
+    bl_label = "Pie Chart"
+
+    MAX_VALUES = 10
+    ACCEPTABLE_DATA_TYPES = {
+        data.DataTypeValue.CATEGORIC_Data2D,
+    }
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        if not super().poll(context):
+            return False
+        
+        return DataManager().lines < cls.MAX_VALUES
+
+    def execute(self, context: bpy.types.Context):
+        obj = bpy.data.objects.new("DV_PieChart", bpy.data.meshes.new("DV_PieChart"))
+        node_group = library.load_chart("DV_PieChart")
+        modifier: bpy.types.NodesModifier = obj.modifiers.new("Pie Chart", 'NODES')
+        modifier.node_group = node_group
+
+        dm = DataManager()
+        parsed_data = dm.get_parsed_data()
+        total = 0
+        count = min(len(parsed_data), DV_GN_PieChart.MAX_VALUES)
+        for i in range(0, count):
+            value = parsed_data[i][1]
+            total += value
+            label = parsed_data[i][0]     
+            modifier_utils.set_input(modifier, f"Value {i + 1}", value)
+            modifier_utils.set_input(modifier, f"Label {i + 1}", label)
+
+        modifier_utils.set_input(modifier, "Total", float(total))
+        modifier_utils.set_input(modifier, "Shown Labels", count)
+
+        components.mark_as_chart([obj])
+        data._mark_chart_data_type(obj, data.DataTypeValue.CATEGORIC_Data2D)
+        self._add_chart_to_scene(context, obj)
+        return {'FINISHED'}

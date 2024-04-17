@@ -5,7 +5,7 @@ import math
 from . import library
 from . import modifier_utils
 from . import panel
-from data_vis import utils
+from .. import utils
 import re
 
 DV_COMPONENT_PROPERTY = "DV_Component"

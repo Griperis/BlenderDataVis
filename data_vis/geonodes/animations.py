@@ -77,7 +77,7 @@ class DV_AnimationOperator(bpy.types.Operator):
         if context.active_object is None or not components.is_chart(context.active_object):
             return False
 
-        return data.DataType.is_animated(data.get_chart_data_type(context.object))
+        return data.DataTypeValue.is_animated(data.get_chart_data_type(context.object))
 
 
 class DV_AddInAnimation(DV_AnimationOperator):
