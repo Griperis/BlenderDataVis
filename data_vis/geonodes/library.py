@@ -9,6 +9,14 @@ GEONODES_BLENDS_PATH = os.path.abspath(
 def _load_nodegroup(name: str, link: bool = True) -> bpy.types.NodeGroup:
     if not os.path.isfile(GEONODES_BLENDS_PATH):
         raise FileNotFoundError(f"Geometry nodes library couldn't be found at {GEONODES_BLENDS_PATH}")
+    
+    library: bpy.types.Library = bpy.data.libraries.get(os.path.basename(GEONODES_BLENDS_PATH))
+    if library is not None:
+            library.reload()
+
+    if name in bpy.data.node_groups:
+        return bpy.data.node_groups[name]
+
     with bpy.data.libraries.load(GEONODES_BLENDS_PATH, link=link) as (data_from, data_to):
         assert name in data_from.node_groups
         data_to.node_groups = [name]
