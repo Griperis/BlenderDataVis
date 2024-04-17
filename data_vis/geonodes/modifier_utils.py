@@ -44,14 +44,15 @@ def draw_modifier_inputs(
     col = layout.column()
     col.label(text=f"{modifier.name}")
     for item in modifier.node_group.interface.items_tree:
-        if item.bl_socket_idname in {'NodeSocketGeometry'}:
-            continue
         if item.item_type == 'PANEL':
             col = layout.column()
             col.label(text=item.name)
             continue
 
+
         if item.in_out == 'INPUT':
+            if item.bl_socket_idname in {'NodeSocketGeometry'}:
+                continue
             col.prop(modifier, f'["{item.identifier}"]', text=item.name)
 
     # TODO: Use the template :)

@@ -17,6 +17,12 @@ class DV_GN_Chart(bpy.types.Operator):
         prefs = preferences.get_preferences(context)
         prefs.data.set_current_types(type(self).ACCEPTABLE_DATA_TYPES)
         return context.window_manager.invoke_props_dialog(self)
+    
+    def _add_chart_to_scene(self, context: bpy.types.Context, obj: bpy.types.Object) -> None:
+        obj.location = context.scene.cursor.location
+        context.collection.objects.link(obj)
+        context.view_layer.objects.active = obj
+        obj.select_set(True)
 
 
 @utils.logging.logged_operator
@@ -45,9 +51,7 @@ class DV_GN_BarChart(DV_GN_Chart):
         modifier.node_group = node_group
 
         components.mark_as_chart([obj])
-        context.collection.objects.link(obj)
-        context.view_layer.objects.active = obj
-        obj.select_set(True)
+        self._add_chart_to_scene(context, obj)
         return {'FINISHED'}
 
 
@@ -80,9 +84,7 @@ class DV_GN_PointChart(DV_GN_Chart):
         modifier.node_group = node_group
 
         components.mark_as_chart([obj])
-        context.collection.objects.link(obj)
-        context.view_layer.objects.active = obj
-        obj.select_set(True)
+        self._add_chart_to_scene(context, obj)
         return {'FINISHED'}
 
 
@@ -109,9 +111,7 @@ class DV_GN_LineChart(DV_GN_Chart):
         modifier.node_group = node_group
 
         components.mark_as_chart([obj])
-        context.collection.objects.link(obj)
-        context.view_layer.objects.active = obj
-        obj.select_set(True)
+        self._add_chart_to_scene(context, obj)
         return {'FINISHED'}
     
 
@@ -178,9 +178,7 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
         modifier.node_group = node_group
 
         components.mark_as_chart([obj])
-        context.collection.objects.link(obj)
-        context.view_layer.objects.active = obj
-        obj.select_set(True)
+        self._add_chart_to_scene(context, obj)
         return {'FINISHED'}
 
 

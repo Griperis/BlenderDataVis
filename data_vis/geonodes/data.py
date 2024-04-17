@@ -156,7 +156,6 @@ def create_data_object(
     interpolation_config: InterpolationConfig | None = None,
 ) -> bpy.types.Object:
     verts, edges, faces, ws, z_ns = _convert_data_to_geometry(data_type, connect_edges, interpolation_config)
-    
     mesh = bpy.data.meshes.new(name) 
     mesh.from_pydata(vertices=verts, edges=edges, faces=faces)
     if ws is not None:
