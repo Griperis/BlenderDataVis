@@ -224,3 +224,8 @@ class DV_GN_PieChart(DV_GN_Chart):
         data._mark_chart_data_type(obj, data.DataTypeValue.CATEGORIC_Data2D)
         self._add_chart_to_scene(context, obj)
         return {'FINISHED'}
+    
+    def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
+        prefs = preferences.get_preferences(context)
+        prefs.data.set_current_types(type(self).ACCEPTABLE_DATA_TYPES)
+        return self.execute(context)

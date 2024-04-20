@@ -148,8 +148,12 @@ class DV_AddonPanel(bpy.types.Panel):
         layout.template_icon(icon_value=icon_manager.get_icon_id('addon_icon'))
     
     def draw_header_preset(self, context):
-        # TODO: Link to github!
-        pass
+        self.layout.operator(
+            "wm.url_open",
+            text="",
+            icon_value=icon_manager.get_icon('github_icon').icon_id,
+            emboss=False
+        ).url = "https://github.com/Griperis/BlenderDataVis"
 
     def create_label_row(self, layout, label, value):
         row = layout.row(align=True)
@@ -241,13 +245,9 @@ class DV_AddonPanel(bpy.types.Panel):
             self._draw_geonodes_ui(context, layout)
 
     def _draw_geonodes_ui(self, context, layout):
-        layout.label(text=f"WIP: 3.0")
-        layout.operator(geonodes.charts.DV_GN_BarChart.bl_idname)
-        layout.operator(geonodes.charts.DV_GN_PointChart.bl_idname)
-        layout.operator(geonodes.charts.DV_GN_LineChart.bl_idname)
-        layout.operator(geonodes.charts.DV_GN_SurfaceChart.bl_idname)
-        layout.operator(geonodes.charts.DV_GN_PieChart.bl_idname)
-        
+        row = layout.row()
+        row.scale_y = 2
+        row.menu('OBJECT_MT_Add_Chart', text='Create Chart', icon_value=icon_manager.get_icon_id('addon_icon'))
 
     def _draw_legacy_ui(self, context, layout):
         row = layout.row()
@@ -287,13 +287,23 @@ class OBJECT_OT_AddChart(bpy.types.Menu):
         if len(context.scene.data_list) == 0:
             layout.label(text="Load data in the N panel first!", icon='ERROR')
             layout.separator()
-            
-        layout.operator(OBJECT_OT_BarChart.bl_idname, icon_value=icon_manager.get_icon('bar_chart').icon_id)
-        layout.operator(OBJECT_OT_LineChart.bl_idname, icon_value=icon_manager.get_icon('line_chart').icon_id)
-        layout.operator(OBJECT_OT_PieChart.bl_idname, icon_value=icon_manager.get_icon('pie_chart').icon_id)
-        layout.operator(OBJECT_OT_PointChart.bl_idname, icon_value=icon_manager.get_icon('point_chart').icon_id)
-        layout.operator(OBJECT_OT_BubbleChart.bl_idname, icon_value=icon_manager.get_icon('bubble_chart').icon_id)
-        layout.operator(OBJECT_OT_SurfaceChart.bl_idname, icon_value=icon_manager.get_icon('surface_chart').icon_id)
+
+        prefs = get_preferences(context)
+        if prefs.addon_mode == 'LEGACY':
+            layout.operator(OBJECT_OT_BarChart.bl_idname, icon_value=icon_manager.get_icon('bar_chart').icon_id)
+            layout.operator(OBJECT_OT_LineChart.bl_idname, icon_value=icon_manager.get_icon('line_chart').icon_id)
+            layout.operator(OBJECT_OT_PieChart.bl_idname, icon_value=icon_manager.get_icon('pie_chart').icon_id)
+            layout.operator(OBJECT_OT_PointChart.bl_idname, icon_value=icon_manager.get_icon('point_chart').icon_id)
+            layout.operator(OBJECT_OT_BubbleChart.bl_idname, icon_value=icon_manager.get_icon('bubble_chart').icon_id)
+            layout.operator(OBJECT_OT_SurfaceChart.bl_idname, icon_value=icon_manager.get_icon('surface_chart').icon_id)
+        elif prefs.addon_mode == 'GEONODES':
+            layout.operator(geonodes.charts.DV_GN_BarChart.bl_idname, icon_value=icon_manager.get_icon('bar_chart').icon_id)
+            layout.operator(geonodes.charts.DV_GN_LineChart.bl_idname, icon_value=icon_manager.get_icon('line_chart').icon_id)
+            layout.operator(geonodes.charts.DV_GN_PieChart.bl_idname, icon_value=icon_manager.get_icon('pie_chart').icon_id)
+            layout.operator(geonodes.charts.DV_GN_PointChart.bl_idname, icon_value=icon_manager.get_icon('point_chart').icon_id)
+            layout.operator(geonodes.charts.DV_GN_SurfaceChart.bl_idname, icon_value=icon_manager.get_icon('surface_chart').icon_id)
+        else:
+            raise ValueError(f"unknown addon mode: {prefs.addon_mode}")
 
 
 class DV_DL_PropertyGroup(bpy.types.PropertyGroup):
