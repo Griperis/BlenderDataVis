@@ -235,6 +235,7 @@ class DV_AnimateData(DV_AnimationOperator):
         col = layout.column(align=True)
         col.label(text=f"From column {self.start_idx} to {self.end_idx}")
         col.label(text=f"Spaced at {self.keyframe_spacing} frames")
+        col.label(text=f"Starting at frame {context.scene.frame_current}")
 
     def execute(self, context: bpy.types.Context):
         obj = context.active_object
