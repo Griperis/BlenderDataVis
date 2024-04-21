@@ -1,4 +1,6 @@
 import bpy
+import mathutils
+import colorsys
 from . import library
 from . import components
 from . import data
@@ -10,6 +12,16 @@ from ..data_manager import DataManager
 
 class DV_GN_Chart(bpy.types.Operator):
     ACCEPTABLE_DATA_TYPES = None
+
+    color: bpy.props.FloatVectorProperty(
+        name="Base Color",
+        description="Base color of the chart, other colors are derived from this one",
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        default=(0.0, 0.0, 1.0),
+        size=3
+    )
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
@@ -25,6 +37,35 @@ class DV_GN_Chart(bpy.types.Operator):
         context.collection.objects.link(obj)
         context.view_layer.objects.active = obj
         obj.select_set(True)
+
+    def _apply_material(
+        self,
+        modifier: bpy.types.NodesModifier,
+        type_: library.MaterialType,
+    ) -> None:
+        material = library.load_material(type_).copy()
+        base_color = mathutils.Color(self.color)
+        if type_ == library.MaterialType.GradientRandom:
+            color_ramp = material.node_tree.nodes["Color Ramp"].color_ramp 
+            color_ramp.elements[0].color = self._calc_hsv(*base_color.hsv)
+            color_ramp.elements[1].color = self._calc_hsv(base_color.h - 0.16, base_color.s, base_color.v)
+        elif type_ == library.MaterialType.Gradient:
+            color_ramp = material.node_tree.nodes["Color Ramp"].color_ramp 
+            color_ramp.elements[0].color = self._calc_hsv(*base_color.hsv)
+            color_ramp.elements[1].color = self._calc_hsv(base_color.h - 0.16, base_color.s, base_color.v)
+        elif type_ == library.MaterialType.Sign:
+            material.node_tree.nodes["Mix"].inputs["A"].default_value = self._calc_hsv(*base_color.hsv)
+            material.node_tree.nodes["Mix"].inputs["B"].default_value = self._calc_hsv(base_color.h - 0.5, base_color.s, base_color.v)
+        elif type_ == library.MaterialType.Constant:
+            material.node_tree.nodes["Principled BSDF"].inputs[0].default_value = mathutils.Vector(
+                [*self.color, 1.0])
+
+        modifier_utils.set_input(modifier, "Material", material)
+
+    def _calc_hsv(self, h: float, s: float, v: float) -> mathutils.Vector:
+        if h < 0:
+            h = 1.0 - h
+        return mathutils.Vector([*colorsys.hsv_to_rgb(h, s, v), 1.0])
 
 
 @utils.logging.logged_operator
@@ -43,6 +84,8 @@ class DV_GN_BarChart(DV_GN_Chart):
         prefs = preferences.get_preferences(context)
         layout = self.layout
         layout.prop(prefs.data, "data_type")
+        layout.prop(prefs, "color_type")
+        layout.prop(self, "color")
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
@@ -54,6 +97,7 @@ class DV_GN_BarChart(DV_GN_Chart):
 
         components.mark_as_chart([obj])
         self._add_chart_to_scene(context, obj)
+        self._apply_material(modifier, prefs.color_type)
         return {'FINISHED'}
 
 
@@ -76,6 +120,8 @@ class DV_GN_PointChart(DV_GN_Chart):
         prefs = preferences.get_preferences(context)
         layout = self.layout
         layout.prop(prefs.data, "data_type")
+        layout.prop(prefs, "color_type")
+        layout.prop(self, "color")
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
@@ -87,6 +133,7 @@ class DV_GN_PointChart(DV_GN_Chart):
 
         components.mark_as_chart([obj])
         self._add_chart_to_scene(context, obj)
+        self._apply_material(modifier, prefs.color_type)
         return {'FINISHED'}
 
 
@@ -103,6 +150,8 @@ class DV_GN_LineChart(DV_GN_Chart):
         prefs = preferences.get_preferences(context)
         layout = self.layout
         layout.prop(prefs.data, "data_type")
+        layout.prop(prefs, "color_type")
+        layout.prop(self, "color")
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
@@ -114,6 +163,7 @@ class DV_GN_LineChart(DV_GN_Chart):
 
         components.mark_as_chart([obj])
         self._add_chart_to_scene(context, obj)
+        self._apply_material(modifier, prefs.color_type)
         return {'FINISHED'}
     
 
@@ -159,6 +209,8 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
         prefs = preferences.get_preferences(context)
         layout = self.layout
         layout.prop(prefs.data, "data_type")
+        layout.prop(prefs, "color_type")
+        layout.prop(self, "color")
         layout.prop(self, "rbf_function")
         layout.prop(self, "grid_x")
         layout.prop(self, "grid_y")
@@ -181,6 +233,7 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
 
         components.mark_as_chart([obj])
         self._add_chart_to_scene(context, obj)
+        self._apply_material(modifier, prefs.color_type)
         return {'FINISHED'}
 
 

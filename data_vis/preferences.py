@@ -4,6 +4,7 @@ import logging
 logger = logging.getLogger("data_vis")
 
 from .geonodes.data import DV_DataProperties
+from .geonodes.library import MaterialType
 
 
 EXAMPLE_DATA_FOLDER = 'example_data'
@@ -105,6 +106,10 @@ class DV_Preferences(bpy.types.AddonPreferences):
 
     data: bpy.props.PointerProperty(type=DV_DataProperties)
 
+    color_type: bpy.props.EnumProperty(
+        name='Color Type',
+        items=MaterialType.as_enum_items(),
+    )
 
     def get_addon_mode(self, context: bpy.types.Context):
         ret = []
