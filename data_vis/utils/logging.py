@@ -8,7 +8,7 @@ import typing
 
 def init_logging():
     config_file = os.path.join(os.path.dirname(__file__), "log_config.json")
-    with open(config_file, 'r') as f:
+    with open(config_file, "r") as f:
         config = json.load(f)
     logging.config.dictConfig(config)
     logger = logging.getLogger("data_vis")
@@ -21,7 +21,8 @@ init_logging()
 # Logging decorator based on https://github.com/polygoniq/engon/blob/master/python_deps/polib/log_helpers_bpy.py
 def logged_operator(cls: typing.Type[bpy.types.Operator]):
     assert issubclass(
-        cls, bpy.types.Operator), "logged_operator only accepts classes inheriting bpy.types.Operator"
+        cls, bpy.types.Operator
+    ), "logged_operator only accepts classes inheriting bpy.types.Operator"
 
     logger = logging.getLogger("data_vis")
 
@@ -30,7 +31,8 @@ def logged_operator(cls: typing.Type[bpy.types.Operator]):
 
         def new_execute(self, context: bpy.types.Context):
             logger.info(
-                f"{cls.__name__} operator execute started with arguments {self.as_keywords()}")
+                f"{cls.__name__} operator execute started with arguments {self.as_keywords()}"
+            )
             try:
                 ret = cls._original_execute(self, context)
                 logger.info(f"{cls.__name__} operator returned {ret}")

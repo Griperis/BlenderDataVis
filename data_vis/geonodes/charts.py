@@ -18,21 +18,23 @@ class DV_GN_Chart(bpy.types.Operator):
         description="Base color of the chart, other colors are derived from this one",
         min=0.0,
         max=1.0,
-        subtype='COLOR',
+        subtype="COLOR",
         default=(0.0, 0.0, 1.0),
-        size=3
+        size=3,
     )
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
         return data.is_data_suitable(cls.ACCEPTABLE_DATA_TYPES)
-    
+
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         prefs = preferences.get_preferences(context)
         prefs.data.set_current_types(type(self).ACCEPTABLE_DATA_TYPES)
         return context.window_manager.invoke_props_dialog(self)
-    
-    def _add_chart_to_scene(self, context: bpy.types.Context, obj: bpy.types.Object) -> None:
+
+    def _add_chart_to_scene(
+        self, context: bpy.types.Context, obj: bpy.types.Object
+    ) -> None:
         obj.location = context.scene.cursor.location
         context.collection.objects.link(obj)
         context.view_layer.objects.active = obj
@@ -46,19 +48,28 @@ class DV_GN_Chart(bpy.types.Operator):
         material = library.load_material(type_).copy()
         base_color = mathutils.Color(self.color)
         if type_ == library.MaterialType.GradientRandom:
-            color_ramp = material.node_tree.nodes["Color Ramp"].color_ramp 
+            color_ramp = material.node_tree.nodes["Color Ramp"].color_ramp
             color_ramp.elements[0].color = self._calc_hsv(*base_color.hsv)
-            color_ramp.elements[1].color = self._calc_hsv(base_color.h - 0.16, base_color.s, base_color.v)
+            color_ramp.elements[1].color = self._calc_hsv(
+                base_color.h - 0.16, base_color.s, base_color.v
+            )
         elif type_ == library.MaterialType.Gradient:
-            color_ramp = material.node_tree.nodes["Color Ramp"].color_ramp 
+            color_ramp = material.node_tree.nodes["Color Ramp"].color_ramp
             color_ramp.elements[0].color = self._calc_hsv(*base_color.hsv)
-            color_ramp.elements[1].color = self._calc_hsv(base_color.h - 0.16, base_color.s, base_color.v)
+            color_ramp.elements[1].color = self._calc_hsv(
+                base_color.h - 0.16, base_color.s, base_color.v
+            )
         elif type_ == library.MaterialType.Sign:
-            material.node_tree.nodes["Mix"].inputs["A"].default_value = self._calc_hsv(*base_color.hsv)
-            material.node_tree.nodes["Mix"].inputs["B"].default_value = self._calc_hsv(base_color.h - 0.5, base_color.s, base_color.v)
+            material.node_tree.nodes["Mix"].inputs["A"].default_value = self._calc_hsv(
+                *base_color.hsv
+            )
+            material.node_tree.nodes["Mix"].inputs["B"].default_value = self._calc_hsv(
+                base_color.h - 0.5, base_color.s, base_color.v
+            )
         elif type_ == library.MaterialType.Constant:
-            material.node_tree.nodes["Principled BSDF"].inputs[0].default_value = mathutils.Vector(
-                [*self.color, 1.0])
+            material.node_tree.nodes["Principled BSDF"].inputs[0].default_value = (
+                mathutils.Vector([*self.color, 1.0])
+            )
 
         modifier_utils.set_input(modifier, "Material", material)
 
@@ -77,9 +88,9 @@ class DV_GN_BarChart(DV_GN_Chart):
         data.DataTypeValue.Data2D,
         data.DataTypeValue.Data2DA,
         data.DataTypeValue.Data3D,
-        data.DataTypeValue.Data3DA
+        data.DataTypeValue.Data3DA,
     }
-    
+
     def draw(self, context: bpy.types.Context) -> None:
         prefs = preferences.get_preferences(context)
         layout = self.layout
@@ -89,10 +100,12 @@ class DV_GN_BarChart(DV_GN_Chart):
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
-        obj: bpy.types.Object = data.create_data_object("DV_BarChart", prefs.data.data_type)
-        
+        obj: bpy.types.Object = data.create_data_object(
+            "DV_BarChart", prefs.data.data_type
+        )
+
         node_group = library.load_chart("DV_BarChart")
-        modifier: bpy.types.NodesModifier = obj.modifiers.new("Bar Chart", 'NODES')
+        modifier: bpy.types.NodesModifier = obj.modifiers.new("Bar Chart", "NODES")
         modifier.node_group = node_group
 
         components.mark_as_chart([obj])
@@ -125,10 +138,12 @@ class DV_GN_PointChart(DV_GN_Chart):
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
-        obj: bpy.types.Object = data.create_data_object("DV_PointChart", prefs.data.data_type)
-        
+        obj: bpy.types.Object = data.create_data_object(
+            "DV_PointChart", prefs.data.data_type
+        )
+
         node_group = library.load_chart("DV_PointChart")
-        modifier: bpy.types.NodesModifier = obj.modifiers.new("Point Chart", 'NODES')
+        modifier: bpy.types.NodesModifier = obj.modifiers.new("Point Chart", "NODES")
         modifier.node_group = node_group
 
         components.mark_as_chart([obj])
@@ -155,17 +170,19 @@ class DV_GN_LineChart(DV_GN_Chart):
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
-        obj: bpy.types.Object = data.create_data_object("DV_LineChart", prefs.data.data_type, connect_edges=True)
-        
+        obj: bpy.types.Object = data.create_data_object(
+            "DV_LineChart", prefs.data.data_type, connect_edges=True
+        )
+
         node_group = library.load_chart("DV_LineChart")
-        modifier: bpy.types.NodesModifier = obj.modifiers.new("Line Chart", 'NODES')
+        modifier: bpy.types.NodesModifier = obj.modifiers.new("Line Chart", "NODES")
         modifier.node_group = node_group
 
         components.mark_as_chart([obj])
         self._add_chart_to_scene(context, obj)
         self._apply_material(modifier, prefs.color_type)
         return {'FINISHED'}
-    
+
 
 class DV_GN_SurfaceChart(DV_GN_Chart):
     bl_idname = "data_vis.geonodes_surface_chart"
@@ -179,21 +196,21 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
     rbf_function: bpy.props.EnumProperty(
         name="Interpolation Method",
         items=utils.interpolation.TYPES_ENUM,
-        description="See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html"
+        description="See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html",
     )
 
     grid_x: bpy.props.IntProperty(
         name="Grid X",
         description="Size of the interpolated grid across X axis",
         min=1,
-        default=20
+        default=20,
     )
 
     grid_y: bpy.props.IntProperty(
         name="Grid Y",
         description="Size of the interpolated grid across Y axis",
         min=1,
-        default=20
+        default=20,
     )
 
     @classmethod
@@ -202,7 +219,7 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
             import scipy
         except ImportError:
             return False
-        
+
         return super().poll(context)
 
     def draw(self, context: bpy.types.Context) -> None:
@@ -221,14 +238,12 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
             "DV_SurfaceChart",
             prefs.data.data_type,
             interpolation_config=data.InterpolationConfig(
-                method=self.rbf_function,
-                m=self.grid_x,
-                n=self.grid_y
-            )
+                method=self.rbf_function, m=self.grid_x, n=self.grid_y
+            ),
         )
-        
+
         node_group = library.load_chart("DV_SurfaceChart")
-        modifier: bpy.types.NodesModifier = obj.modifiers.new("Surface Chart", 'NODES')
+        modifier: bpy.types.NodesModifier = obj.modifiers.new("Surface Chart", "NODES")
         modifier.node_group = node_group
 
         components.mark_as_chart([obj])
@@ -250,13 +265,13 @@ class DV_GN_PieChart(DV_GN_Chart):
     def poll(cls, context: bpy.types.Context):
         if not super().poll(context):
             return False
-        
+
         return DataManager().lines < cls.MAX_VALUES
 
     def execute(self, context: bpy.types.Context):
         obj = bpy.data.objects.new("DV_PieChart", bpy.data.meshes.new("DV_PieChart"))
         node_group = library.load_chart("DV_PieChart")
-        modifier: bpy.types.NodesModifier = obj.modifiers.new("Pie Chart", 'NODES')
+        modifier: bpy.types.NodesModifier = obj.modifiers.new("Pie Chart", "NODES")
         modifier.node_group = node_group
 
         dm = DataManager()
@@ -266,7 +281,7 @@ class DV_GN_PieChart(DV_GN_Chart):
         for i in range(0, count):
             value = parsed_data[i][1]
             total += value
-            label = parsed_data[i][0]     
+            label = parsed_data[i][0]
             modifier_utils.set_input(modifier, f"Value {i + 1}", value)
             modifier_utils.set_input(modifier, f"Label {i + 1}", label)
 
@@ -277,7 +292,7 @@ class DV_GN_PieChart(DV_GN_Chart):
         data._mark_chart_data_type(obj, data.DataTypeValue.CATEGORIC_Data2D)
         self._add_chart_to_scene(context, obj)
         return {'FINISHED'}
-    
+
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         prefs = preferences.get_preferences(context)
         prefs.data.set_current_types(type(self).ACCEPTABLE_DATA_TYPES)

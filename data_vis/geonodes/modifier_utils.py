@@ -1,6 +1,7 @@
 import bpy
 import typing
 import logging
+
 logger = logging.getLogger("data_vis")
 
 
@@ -19,7 +20,9 @@ class DV_RemoveModifier(bpy.types.Operator):
 
         modifier = obj.modifiers.get(self.modifier_name, None)
         if modifier is None:
-            logger.warning(f"Modifier {self.modifier_name} not found on object {obj.name}")
+            logger.warning(
+                f"Modifier {self.modifier_name} not found on object {obj.name}"
+            )
             return {'CANCELLED'}
 
         obj.modifiers.remove(modifier)
@@ -39,19 +42,18 @@ def set_input(modifier: bpy.types.Modifier, name: str, value: typing.Any) -> Non
 def draw_modifier_inputs(
     modifier: bpy.types.Modifier,
     layout: bpy.types.UILayout,
-    template: typing.Optional[typing.Dict[str, str]] = None
+    template: typing.Optional[typing.Dict[str, str]] = None,
 ) -> None:
     col = layout.column()
     col.label(text=f"{modifier.name}")
     for item in modifier.node_group.interface.items_tree:
-        if item.item_type == 'PANEL':
+        if item.item_type == "PANEL":
             col = layout.column()
             col.label(text=item.name)
             continue
 
-
-        if item.in_out == 'INPUT':
-            if item.bl_socket_idname in {'NodeSocketGeometry'}:
+        if item.in_out == "INPUT":
+            if item.bl_socket_idname in {"NodeSocketGeometry"}:
                 continue
             col.prop(modifier, f'["{item.identifier}"]', text=item.name)
 

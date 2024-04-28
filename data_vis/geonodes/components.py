@@ -21,7 +21,7 @@ def is_chart(obj: bpy.types.Object | None) -> bool:
 def is_chart_root(obj: bpy.types.Object | None) -> bool:
     if obj is None:
         return False
-    return is_chart(obj) and obj.type == 'EMPTY' and obj.parent is None
+    return is_chart(obj) and obj.type == "EMPTY" and obj.parent is None
 
 
 def mark_as_chart(objs: typing.Iterable[bpy.types.Object]) -> None:
@@ -34,21 +34,17 @@ def remove_duplicate_suffix(name: str) -> str:
 
 
 def get_axis_on_chart(
-    obj: bpy.types.Object
+    obj: bpy.types.Object,
 ) -> typing.Dict[str, typing.Optional[bpy.types.NodesModifier]]:
-    ret = {
-        "X": None,
-        "Y": None,
-        "Z": None
-    }
+    ret = {"X": None, "Y": None, "Z": None}
     for mod in obj.modifiers:
-        if mod.type == 'NODES':
+        if mod.type == "NODES":
             if remove_duplicate_suffix(mod.node_group.name) == "DV_NumericAxis":
                 split = mod.name.rsplit(" ", 1)
                 if len(split) == 1:
                     continue
 
-                axis = split[1] 
+                axis = split[1]
                 if axis in {"X", "Y", "Z"}:
                     ret[axis] = mod
     return ret
@@ -67,16 +63,11 @@ class DV_AddNumericAxis(bpy.types.Operator):
 
     axis: bpy.props.EnumProperty(
         name="Axis",
-        items=[
-            ("X", "X", "X Axis"),
-            ("Y", "Y", "Y Axis"),
-            ("Z", "Z", "Z Axis")
-        ],
-        description="Axis modifier will be setup based on the given direction"
+        items=[("X", "X", "X Axis"), ("Y", "Y", "Y Axis"), ("Z", "Z", "Z Axis")],
+        description="Axis modifier will be setup based on the given direction",
     )
 
-
-    pass_invoke: bpy.props.BoolProperty(options={'HIDDEN'}, default=True)
+    pass_invoke: bpy.props.BoolProperty(options={"HIDDEN"}, default=True)
 
     def draw(self, context: bpy.types.Context):
         layout = self.layout
@@ -94,10 +85,10 @@ class DV_AddNumericAxis(bpy.types.Operator):
     @classmethod
     def poll(cls, context: bpy.types.Context):
         return is_chart(context.active_object)
-    
+
     def execute(self, context: bpy.types.Context):
         obj = context.active_object
-        mod = obj.modifiers.new("Numeric Axis", type='NODES')
+        mod = obj.modifiers.new("Numeric Axis", type="NODES")
         mod.node_group = library.load_axis()
         mod.show_expanded = False
         # Setup the axis based on inputs, the min, max and step is calculated in the modifier
@@ -119,13 +110,13 @@ class DV_AddNumericAxis(bpy.types.Operator):
             mod.name = "Numeric Axis Z"
         else:
             raise ValueError(f"Unknown axis {self.axis}")
-        
+
         return {'FINISHED'}
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         if self.pass_invoke:
             return self.execute(context)
-        
+
         self.existing_axis = get_axis_on_chart(context.active_object)
         return context.window_manager.invoke_props_dialog(self)
 
@@ -139,10 +130,10 @@ class DV_AddDataLabels(bpy.types.Operator):
     @classmethod
     def poll(cls, context: bpy.types.Context):
         return is_chart(context.active_object)
-    
+
     def execute(self, context: bpy.types.Context):
         obj = context.active_object
-        mod = obj.modifiers.new("Data Labels", type='NODES')
+        mod = obj.modifiers.new("Data Labels", type="NODES")
         mod.node_group = library.load_above_data_labels()
         return {'FINISHED'}
 
@@ -156,7 +147,7 @@ class DV_AddAxisLabel(bpy.types.Operator):
     # Adds a axis label to the selected chart
     def execute(self, context):
         return {'FINISHED'}
-    
+
 
 # TODO: Add heading to the chart
 class DV_AddHeading(bpy.types.Operator):
@@ -167,26 +158,31 @@ class DV_AddHeading(bpy.types.Operator):
 
     def execute(self, context):
         return {'FINISHED'}
-    
+
 
 class DV_AxisPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
     bl_idname = "DV_PT_axis_panel"
     bl_label = "Axis"
 
     def draw_header(self, context: bpy.types.Context):
-        self.layout.label(text="", icon='ORIENTATION_VIEW')
+        self.layout.label(text="", icon="ORIENTATION_VIEW")
 
     def draw_header_preset(self, context: bpy.types.Context):
         layout = self.layout
-        layout.operator(DV_AddNumericAxis.bl_idname, text="", icon='ADD').pass_invoke = False
+        layout.operator(
+            DV_AddNumericAxis.bl_idname, text="", icon="ADD"
+        ).pass_invoke = False
 
-    def draw_axis_inputs(self, mod: bpy.types.NodesModifier, layout: bpy.types.UILayout) -> None:
+    def draw_axis_inputs(
+        self, mod: bpy.types.NodesModifier, layout: bpy.types.UILayout
+    ) -> None:
         box = layout.box()
         row = box.row()
         row.prop(mod, "show_expanded", text="")
         row.label(text=mod.name)
         row.operator(
-            modifier_utils.DV_RemoveModifier.bl_idname, text="", icon='X').modifier_name = mod.name
+            modifier_utils.DV_RemoveModifier.bl_idname, text="", icon="X"
+        ).modifier_name = mod.name
         if mod.show_expanded:
             modifier_utils.draw_modifier_inputs(mod, layout)
 
@@ -196,14 +192,16 @@ class DV_AxisPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
         if obj is None:
             layout.label(text="No active object")
             return
-        
+
         if not is_chart(obj):
             layout.label(text="Active object is not a valid chart")
             return
-        
+
         for axis, mod in get_axis_on_chart(obj).items():
             if mod is None:
-                op = layout.operator(DV_AddNumericAxis.bl_idname, text=f"Add {axis}", icon='ADD')
+                op = layout.operator(
+                    DV_AddNumericAxis.bl_idname, text=f"Add {axis}", icon="ADD"
+                )
                 op.axis = axis
                 op.pass_invoke = True
             else:
@@ -213,12 +211,12 @@ class DV_AxisPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
 class DV_DataLabelsPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
     bl_idname = "DV_PT_data_labels_panel"
     bl_label = "Data Labels"
-    
+
     def draw_header(self, context: bpy.types.Context):
-        self.layout.label(text="", icon='SYNTAX_OFF')
-    
+        self.layout.label(text="", icon="SYNTAX_OFF")
+
     def draw_header_preset(self, context: bpy.types.Context):
-        self.layout.operator(DV_AddDataLabels.bl_idname, text="", icon='ADD')
+        self.layout.operator(DV_AddDataLabels.bl_idname, text="", icon="ADD")
 
     def draw(self, context: bpy.types.Context):
         layout = self.layout
@@ -226,18 +224,23 @@ class DV_DataLabelsPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
         if obj is None:
             layout.label(text="No active object")
             return
-        
+
         if not is_chart(obj):
             layout.label(text="Active object is not a valid chart")
             return
-        
-        for mod in filter(lambda m: m.type == 'NODES' and remove_duplicate_suffix(m.node_group.name) == "DV_DataLabels", obj.modifiers):
+
+        for mod in filter(
+            lambda m: m.type == "NODES"
+            and remove_duplicate_suffix(m.node_group.name) == "DV_DataLabels",
+            obj.modifiers,
+        ):
             box = layout.box()
             row = box.row()
             # TODO: Allow removing the axis modifier from here
             row.prop(mod, "show_expanded", text="")
             row.label(text=mod.name)
             row.operator(
-                modifier_utils.DV_RemoveModifier.bl_idname, text="", icon='X').modifier_name = mod.name
+                modifier_utils.DV_RemoveModifier.bl_idname, text="", icon="X"
+            ).modifier_name = mod.name
             if mod.show_expanded:
                 modifier_utils.draw_modifier_inputs(mod, box)

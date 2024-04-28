@@ -10,4 +10,4 @@ class DV_GN_PanelMixin:
 
     @classmethod
     def poll(cls, context: bpy.types.Context) -> bool:
-        return preferences.get_preferences(context).addon_mode == 'GEONODES'
+        return preferences.get_preferences(context).addon_mode == "GEONODES"
