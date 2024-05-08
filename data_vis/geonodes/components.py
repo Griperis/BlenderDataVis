@@ -1,3 +1,5 @@
+# ©copyright Zdenek Dolezal 2024-, License GPL
+
 import bpy
 import typing
 import math
@@ -125,6 +127,7 @@ class DV_AddNumericAxis(bpy.types.Operator):
 class DV_AddDataLabels(bpy.types.Operator):
     bl_idname = "data_vis.add_data_labels"
     bl_label = "Add Data Labels"
+    bl_description = "Adds data labels above individual value points to active chart"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod

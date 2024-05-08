@@ -1,8 +1,4 @@
-# File: docs.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Manipulates tooltips and docs across the addon
-
+# ©copyright Zdenek Dolezal 2024-, License GPL
 
 from .general import DV_ShowPopup
 

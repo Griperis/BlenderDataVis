@@ -1,3 +1,5 @@
+# ©copyright Zdenek Dolezal 2024-, License GPL
+
 import bpy
 from mathutils import Vector, Quaternion
 from math import radians

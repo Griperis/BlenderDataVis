@@ -1,16 +1,10 @@
-# File: line_chart.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Line chart implementation
+# ©copyright Zdenek Dolezal 2024-, License GPL
 
 import bpy
 import math
-from mathutils import Vector
 
 
 from data_vis.utils.data_utils import (
-    find_data_range,
-    find_axis_range,
     normalize_value,
     get_data_in_range,
 )

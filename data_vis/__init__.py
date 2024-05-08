@@ -456,7 +456,7 @@ def reload():
 
 
 def register():
-    env_utils.ensure_python_modules_new_thread(["numpy", "scipy"])
+    env_utils.ensure_python_modules_new_thread(["scipy"])
 
     # Register the addon panel first, so other panels can depend on it
     bpy.utils.register_class(DV_AddonPanel)
@@ -486,7 +486,3 @@ def unregister():
     del bpy.types.Scene.general_props
     del bpy.types.Scene.data_list_index
     del bpy.types.Scene.data_list
-
-
-if __name__ == "__main__":
-    register()

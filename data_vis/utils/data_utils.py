@@ -1,7 +1,5 @@
-# File: data_utils.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Utility functions for working with data
+# ©copyright Zdenek Dolezal 2024-, License GPL
+# Utility functions for working with data
 
 import math
 import logging

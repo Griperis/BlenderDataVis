@@ -1,3 +1,4 @@
+# ©copyright Zdenek Dolezal 2024-, License GPL
 import bpy
 from .charts import (
     DV_GN_BarChart,

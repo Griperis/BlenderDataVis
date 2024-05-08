@@ -1,23 +1,19 @@
-# File: pie_chart.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Pie chart implementation
+# ©copyright Zdenek Dolezal 2024-, License GPL
 
 from data_vis.icon_manager import IconManager
 import bpy
 import math
 import logging
 
-logger = logging.getLogger("data_vis")
-
-from data_vis.general import (
-    OBJECT_OT_GenericChart,
+from data_vis.general import OBJECT_OT_GenericChart
+from data_vis.properties import (
     DV_HeaderPropertyGroup,
     DV_LegendPropertyGroup,
 )
 from data_vis.data_manager import DataManager, DataType
 from data_vis.colors import ColorGen, ColorType
 from data_vis.operators.features.legend import Legend
+logger = logging.getLogger("data_vis")
 
 
 class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):

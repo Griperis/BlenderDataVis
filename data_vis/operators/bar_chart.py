@@ -1,14 +1,7 @@
-# File: bar_chart.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Bar chart implementation
+# ©copyright Zdenek Dolezal 2024-, License GPL
 
 import bpy
-import math
-from mathutils import Vector
 
-
-from data_vis.utils.data_utils import normalize_value
 from data_vis.general import OBJECT_OT_GenericChart
 from data_vis.properties import (
     DV_LabelPropertyGroup,

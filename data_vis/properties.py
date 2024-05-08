@@ -1,7 +1,5 @@
-# File: properties.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Common chart properties, example usage in one of chart implementations
+# ©copyright Zdenek Dolezal 2024-, License GPL
+# Common chart properties, example usage in one of chart implementations
 
 import bpy
 from data_vis.data_manager import DataManager

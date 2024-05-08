@@ -1,7 +1,4 @@
-# File: surface_chart.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Surface chart implementation
+# ©copyright Zdenek Dolezal 2024-, License GPL
 
 import bpy
 

@@ -1,3 +1,5 @@
+# ©copyright Zdenek Dolezal 2024-, License GPL
+
 import logging
 import logging.config
 import os

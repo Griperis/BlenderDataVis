@@ -1,3 +1,5 @@
+# ©copyright Zdenek Dolezal 2024-, License GPL
+
 import bpy
 import typing
 import logging
@@ -8,6 +10,7 @@ logger = logging.getLogger("data_vis")
 class DV_RemoveModifier(bpy.types.Operator):
     bl_idname = "data_vis.remove_modifier"
     bl_label = "Remove Modifier"
+    bl_description = "Removes given geometry nodes modifier from the object"
     bl_options = {'REGISTER', 'UNDO'}
 
     modifier_name: bpy.props.StringProperty()

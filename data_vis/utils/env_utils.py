@@ -1,7 +1,4 @@
-# File: env_utils.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Python environment utilities
+# ©copyright Zdenek Dolezal 2024-, License GPL
 
 import os
 import sys

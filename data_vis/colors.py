@@ -1,7 +1,4 @@
-# File: colors.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Color related code
+# ©copyright Zdenek Dolezal 2024-, License GPL
 
 import bpy
 import random

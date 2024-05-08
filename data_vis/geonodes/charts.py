@@ -1,3 +1,5 @@
+# ©copyright Zdenek Dolezal 2024-, License GPL
+
 import bpy
 import mathutils
 import colorsys
@@ -83,6 +85,7 @@ class DV_GN_Chart(bpy.types.Operator):
 class DV_GN_BarChart(DV_GN_Chart):
     bl_idname = "data_vis.geonodes_bar_chart"
     bl_label = "Bar Chart"
+    bl_description = "Creates a bar chart from selected data"
 
     ACCEPTABLE_DATA_TYPES = {
         data.DataTypeValue.Data2D,
@@ -155,6 +158,8 @@ class DV_GN_PointChart(DV_GN_Chart):
 class DV_GN_LineChart(DV_GN_Chart):
     bl_idname = "data_vis.geonodes_line_chart"
     bl_label = "Line Chart"
+    bl_description = "Creates a line chart from selected data, the data points " \
+        "are connected with edges."
 
     ACCEPTABLE_DATA_TYPES = {
         data.DataTypeValue.Data2D,
@@ -187,6 +192,8 @@ class DV_GN_LineChart(DV_GN_Chart):
 class DV_GN_SurfaceChart(DV_GN_Chart):
     bl_idname = "data_vis.geonodes_surface_chart"
     bl_label = "Surface Chart"
+    bl_description = "Creates a surface chart from selected data, the data points " \
+        "are interpolated to create a smooth surface. Requires scipy in Blender Python"
 
     ACCEPTABLE_DATA_TYPES = {
         data.DataTypeValue.Data3D,
@@ -255,6 +262,8 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
 class DV_GN_PieChart(DV_GN_Chart):
     bl_idname = "data_vis.geonodes_pie_chart"
     bl_label = "Pie Chart"
+    bl_description = "Creates a pie chart from selected data. Maximum of " \
+        "10 values are supported"
 
     MAX_VALUES = 10
     ACCEPTABLE_DATA_TYPES = {

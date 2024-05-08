@@ -1,7 +1,4 @@
-# File: point_chart.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Point chart (scatterplot) implementation
+# ©copyright Zdenek Dolezal 2024-, License GPL
 
 import bpy
 from mathutils import Vector
@@ -15,7 +12,6 @@ from data_vis.properties import (
     DV_HeaderPropertyGroup,
 )
 from data_vis.operators.features.axis import AxisFactory
-from data_vis.utils.data_utils import normalize_value
 from data_vis.colors import ColoringFactory, ColorType
 from data_vis.data_manager import DataManager, DataType
 

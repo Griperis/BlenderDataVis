@@ -1,7 +1,4 @@
-# File: data_manager.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Data loading, data analysis and data information interface
+# ©copyright Zdenek Dolezal 2024-, License GPL
 
 import os
 import numpy as np

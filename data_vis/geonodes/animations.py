@@ -108,7 +108,8 @@ class DV_AddInAnimation(DV_AnimationOperator):
     )
 
     def execute(self, context: bpy.types.Context):
-        if is_in_present(context.active_object):
+        obj = context.active_object
+        if is_in_present(obj):
             self.report({'WARNING'}, "In animation already present, remove it first.")
             return {'CANCELLED'}
 
@@ -128,7 +129,6 @@ class DV_AddInAnimation(DV_AnimationOperator):
             )
             return {'CANCELLED'}
 
-        obj = context.active_object
         sk = obj.shape_key_add(name=self.type_, from_mix=True)
         sk.value = 0
         if self.type_ == AnimationNames.GROW_FROM_ZERO:
@@ -231,6 +231,7 @@ class DV_RemoveInOutAnimation(DV_AnimationOperator):
 class DV_AnimateData(DV_AnimationOperator):
     bl_idname = "data_vis.animate_data"
     bl_label = "Animate Data"
+    bl_description = "Animates the chart. The chart has to be created with animation support"
 
     keyframe_spacing: bpy.props.IntProperty(name="Keyframe Spacing", default=20, min=1)
 
@@ -300,6 +301,4 @@ class DV_AnimatePanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
 
         row = layout.row(align=True)
         row.operator(DV_AddOutAnimation.bl_idname, text="Out Animation")
-        row.operator(DV_RemoveInOutAnimation.bl_idname, text="", icon="X").in_out = (
-            False
-        )
+        row.operator(DV_RemoveInOutAnimation.bl_idname, text="", icon="X").in_out = False
