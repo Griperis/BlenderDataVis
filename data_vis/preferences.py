@@ -50,16 +50,13 @@ def update_region_type(self, context):
         logger.exception("Setting Region Type error")
 
 
-def get_example_data_path():
-    return os.path.join(
-        bpy.utils.script_path_user(), "addons", __package__, EXAMPLE_DATA_FOLDER
-    )
-
+def get_example_data_path() -> str:
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), EXAMPLE_DATA_FOLDER))
 
 class DV_Preferences(bpy.types.AddonPreferences):
     """Preferences for data visualisation addon"""
 
-    bl_idname = "data_vis"
+    bl_idname = __package__
 
     ui_region_type: bpy.props.StringProperty(
         name="Region Type", default="UI", update=update_region_type

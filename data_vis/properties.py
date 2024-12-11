@@ -2,7 +2,7 @@
 # Common chart properties, example usage in one of chart implementations
 
 import bpy
-from data_vis.data_manager import DataManager
+from .data_manager import DataManager
 
 
 class DV_AxisPropertyGroup(bpy.types.PropertyGroup):

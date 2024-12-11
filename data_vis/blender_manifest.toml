@@ -1,0 +1,17 @@
+schema_version = "1.0.0"
+
+id = "data_vis"
+version = "2.1.0"
+name = "Data Visualisation Addon"
+tagline = "Create simple charts out of CSV data directly in 3D view"
+maintainer = "Zdenek Dolezal <Griperis@outlook.cz>"
+type = "add-on"
+website = "https://github.com/Griperis/BlenderDataVis"
+tags = ["Geometry Nodes", "User Interface", "3D View"]
+blender_version_min = "4.2.0"
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+copyright = [
+  "2024-* Zdenek Dolezal",
+]

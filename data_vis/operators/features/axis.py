@@ -8,7 +8,7 @@ from enum import Enum
 import bpy
 import math
 
-from data_vis.utils.data_utils import float_range
+from ...utils.data_utils import float_range
 
 CATEGORICAL_AXIS_DEFAULT_TICKS = 10
 

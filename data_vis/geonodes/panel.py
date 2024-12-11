@@ -1,7 +1,7 @@
 # ©copyright Zdenek Dolezal 2024-, License GPL
 
 import bpy
-from data_vis import preferences
+from .. import preferences
 
 
 class DV_GN_PanelMixin:

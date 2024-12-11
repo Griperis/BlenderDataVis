@@ -1,18 +1,18 @@
 # ©copyright Zdenek Dolezal 2024-, License GPL
 
-from data_vis.icon_manager import IconManager
 import bpy
 import math
 import logging
 
-from data_vis.general import OBJECT_OT_GenericChart
-from data_vis.properties import (
+from ..icon_manager import IconManager
+from ..general import OBJECT_OT_GenericChart
+from ..properties import (
     DV_HeaderPropertyGroup,
     DV_LegendPropertyGroup,
 )
-from data_vis.data_manager import DataManager, DataType
-from data_vis.colors import ColorGen, ColorType
-from data_vis.operators.features.legend import Legend
+from ..data_manager import DataManager, DataType
+from ..colors import ColorGen, ColorType
+from .features.legend import Legend
 logger = logging.getLogger("data_vis")
 
 

@@ -4,19 +4,19 @@ import bpy
 import math
 
 
-from data_vis.utils.data_utils import (
+from ..utils.data_utils import (
     normalize_value,
     get_data_in_range,
 )
-from data_vis.operators.features.axis import AxisFactory
-from data_vis.general import OBJECT_OT_GenericChart
-from data_vis.properties import (
+from .features.axis import AxisFactory
+from ..general import OBJECT_OT_GenericChart
+from ..properties import (
     DV_LabelPropertyGroup,
     DV_AxisPropertyGroup,
     DV_HeaderPropertyGroup,
 )
-from data_vis.data_manager import DataManager, DataType
-from data_vis.colors import NodeShader, ColorGen, ColorType
+from ..data_manager import DataManager, DataType
+from ..colors import NodeShader, ColorGen, ColorType
 
 
 class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):

@@ -6,10 +6,10 @@ import math
 import typing
 
 from mathutils import Vector
-from data_vis.data_manager import DataManager, DataType
-from data_vis.icon_manager import IconManager
-from data_vis.utils.data_utils import find_axis_range, normalize_value
-from data_vis.colors import ColorType
+from .data_manager import DataManager, DataType
+from .icon_manager import IconManager
+from .utils.data_utils import find_axis_range, normalize_value
+from .colors import ColorType
 
 
 class OBJECT_OT_GenericChart(bpy.types.Operator):

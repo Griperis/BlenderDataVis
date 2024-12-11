@@ -23,9 +23,7 @@ def get_python_path():
 
 
 def get_modules_path():
-    return os.path.realpath(
-        os.path.join(bpy.utils.script_path_user(), "addons", "data_vis", MODULES_FOLDER)
-    )
+    return os.path.realpath(os.path.abspath(os.path.join(__file__, "..", "..", MODULES_FOLDER)))
 
 
 def ensure_module_path_in_sys_path():
