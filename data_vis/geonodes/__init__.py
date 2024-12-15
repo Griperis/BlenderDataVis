@@ -1,4 +1,7 @@
 # ©copyright Zdenek Dolezal 2024-, License GPL
+
+# This module contains all the geometry nodes related extensions and functions introduced in 3.0
+
 import bpy
 from .charts import (
     DV_GN_BarChart,
@@ -9,7 +12,7 @@ from .charts import (
 )
 from .data import DV_DataProperties
 from .components import (
-    DV_AddNumericAxis,
+    DV_AddAxis,
     DV_AddHeading,
     DV_AddAxisLabel,
     DV_AddDataLabels,
@@ -33,7 +36,7 @@ CLASSES = [
     DV_GN_LineChart,
     DV_GN_SurfaceChart,
     DV_GN_PieChart,
-    DV_AddNumericAxis,
+    DV_AddAxis,
     DV_AddHeading,
     DV_AddAxisLabel,
     DV_AddDataLabels,

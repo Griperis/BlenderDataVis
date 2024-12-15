@@ -77,8 +77,12 @@ def load_chart(name: str, link: bool = True):
     return _load_nodegroup(name, link)
 
 
-def load_axis(link: bool = True) -> bpy.types.NodeGroup:
+def load_numeric_axis(link: bool = True) -> bpy.types.NodeGroup:
     return _load_nodegroup("DV_NumericAxis", link)
+
+
+def load_categorical_axis(link: bool = True) -> bpy.types.NodeGroup:
+    return _load_nodegroup("DV_CategoricalAxis", link)
 
 
 def load_above_data_labels(link: bool = True) -> bpy.types.NodeGroup:

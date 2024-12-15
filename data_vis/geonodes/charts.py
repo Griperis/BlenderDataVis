@@ -92,6 +92,7 @@ class DV_GN_BarChart(DV_GN_Chart):
         data.DataTypeValue.Data2DA,
         data.DataTypeValue.Data3D,
         data.DataTypeValue.Data3DA,
+        data.DataTypeValue.CATEGORIC_Data2D,
     }
 
     def draw(self, context: bpy.types.Context) -> None:
