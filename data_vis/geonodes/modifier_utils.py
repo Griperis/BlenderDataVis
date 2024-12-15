@@ -51,7 +51,7 @@ def draw_modifier_inputs(
     col.label(text=f"{modifier.name}")
     for item in modifier.node_group.interface.items_tree:
         if item.item_type == "PANEL":
-            col = layout.column()
+            col = layout.box()
             col.label(text=item.name)
             continue
 
