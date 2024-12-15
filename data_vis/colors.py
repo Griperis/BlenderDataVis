@@ -11,7 +11,7 @@ class ColorType(Enum):
 
     Constant = 0
     Random = 1
-    Gradient = (2,)
+    Gradient = 2
     Custom = 3
 
     def str_to_type(value):
