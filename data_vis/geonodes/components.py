@@ -302,7 +302,6 @@ class DV_DataLabelsPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
         ):
             box = layout.box()
             row = box.row()
-            # TODO: Allow removing the axis modifier from here
             row.prop(mod, "show_expanded", text="")
             row.label(text=mod.name)
             row.operator(
