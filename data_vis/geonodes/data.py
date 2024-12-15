@@ -93,7 +93,7 @@ def _store_chart_data_info(obj: bpy.types.Object, verts: np.ndarray, data: Prepr
         "data_type": data_type,
         "shape": verts.shape,
     }
-    if data.categories is not None:
+    if data is not None and data.categories is not None:
         data_dict["categories"] = data.categories.tolist()
 
     obj[DATA_TYPE_PROPERTY] = json.dumps(data_dict)

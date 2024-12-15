@@ -352,13 +352,6 @@ class OBJECT_OT_AddChart(bpy.types.Menu):
                 icon_value=icon_manager.get_icon("surface_chart").icon_id,
             )
         elif prefs.addon_mode == "GEONODES":
-            if data_manager.predicted_data_type == DataType.Categorical:
-                layout.label(
-                    text=f"Categorical data is supported only for Pie Chart",
-                    icon='ERROR',
-                )
-                layout.separator()
-
             layout.operator(
                 geonodes.charts.DV_GN_BarChart.bl_idname,
                 icon_value=icon_manager.get_icon("bar_chart").icon_id,

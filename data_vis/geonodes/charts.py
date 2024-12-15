@@ -2,6 +2,7 @@
 
 import bpy
 import mathutils
+import numpy as np
 import colorsys
 from . import library
 from . import components
@@ -130,6 +131,7 @@ class DV_GN_PointChart(DV_GN_Chart):
         data.DataTypeValue.Data3DA,
         data.DataTypeValue.Data2DW,
         data.DataTypeValue.Data3DW,
+        data.DataTypeValue.CATEGORIC_Data2D,
         # TODO: A + W
     }
 
@@ -165,6 +167,7 @@ class DV_GN_LineChart(DV_GN_Chart):
     ACCEPTABLE_DATA_TYPES = {
         data.DataTypeValue.Data2D,
         data.DataTypeValue.Data2DA,
+        data.DataTypeValue.CATEGORIC_Data2D,
     }
 
     def draw(self, context: bpy.types.Context) -> None:
@@ -299,7 +302,7 @@ class DV_GN_PieChart(DV_GN_Chart):
         modifier_utils.set_input(modifier, "Shown Labels", count)
 
         components.mark_as_chart([obj])
-        data._mark_chart_data_type(obj, data.DataTypeValue.CATEGORIC_Data2D)
+        data._store_chart_data_info(obj, np.array(parsed_data), None, data.DataTypeValue.CATEGORIC_Data2D)
         self._add_chart_to_scene(context, obj)
         return {'FINISHED'}
 
