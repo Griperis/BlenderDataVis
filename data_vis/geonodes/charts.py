@@ -118,6 +118,7 @@ class DV_GN_BarChart(DV_GN_Chart):
         components.mark_as_chart([obj])
         self._add_chart_to_scene(context, obj)
         self._apply_material(modifier, prefs.color_type)
+        modifier_utils.add_used_materials_to_object(modifier, obj)
         return {"FINISHED"}
 
 
@@ -157,6 +158,7 @@ class DV_GN_PointChart(DV_GN_Chart):
         components.mark_as_chart([obj])
         self._add_chart_to_scene(context, obj)
         self._apply_material(modifier, prefs.color_type)
+        modifier_utils.add_used_materials_to_object(modifier, obj)
         return {"FINISHED"}
 
 
@@ -194,6 +196,7 @@ class DV_GN_LineChart(DV_GN_Chart):
         components.mark_as_chart([obj])
         self._add_chart_to_scene(context, obj)
         self._apply_material(modifier, prefs.color_type)
+        modifier_utils.add_used_materials_to_object(modifier, obj)
         return {"FINISHED"}
 
 
@@ -266,6 +269,7 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
         components.mark_as_chart([obj])
         self._add_chart_to_scene(context, obj)
         self._apply_material(modifier, prefs.color_type)
+        modifier_utils.add_used_materials_to_object(modifier, obj)
         return {"FINISHED"}
 
 
@@ -313,6 +317,7 @@ class DV_GN_PieChart(DV_GN_Chart):
             obj, np.array(parsed_data), None, data.DataTypeValue.CATEGORIC_Data2D
         )
         self._add_chart_to_scene(context, obj)
+        modifier_utils.add_used_materials_to_object(modifier, obj)
         return {"FINISHED"}
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):

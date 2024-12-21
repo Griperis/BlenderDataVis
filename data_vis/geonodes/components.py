@@ -87,7 +87,7 @@ class DV_AddAxis(bpy.types.Operator):
     bl_idname = "data_vis.add_axis"
     bl_label = "Add Axis"
     bl_description = "Adds axis modifier to the active chart"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     axis: bpy.props.EnumProperty(
         name="Axis",
@@ -128,7 +128,7 @@ class DV_AddAxis(bpy.types.Operator):
         obj = context.active_object
         # TODO: Handle axis combinations (auto axis) and throw exceptions
         axis_name_prefix = f"{self.axis_type} Axis"
-        mod = obj.modifiers.new(axis_name_prefix, type='NODES')
+        mod = obj.modifiers.new(axis_name_prefix, type="NODES")
         self._load_axis_modifier(mod)
         mod.show_expanded = False
         # Setup the axis based on inputs, the min, max and step is calculated in the modifier
@@ -150,11 +150,12 @@ class DV_AddAxis(bpy.types.Operator):
             mod.name = f"{axis_name_prefix} Z"
         else:
             raise ValueError(f"Unknown axis {self.axis}")
-        
+
         if self.axis_type == AxisType.CATEGORICAL:
             self._setup_categorical_axis(obj, mod)
 
-        return {'FINISHED'}
+        modifier_utils.add_used_materials_to_object(mod, obj)
+        return {"FINISHED"}
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         if self.pass_invoke:
@@ -162,7 +163,7 @@ class DV_AddAxis(bpy.types.Operator):
 
         self.existing_axis = get_axis_on_chart(context.active_object)
         return context.window_manager.invoke_props_dialog(self)
-    
+
     def _load_axis_modifier(self, mod: bpy.types.NodesModifier) -> None:
         if self.axis_type == AxisType.NUMERIC:
             mod.node_group = library.load_numeric_axis()
@@ -171,13 +172,15 @@ class DV_AddAxis(bpy.types.Operator):
         else:
             raise ValueError(f"Unknown axis type {self.axis_type}")
 
-    def _setup_categorical_axis(self, obj: bpy.types.Object, mod: bpy.types.NodesModifier) -> None:
+    def _setup_categorical_axis(
+        self, obj: bpy.types.Object, mod: bpy.types.NodesModifier
+    ) -> None:
         assert is_chart(obj)
         data_from_obj = data.get_chart_data_info(obj)
         if data_from_obj is None:
             logger.error("No data found on the chart {obj.name}")
-            return 
-        
+            return
+
         modifier_utils.set_input(mod, "Tick Count", len(data_from_obj["categories"]))
         modifier_utils.set_input(mod, "Labels", ",".join(data_from_obj["categories"]))
 
@@ -187,7 +190,7 @@ class DV_AddDataLabels(bpy.types.Operator):
     bl_idname = "data_vis.add_data_labels"
     bl_label = "Add Data Labels"
     bl_description = "Adds data labels above individual value points to active chart"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
@@ -197,18 +200,19 @@ class DV_AddDataLabels(bpy.types.Operator):
         obj = context.active_object
         mod = obj.modifiers.new("Data Labels", type="NODES")
         mod.node_group = library.load_above_data_labels()
-        return {'FINISHED'}
+        modifier_utils.add_used_materials_to_object(mod, obj)
+        return {"FINISHED"}
 
 
 # TODO: Create a object that's in the middle of the axis and parented to the chart object
 class DV_AddAxisLabel(bpy.types.Operator):
     bl_idname = "data_vis.add_axis_label"
     bl_label = "Add Axis Label"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     # Adds a axis label to the selected chart
     def execute(self, context):
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 # TODO: Add heading to the chart
@@ -216,10 +220,10 @@ class DV_AddHeading(bpy.types.Operator):
     # Adds a heading to the selected chart
     bl_idname = "data_vis.add_heading"
     bl_label = "Add Heading"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class DV_AxisPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
@@ -231,9 +235,7 @@ class DV_AxisPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
 
     def draw_header_preset(self, context: bpy.types.Context):
         layout = self.layout
-        layout.operator(
-            DV_AddAxis.bl_idname, text="", icon="ADD"
-        ).pass_invoke = False
+        layout.operator(DV_AddAxis.bl_idname, text="", icon="ADD").pass_invoke = False
 
     def draw_axis_inputs(
         self, mod: bpy.types.NodesModifier, layout: bpy.types.UILayout
@@ -258,14 +260,16 @@ class DV_AxisPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
         if not is_chart(obj):
             layout.label(text="Active object is not a valid chart")
             return
-        
+
         compatible_axis = get_compatible_axis(obj)
         for axis, mod in get_axis_on_chart(obj).items():
             if mod is None:
                 axis_type = compatible_axis.get(axis, None)
                 if axis_type is not None:
                     op = layout.operator(
-                        DV_AddAxis.bl_idname, text=f"Add {axis} ({axis_type})", icon="ADD"
+                        DV_AddAxis.bl_idname,
+                        text=f"Add {axis} ({axis_type})",
+                        icon="ADD",
                     )
                     op.axis = axis
                     op.axis_type = compatible_axis[axis]

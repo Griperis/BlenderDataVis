@@ -97,3 +97,49 @@ def draw_modifier_inputs(
 
         if item.in_out == "INPUT":
             draw_modifier_input(modifier, item, col)
+
+
+def _get_geometry_nodes_used_materials(
+    modifier: bpy.types.Modifier,
+) -> typing.Set[bpy.types.Material]:
+    materials = set()
+
+    # Iterate through all inputs and find material ones
+    if modifier.node_group:
+        for item in modifier.node_group.interface.items_tree:
+            if item.item_type == "PANEL":
+                continue
+
+            if item.in_out != "INPUT":
+                continue
+
+            if item.bl_socket_idname == "NodeSocketMaterial":
+                material = modifier[item.identifier]
+                if material:
+                    materials.add(material)
+
+        # Iterate through all nodes recursively and find material nodes
+        def find_material_nodes(node_tree):
+            for node in node_tree.nodes:
+                if hasattr(node, "inputs"):
+                    for input in node.inputs:
+                        if input.bl_idname == "NodeSocketMaterial":
+                            if input.default_value:
+                                materials.add(input.default_value)
+                if hasattr(node, "node_tree") and node.node_tree:
+                    find_material_nodes(node.node_tree)
+
+        find_material_nodes(modifier.node_group)
+
+    print(materials)
+    return materials
+
+
+def add_used_materials_to_object(
+    modifier: bpy.types.Modifier,
+    obj: bpy.types.Object,
+) -> None:
+    materials = _get_geometry_nodes_used_materials(modifier)
+    for material in materials:
+        if material.name not in obj.data.materials:
+            obj.data.materials.append(material)
