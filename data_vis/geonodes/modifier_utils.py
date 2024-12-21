@@ -11,7 +11,7 @@ class DV_RemoveModifier(bpy.types.Operator):
     bl_idname = "data_vis.remove_modifier"
     bl_label = "Remove Modifier"
     bl_description = "Removes given geometry nodes modifier from the object"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     modifier_name: bpy.props.StringProperty()
 
@@ -19,17 +19,17 @@ class DV_RemoveModifier(bpy.types.Operator):
         obj = context.active_object
         if obj is None:
             logger.warning("No object selected")
-            return {'CANCELLED'}
+            return {"CANCELLED"}
 
         modifier = obj.modifiers.get(self.modifier_name, None)
         if modifier is None:
             logger.warning(
                 f"Modifier {self.modifier_name} not found on object {obj.name}"
             )
-            return {'CANCELLED'}
+            return {"CANCELLED"}
 
         obj.modifiers.remove(modifier)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 def set_input(modifier: bpy.types.Modifier, name: str, value: typing.Any) -> None:
@@ -42,22 +42,58 @@ def set_input(modifier: bpy.types.Modifier, name: str, value: typing.Any) -> Non
         modifier[input_.identifier] = value
 
 
+def draw_modifier_input(
+    modifier: bpy.types.Modifier,
+    item: bpy.types.NodeTreeInterfaceItem,
+    layout: bpy.types.UILayout,
+) -> None:
+    if item.bl_socket_idname in {"NodeSocketGeometry"}:
+        return
+
+    if item.bl_socket_idname == "NodeSocketObject":
+        layout.prop_search(
+            modifier,
+            f'["{item.identifier}"]',
+            bpy.data,
+            "objects",
+            text=item.name,
+            icon="OBJECT_DATA",
+        )
+    elif item.bl_socket_idname == "NodeSocketMaterial":
+        layout.prop_search(
+            modifier,
+            f'["{item.identifier}"]',
+            bpy.data,
+            "materials",
+            text=item.name,
+            icon="MATERIAL_DATA",
+        )
+    elif item.bl_socket_idname == "NodeSocketCollection":
+        layout.prop_search(
+            modifier,
+            f'["{item.identifier}"]',
+            bpy.data,
+            "collections",
+            text=item.name,
+            icon="OUTLINER_COLLECTION",
+        )
+    else:
+        layout.prop(modifier, f'["{item.identifier}"]', text=item.name)
+
+
 def draw_modifier_inputs(
     modifier: bpy.types.Modifier,
     layout: bpy.types.UILayout,
-    template: typing.Optional[typing.Dict[str, str]] = None,
 ) -> None:
     col = layout.column()
     col.label(text=f"{modifier.name}")
     for item in modifier.node_group.interface.items_tree:
         if item.item_type == "PANEL":
             col = layout.box()
-            col.label(text=item.name)
+            row = col.row()
+            row.enabled = False
+            row.label(text=item.name)
             continue
 
         if item.in_out == "INPUT":
-            if item.bl_socket_idname in {"NodeSocketGeometry"}:
-                continue
-            col.prop(modifier, f'["{item.identifier}"]', text=item.name)
-
-    # TODO: Use the template :)
+            draw_modifier_input(modifier, item, col)
