@@ -17,6 +17,9 @@
     <a href="https://www.buymeacoffee.com/griperis">Buy me a coffee</a>
 </p>
 
+> [!TIP]
+> The 3.0.0 version using geometry nodes is currently in the development, feel free to try it from master. Otherwise download stable 2.1.0 release.
+
 ## Quickstart
 Download `data_vis.zip` and install it in Blender (Edit -> Preferences -> Addons). Or get the folder `data_vis` (from repo or the zip) and move it into blender addons directory manually.
 <p align="center">
