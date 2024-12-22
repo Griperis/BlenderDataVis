@@ -1,7 +1,4 @@
-# File: env_utils.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
-# Description: Python environment utilities
+# ©copyright Zdenek Dolezal 2024-, License GPL
 
 import os
 import sys
@@ -10,9 +7,12 @@ import importlib
 import typing
 import threading
 import subprocess
+import logging
+
+logger = logging.getLogger("data_vis")
 
 
-MODULES_FOLDER = 'site-packages'
+MODULES_FOLDER = "site-packages"
 
 
 def get_python_path():
@@ -23,14 +23,7 @@ def get_python_path():
 
 
 def get_modules_path():
-    return os.path.realpath(
-        os.path.join(
-            bpy.utils.script_path_user(),
-            'addons',
-            'data_vis', 
-            MODULES_FOLDER
-        )
-    )
+    return os.path.realpath(os.path.abspath(os.path.join(__file__, "..", "..", MODULES_FOLDER)))
 
 
 def ensure_module_path_in_sys_path():
@@ -45,9 +38,18 @@ def ensure_python_module(module_name: str):
         return
 
     python_path = get_python_path()
-    command = [str(python_path), '-m', 'pip', 'install', module_name, '--target', get_modules_path()]
-    print(f'Running command \'{command}\'', file=sys.stderr)
+    command = [
+        str(python_path),
+        "-m",
+        "pip",
+        "install",
+        module_name,
+        "--target",
+        get_modules_path(),
+    ]
+    logger.info(f"Running command '{command}'")
     subprocess.run(command)
+    logger.info(f"Finished running command '{command}'")
 
 
 def ensure_python_modules(module_names: typing.List[str]):

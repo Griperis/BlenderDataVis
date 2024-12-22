@@ -1,8 +1,5 @@
-# File: color_utils.py
-# Author: Zdenek Dolezal
-# Licence: GPL 3.0
+# ©copyright Zdenek Dolezal 2024-, License GPL
 # Description: Utility functions for working with colors
-
 
 from mathutils import Vector
 from colorsys import hsv_to_rgb, rgb_to_hsv
