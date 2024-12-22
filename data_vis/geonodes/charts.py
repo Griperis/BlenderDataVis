@@ -96,6 +96,7 @@ class DV_GN_BarChart(DV_GN_Chart):
         data.DataTypeValue.Data3D,
         data.DataTypeValue.Data3DA,
         data.DataTypeValue.CATEGORIC_Data2D,
+        data.DataTypeValue.CATEGORIC_Data2DA,
     }
 
     def draw(self, context: bpy.types.Context) -> None:
@@ -135,6 +136,7 @@ class DV_GN_PointChart(DV_GN_Chart):
         data.DataTypeValue.Data2DW,
         data.DataTypeValue.Data3DW,
         data.DataTypeValue.CATEGORIC_Data2D,
+        data.DataTypeValue.CATEGORIC_Data2DA,
         # TODO: A + W
     }
 
@@ -174,6 +176,7 @@ class DV_GN_LineChart(DV_GN_Chart):
         data.DataTypeValue.Data2D,
         data.DataTypeValue.Data2DA,
         data.DataTypeValue.CATEGORIC_Data2D,
+        data.DataTypeValue.CATEGORIC_Data2DA,
     }
 
     def draw(self, context: bpy.types.Context) -> None:

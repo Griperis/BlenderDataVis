@@ -27,6 +27,7 @@ class DataTypeValue:
     Data3DW = "3D+W"
     Data3DA = "3D+A"
     CATEGORIC_Data2D = "Cat_2D"
+    CATEGORIC_Data2DA = "Cat_2D+A"
 
     @staticmethod
     def is_animated(data: str) -> bool:
@@ -59,7 +60,10 @@ def get_data_types() -> typing.Set[str]:
         if shape[0] > 3:
             types.update({DataTypeValue.Data3DW, DataTypeValue.Data3DA})
     elif dm.predicted_data_type == DataType.Categorical:
-        types.update({DataTypeValue.CATEGORIC_Data2D})
+        if shape[0] > 1:
+            types.update({DataTypeValue.CATEGORIC_Data2D})
+        if shape[0] > 2:
+            types.update({DataTypeValue.CATEGORIC_Data2DA})
 
     return types
 
@@ -93,6 +97,10 @@ class DV_DataProperties(bpy.types.PropertyGroup):
             "3D data with animated Z using shape keys",
         ),
         DataTypeValue.CATEGORIC_Data2D: ("Categoric 2D", "Simple Categoric 2D data"),
+        DataTypeValue.CATEGORIC_Data2DA: (
+            "Categoric 2D + Animated",
+            "Categoric 2D data with animated Z using shape keys",
+        ),
     }
 
     def set_current_types(self, current_types: set[str]) -> None:
@@ -169,7 +177,7 @@ def _preprocess_data(data, data_type: str) -> PreprocessedData:
             ws = data[:, 3]
         elif data_type == DataTypeValue.Data3DA:
             z_ns = data[:, 3:]
-    elif data_type == DataTypeValue.CATEGORIC_Data2D:
+    elif DataTypeValue.is_categorical(data_type):
         # Equidistant spacing along x axis, y axis has values
         vert_positions = np.hstack(
             (
@@ -179,8 +187,10 @@ def _preprocess_data(data, data_type: str) -> PreprocessedData:
                 np.zeros((data.shape[0], 1)),
                 data[:, 1:],
             )
-        ).astype("float")
+        ).astype("float")[:, :3]
         categories = data[:, 0]
+        if data_type == DataTypeValue.CATEGORIC_Data2DA:
+            z_ns = data[:, 2:].astype("float")
     else:
         raise RuntimeError(f"Unknown DataType {data_type}")
 
