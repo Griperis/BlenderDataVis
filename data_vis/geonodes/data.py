@@ -35,7 +35,7 @@ class DataTypeValue:
     @staticmethod
     def is_categorical(data: str) -> bool:
         return data.startswith("Cat_")
-    
+
     @staticmethod
     def is_3d(data: str) -> bool:
         return "3D" in data
@@ -72,12 +72,42 @@ class DV_DataProperties(bpy.types.PropertyGroup):
         items=lambda self, context: self._get_data_types_enum(context),
     )
 
+    # Map of "DATA TYPE": (string name, description)
+    DATA_TYPE_ENUM_MAPS = {
+        DataTypeValue.Data2D: ("2D", "Simple 2D data"),
+        DataTypeValue.Data2DW: (
+            "2D + Weights",
+            "2D data with weights that can manipulate certain chart properties",
+        ),
+        DataTypeValue.Data2DA: (
+            "2D + Animated",
+            "2D data with animated Z using shape keys",
+        ),
+        DataTypeValue.Data3D: ("3D", "Simple 3D data"),
+        DataTypeValue.Data3DW: (
+            "3D + Weights",
+            "3D data with weights that can manipulate certain chart properties",
+        ),
+        DataTypeValue.Data3DA: (
+            "3D + Animated",
+            "3D data with animated Z using shape keys",
+        ),
+        DataTypeValue.CATEGORIC_Data2D: ("Categoric 2D", "Simple Categoric 2D data"),
+    }
+
     def set_current_types(self, current_types: set[str]) -> None:
         type(self).current_types = current_types
 
     def _get_data_types_enum(self, context: bpy.types.Context):
         types = get_data_types() & type(self).current_types
-        return [(t, t, t) for t in types]
+        return [
+            (
+                t,
+                DV_DataProperties.DATA_TYPE_ENUM_MAPS[t][0],
+                DV_DataProperties.DATA_TYPE_ENUM_MAPS[t][1],
+            )
+            for t in types
+        ]
 
 
 @dataclasses.dataclass
@@ -88,7 +118,9 @@ class PreprocessedData:
     categories: np.ndarray | None = None
 
 
-def _store_chart_data_info(obj: bpy.types.Object, verts: np.ndarray, data: PreprocessedData, data_type: str) -> None:
+def _store_chart_data_info(
+    obj: bpy.types.Object, verts: np.ndarray, data: PreprocessedData, data_type: str
+) -> None:
     data_dict = {
         "data_type": data_type,
         "shape": verts.shape,
@@ -112,7 +144,7 @@ def get_chart_data_type(obj: bpy.types.Object) -> str:
     if chart_data_info is None:
         return "None"
     return chart_data_info.get("data_type", "None")
-    
+
 
 def _preprocess_data(data, data_type: str) -> PreprocessedData:
     vert_positions = None
@@ -140,7 +172,14 @@ def _preprocess_data(data, data_type: str) -> PreprocessedData:
     elif data_type == DataTypeValue.CATEGORIC_Data2D:
         # Equidistant spacing along x axis, y axis has values
         vert_positions = np.hstack(
-            (np.linspace(0, data.shape[0] - 1, data.shape[0]).reshape(data.shape[0], 1), np.zeros((data.shape[0], 1)), data[:, 1:])).astype('float')
+            (
+                np.linspace(0, data.shape[0] - 1, data.shape[0]).reshape(
+                    data.shape[0], 1
+                ),
+                np.zeros((data.shape[0], 1)),
+                data[:, 1:],
+            )
+        ).astype("float")
         categories = data[:, 0]
     else:
         raise RuntimeError(f"Unknown DataType {data_type}")
@@ -160,9 +199,7 @@ def _convert_data_to_geometry(
     connect_edges: bool = False,
     interpolation_config: InterpolationConfig | None = None,
 ) -> tuple[list, list, list, PreprocessedData]:
-    data = _preprocess_data(
-        DataManager().get_chart_data().parsed_data, data_type
-    )
+    data = _preprocess_data(DataManager().get_chart_data().parsed_data, data_type)
     verts = []
     edges = []
     faces = []
