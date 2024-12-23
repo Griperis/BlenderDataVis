@@ -272,7 +272,7 @@ def _convert_data_to_geometry(
                         )
                     )
 
-        return verts, edges, faces, data
+        return np.array(verts), edges, faces, data
     else:
         if connect_edges:
             edges = [(i, i + 1) for i in range(len(data.vert_positions) - 1)]
