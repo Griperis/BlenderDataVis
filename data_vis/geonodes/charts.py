@@ -33,8 +33,6 @@ class DV_GN_Chart(bpy.types.Operator):
         return data.is_data_suitable(cls.ACCEPTABLE_DATA_TYPES)
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
-        prefs = preferences.get_preferences(context)
-        prefs.data.set_current_types(type(self).ACCEPTABLE_DATA_TYPES)
         return context.window_manager.invoke_props_dialog(self)
 
     def _add_chart_to_scene(
@@ -99,18 +97,25 @@ class DV_GN_BarChart(DV_GN_Chart):
         data.DataTypeValue.CATEGORIC_Data2DA,
     }
 
+    # This has to be defined per each chart, otherwise we can't access the ACCEPTABLE_DATA_TYPES
+    data_type: bpy.props.EnumProperty(
+        name="Data Type",
+        description="Type of data to use for the chart",
+        items=lambda self, context: data.get_current_data_types_enum(
+            self, context, DV_GN_BarChart.ACCEPTABLE_DATA_TYPES
+        ),
+    )
+
     def draw(self, context: bpy.types.Context) -> None:
         prefs = preferences.get_preferences(context)
         layout = self.layout
-        layout.prop(prefs.data, "data_type")
+        layout.prop(self, "data_type")
         layout.prop(prefs, "color_type")
         layout.prop(self, "color")
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
-        obj: bpy.types.Object = data.create_data_object(
-            "DV_BarChart", prefs.data.data_type
-        )
+        obj: bpy.types.Object = data.create_data_object("DV_BarChart", self.data_type)
 
         node_group = library.load_chart("DV_BarChart")
         modifier: bpy.types.NodesModifier = obj.modifiers.new("Bar Chart", "NODES")
@@ -140,18 +145,25 @@ class DV_GN_PointChart(DV_GN_Chart):
         # TODO: A + W
     }
 
+    # This has to be defined per each chart, otherwise we can't access the ACCEPTABLE_DATA_TYPES
+    data_type: bpy.props.EnumProperty(
+        name="Data Type",
+        description="Type of data to use for the chart",
+        items=lambda self, context: data.get_current_data_types_enum(
+            self, context, DV_GN_PointChart.ACCEPTABLE_DATA_TYPES
+        ),
+    )
+
     def draw(self, context: bpy.types.Context) -> None:
         prefs = preferences.get_preferences(context)
         layout = self.layout
-        layout.prop(prefs.data, "data_type")
+        layout.prop(self, "data_type")
         layout.prop(prefs, "color_type")
         layout.prop(self, "color")
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
-        obj: bpy.types.Object = data.create_data_object(
-            "DV_PointChart", prefs.data.data_type
-        )
+        obj: bpy.types.Object = data.create_data_object("DV_PointChart", self.data_type)
 
         node_group = library.load_chart("DV_PointChart")
         modifier: bpy.types.NodesModifier = obj.modifiers.new("Point Chart", "NODES")
@@ -178,18 +190,26 @@ class DV_GN_LineChart(DV_GN_Chart):
         data.DataTypeValue.CATEGORIC_Data2D,
         data.DataTypeValue.CATEGORIC_Data2DA,
     }
+    # This has to be defined per each chart, otherwise we can't access the ACCEPTABLE_DATA_TYPES
+    data_type: bpy.props.EnumProperty(
+        name="Data Type",
+        description="Type of data to use for the chart",
+        items=lambda self, context: data.get_current_data_types_enum(
+            self, context, DV_GN_LineChart.ACCEPTABLE_DATA_TYPES
+        ),
+    )
 
     def draw(self, context: bpy.types.Context) -> None:
         prefs = preferences.get_preferences(context)
         layout = self.layout
-        layout.prop(prefs.data, "data_type")
+        layout.prop(self, "data_type")
         layout.prop(prefs, "color_type")
         layout.prop(self, "color")
 
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
         obj: bpy.types.Object = data.create_data_object(
-            "DV_LineChart", prefs.data.data_type, connect_edges=True
+            "DV_LineChart", self.data_type, connect_edges=True
         )
 
         node_group = library.load_chart("DV_LineChart")
@@ -215,6 +235,15 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
         data.DataTypeValue.Data3D,
         data.DataTypeValue.Data3DA,
     }
+
+    # This has to be defined per each chart, otherwise we can't access the ACCEPTABLE_DATA_TYPES
+    data_type: bpy.props.EnumProperty(
+        name="Data Type",
+        description="Type of data to use for the chart",
+        items=lambda self, context: data.get_current_data_types_enum(
+            self, context, DV_GN_SurfaceChart.ACCEPTABLE_DATA_TYPES
+        ),
+    )
 
     rbf_function: bpy.props.EnumProperty(
         name="Interpolation Method",
@@ -248,7 +277,7 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
     def draw(self, context: bpy.types.Context) -> None:
         prefs = preferences.get_preferences(context)
         layout = self.layout
-        layout.prop(prefs.data, "data_type")
+        layout.prop(self, "data_type")
         layout.prop(prefs, "color_type")
         layout.prop(self, "color")
         layout.prop(self, "rbf_function")
@@ -259,7 +288,7 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
         prefs = preferences.get_preferences(context)
         obj: bpy.types.Object = data.create_data_object(
             "DV_SurfaceChart",
-            prefs.data.data_type,
+            self.data_type,
             interpolation_config=data.InterpolationConfig(
                 method=self.rbf_function, m=self.grid_x, n=self.grid_y
             ),
@@ -287,6 +316,15 @@ class DV_GN_PieChart(DV_GN_Chart):
     ACCEPTABLE_DATA_TYPES = {
         data.DataTypeValue.CATEGORIC_Data2D,
     }
+
+    # This has to be defined per each chart, otherwise we can't access the ACCEPTABLE_DATA_TYPES
+    data_type: bpy.props.EnumProperty(
+        name="Data Type",
+        description="Type of data to use for the chart",
+        items=lambda self, context: data.get_current_data_types_enum(
+            self, context, DV_GN_PieChart.ACCEPTABLE_DATA_TYPES
+        ),
+    )
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
@@ -322,11 +360,6 @@ class DV_GN_PieChart(DV_GN_Chart):
         self._add_chart_to_scene(context, obj)
         modifier_utils.add_used_materials_to_object(modifier, obj)
         return {"FINISHED"}
-
-    def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
-        prefs = preferences.get_preferences(context)
-        prefs.data.set_current_types(type(self).ACCEPTABLE_DATA_TYPES)
-        return self.execute(context)
 
 
 class DV_ChartPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
