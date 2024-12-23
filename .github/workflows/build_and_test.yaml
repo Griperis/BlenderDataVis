@@ -1,0 +1,54 @@
+name: Build and Run Tests
+
+on: 
+  push:
+    branches-ignore:
+      - 'master'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Addon
+        run: python dev/build.py --version 3.0.0 --addon_package data_vis
+      - name: ZIP Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: data_vis_zip
+          path: data_vis_3.0.0.zip
+
+  render_charts:
+    runs-on: ubuntu-latest
+    needs: build
+    outputs:
+        artifact_url: ${{ steps.artifact-upload-step.outputs.artifact-url }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Cache Blender
+      id: blender_4_2_binary
+      uses: actions/cache@v3
+      with:
+        path: /home/runner/blender
+        key: blender-4.2
+    - name: Download Blender
+      if: steps.blenderBinaryCache.outputs.cache-hit != 'true'
+      run: curl https://download.blender.org/release/Blender4.2/blender-4.2.5-linux-x64.tar.xz -o /home/runner/blender.tar.xz
+    - name: Mkdir
+      run: mkdir {/home/runner/.local/bin,/home/runner/blender} -p
+    - name: Extract Blender
+      if: steps.blenderBinaryCache.outputs.cache-hit != 'true'
+      run: tar -xf /home/runner/blender.tar.xz -C /home/runner/blender --strip-components=1
+    - name: Add Blender to PATH
+      run: ln -s /home/runner/blender/blender /home/runner/.local/bin/blender
+    - name: Download Addon ZIP
+      uses: actions/download-artifact@v4
+      with:
+        name: data_vis_zip
+    - name: Install Blender Dependencies
+      run: sudo apt-get install freeglut3-dev
+    - name: Install pip dependencies
+      if: steps.blenderBinaryCache.outputs.cache-hit != 'true'
+      run: /home/runner/blender/4.2/python/bin/python3.11 -m pip install scipy
+    - name: Test
+      run:  python dev/run_in_blender.py --script_path dev/tests/render_charts.py -- data_vis_3.0.0.zip dev/tests/data/ dev/tests/out
