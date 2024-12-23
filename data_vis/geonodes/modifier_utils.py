@@ -131,7 +131,6 @@ def _get_geometry_nodes_used_materials(
 
         find_material_nodes(modifier.node_group)
 
-    print(materials)
     return materials
 
 
