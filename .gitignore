@@ -9,3 +9,4 @@ pic-examples/*
 csv/*
 data_vis/site-packages/*
 builds/*
+dev/tests/out/*
