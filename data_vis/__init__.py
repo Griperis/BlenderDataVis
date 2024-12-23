@@ -57,7 +57,7 @@ EXAMPLE_DATA_FOLDER = "example_data"
 class FILE_OT_DVLoadFile(bpy.types.Operator):
     bl_idname = "ui.dv_load_data"
     bl_label = "Load New File"
-    bl_options = {'REGISTER'}
+    bl_options = {"REGISTER"}
     bl_description = "Loads data from CSV file to property in first scene"
 
     filepath: bpy.props.StringProperty(name="CSV File", subtype="FILE_PATH")
@@ -73,20 +73,20 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
         data_manager = DataManager()
         _, ext = os.path.splitext(self.filepath)
         if ext != ".csv":
-            self.report({'WARNING'}, "Only CSV files are supported!")
-            return {'CANCELLED'}
+            self.report({"WARNING"}, "Only CSV files are supported!")
+            return {"CANCELLED"}
 
         for i, item in enumerate(context.scene.data_list):
             if item.filepath == self.filepath:
                 context.scene.data_list_index = i
-                self.report({'WARNING'}, f"File {self.filepath} already loaded!")
-                return {'CANCELLED'}
+                self.report({"WARNING"}, f"File {self.filepath} already loaded!")
+                return {"CANCELLED"}
 
         line_n = data_manager.load_data(self.filepath)
 
-        report_type = {'INFO'}
+        report_type = {"INFO"}
         if line_n == 0:
-            report_type = {'WARNING'}
+            report_type = {"WARNING"}
         else:
             item = context.scene.data_list.add()
             _, item.name = os.path.split(self.filepath)
@@ -94,7 +94,7 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
 
             context.scene.data_list_index = len(context.scene.data_list) - 1
         self.report(report_type, f"File: {self.filepath}, loaded {line_n} lines!")
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class DV_OT_ReloadData(bpy.types.Operator):
@@ -102,14 +102,14 @@ class DV_OT_ReloadData(bpy.types.Operator):
 
     bl_idname = "data_list.reload_data"
     bl_label = "Reload Data"
-    bl_option = {'REGISTER'}
+    bl_option = {"REGISTER"}
 
     def execute(self, context):
         data_list = context.scene.data_list
         data_list_index = context.scene.data_list_index
         data_list[data_list_index].load()
-        self.report({'INFO'}, "Data reloaded!")
-        return {'FINISHED'}
+        self.report({"INFO"}, "Data reloaded!")
+        return {"FINISHED"}
 
 
 class DV_OT_PrintData(bpy.types.Operator):
@@ -117,7 +117,7 @@ class DV_OT_PrintData(bpy.types.Operator):
 
     bl_idname = "data_list.print_data"
     bl_label = "Print Data"
-    bl_option = {'REGISTER'}
+    bl_option = {"REGISTER"}
 
     @classmethod
     def poll(cls, context):
@@ -125,8 +125,8 @@ class DV_OT_PrintData(bpy.types.Operator):
 
     def execute(self, context):
         data_manager.print_data()
-        self.report({'INFO'}, "Data printed into console!")
-        return {'FINISHED'}
+        self.report({"INFO"}, "Data printed into console!")
+        return {"FINISHED"}
 
 
 class DV_OT_RemoveData(bpy.types.Operator):
@@ -134,12 +134,12 @@ class DV_OT_RemoveData(bpy.types.Operator):
 
     bl_idname = "data_list.remove_data"
     bl_label = "Remove Item"
-    bl_option = {'REGISTER'}
+    bl_option = {"REGISTER"}
 
     def execute(self, context):
         index = context.scene.data_list_index
         context.scene.data_list.remove(index)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class DV_AddonPanel(bpy.types.Panel):
@@ -237,7 +237,7 @@ class DV_AddonPanel(bpy.types.Panel):
                 row = col.row()
                 row.alert = True
                 row.label(
-                    text="Large data size, charts may generate slowly!", icon='ERROR'
+                    text="Large data size, charts may generate slowly!", icon="ERROR"
                 )
 
             self.create_label_row(
@@ -266,7 +266,7 @@ class DV_AddonPanel(bpy.types.Panel):
                 row.alert = True
                 row.label(
                     text="Geometry nodes mode is available in 4.2 and higher!",
-                    icon='ERROR',
+                    icon="ERROR",
                 )
                 return
 
@@ -322,7 +322,7 @@ class OBJECT_OT_AddChart(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         if len(context.scene.data_list) == 0:
-            layout.label(text="Load data in the N panel first!", icon='ERROR')
+            layout.label(text="Load data in the N panel first!", icon="ERROR")
             layout.separator()
 
         prefs = get_preferences(context)
