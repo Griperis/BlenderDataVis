@@ -31,9 +31,17 @@ def main():
     parser.add_argument(
         "--addon_package", type=str, help="The name of the addon folder.", required=True
     )
+    parser.add_argument(
+        "--output_folder",
+        type=str,
+        help="The folder to save the release zip.",
+        required=False,
+        default=".",
+    )
     args = parser.parse_args()
     version = args.version
     addon_package = args.addon_package
+    output_folder = os.path.abspath(args.output_folder)
 
     if os.path.exists(f"{BUILDS_FOLDER}/{addon_package}"):
         shutil.rmtree(f"{BUILDS_FOLDER}/{addon_package}")
@@ -63,7 +71,7 @@ def main():
         f'version = "{version}"',
     )
 
-    zip_file = f"{addon_package}_{version}.zip"
+    zip_file = os.path.join(output_folder, f"{addon_package}_{version}.zip")
     if os.path.exists(zip_file):
         os.remove(zip_file)
 

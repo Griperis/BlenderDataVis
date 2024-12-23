@@ -4,10 +4,10 @@ import typing
 import os
 import sys
 import math
-
-os.environ.setdefault("DV_TESTING", "1")
+import logging
 
 TESTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+INTERM_FOLDER = os.path.join(TESTS_DIR, "intermediate")
 sys.path.append(TESTS_DIR)
 try:
     from tests import utils
@@ -18,6 +18,9 @@ try:
     import bpy
 except ImportError:
     raise RuntimeError("This script must be run from within Blender.")
+
+
+logger = logging.getLogger("data_vis")
 
 
 @dataclasses.dataclass
@@ -59,7 +62,7 @@ CONFIGURATIONS = [
         "species_2D.csv",
         "Cat_2D",
         bpy.ops.data_vis.geonodes_point_chart,
-        axis={"X": "Categorical", "Y": "Numeric"},
+        axis={"X": "Categorical", "Z": "Numeric"},
     ),
     ChartConfiguration(
         "Pie Chart Categorical 2D",
@@ -112,7 +115,6 @@ def setup_scene():
     light.location = (0.5, -2.0, 0.5)
     light.data.energy = 100
     bpy.context.scene.collection.objects.link(light)
-
     bpy.context.scene.render.resolution_x = 512
     bpy.context.scene.render.resolution_y = 512
     bpy.context.scene.render.engine = "BLENDER_EEVEE_NEXT"
@@ -124,7 +126,7 @@ def render_configurations(
 ):
     for configuration in CONFIGURATIONS:
         setup_scene()
-        print(f"Rendering {configuration.readable_name}")
+        logger.info(f"Rendering {configuration.readable_name}")
         bpy.ops.ui.dv_load_data(
             filepath=os.path.join(input_data_dir, configuration.data_file)
         )
