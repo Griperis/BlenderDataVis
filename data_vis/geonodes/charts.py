@@ -30,7 +30,9 @@ class DV_GN_Chart(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context: bpy.types.Context):
-        return data.is_data_suitable(cls.ACCEPTABLE_DATA_TYPES)
+        return len(context.scene.data_list) > 0 and data.is_data_suitable(
+            cls.ACCEPTABLE_DATA_TYPES
+        )
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         return context.window_manager.invoke_props_dialog(self)

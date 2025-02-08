@@ -440,7 +440,8 @@ classes = [
 
 def reload_data(self, context):
     data_list = context.scene.data_list
-    data_list[self.data_list_index].load()
+    if self.data_list_index < len(data_list) and self.data_list_index >= 0:
+        data_list[self.data_list_index].load()
 
 
 def reload():

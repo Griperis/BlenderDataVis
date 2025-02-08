@@ -3,7 +3,9 @@ import unittest
 import os
 import sys
 import logging
+import typing
 import itertools
+import json
 
 # Add the tests directory to the path, to be able to import it in Blender's python
 # environment.
@@ -26,6 +28,8 @@ class DataVisTestCase(unittest.TestCase):
         super().setUp()
 
     def tearDown(self):
+        bpy.context.scene.data_list.clear()
+        bpy.context.scene.data_list_index = 0
         utils.uninstall_addon("data_vis")
         super().tearDown()
 
@@ -46,6 +50,32 @@ class DataVisTestCase(unittest.TestCase):
                 bpy.data.meshes,
             )
         )
+
+    def find_modifiers_by_node_group_name(
+        self, obj: bpy.types.Object, node_group_name: str
+    ) -> typing.Set[bpy.types.Modifier]:
+        return {
+            mod
+            for mod in obj.modifiers
+            if mod.type == "NODES"
+            and mod.node_group is not None
+            and mod.node_group.name == node_group_name
+        }
+
+    def assertChartComponent(self, datablock: bpy.types.ID) -> None:
+        self.assertIn("DV_Component", datablock)
+        self.assertTrue(datablock["DV_Component"])
+
+    def assertDataTypeStored(self, chart_obj: bpy.types.Object) -> None:
+        self.assertIn("DV_DataType", chart_obj)
+        prop = json.loads(chart_obj["DV_DataType"])
+        self.assertIn("data_type", prop)
+        self.assertIn("shape", prop)
+
+    def assertNodesModifier(self, chart_obj: bpy.types.Object, group_name: str) -> None:
+        self.assertGreaterEqual(len(chart_obj.modifiers), 1)
+        modifiers = self.find_modifiers_by_node_group_name(chart_obj, group_name)
+        self.assertGreaterEqual(len(modifiers), 1)
 
 
 class TestLoadData(DataVisTestCase):
@@ -178,25 +208,105 @@ class TestLoadData(DataVisTestCase):
 
 
 class TestAddCharts(DataVisTestCase):
-    def test_add_bar_chart(self): ...
+    def test_add_chart_no_data(self):
+        self.assertEqual(len(bpy.context.scene.data_list), 0)
+        self.assertFalse(bpy.ops.data_vis.geonodes_bar_chart.poll())
+        self.assertFalse(bpy.ops.data_vis.geonodes_line_chart.poll())
+        self.assertFalse(bpy.ops.data_vis.geonodes_point_chart.poll())
+        self.assertFalse(bpy.ops.data_vis.geonodes_pie_chart.poll())
+        self.assertFalse(bpy.ops.data_vis.geonodes_surface_chart.poll())
 
-    def test_add_line_chart(self): ...
+    def test_added_chart_selected_and_active(self):
+        self.load_data("x+y_3D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart()
+        self.assertEqual(len(bpy.context.selected_objects), 1)
+        self.assertIsNotNone(bpy.context.active_object)
+        self.assertChartComponent(bpy.context.active_object)
+        self.assertDataTypeStored(bpy.context.active_object)
+        self.assertTrue(bpy.context.active_object.name.startswith("DV_"))
 
-    def test_add_point_chart(self): ...
+    def test_add_bar_chart(self):
+        self.load_data("x+y_3D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart()
+        self.assertChartComponent(bpy.context.active_object)
+        self.assertDataTypeStored(bpy.context.active_object)
+        self.assertNodesModifier(bpy.context.active_object, "DV_BarChart")
 
-    def test_add_pie_chart(self): ...
+    def test_add_line_chart(self):
+        self.load_data("x+y_3D.csv")
+        bpy.ops.data_vis.geonodes_line_chart()
+        self.assertChartComponent(bpy.context.active_object)
+        self.assertDataTypeStored(bpy.context.active_object)
+        self.assertNodesModifier(bpy.context.active_object, "DV_LineChart")
 
-    def test_add_surface_chart(self): ...
+    def test_add_point_chart(self):
+        self.load_data("x+y_3D.csv")
+        bpy.ops.data_vis.geonodes_point_chart()
+        self.assertChartComponent(bpy.context.active_object)
+        self.assertDataTypeStored(bpy.context.active_object)
+        self.assertNodesModifier(bpy.context.active_object, "DV_PointChart")
+
+    def test_add_pie_chart(self):
+        self.load_data("species_2D.csv")
+        bpy.ops.data_vis.geonodes_pie_chart()
+        self.assertChartComponent(bpy.context.active_object)
+        self.assertDataTypeStored(bpy.context.active_object)
+        self.assertNodesModifier(bpy.context.active_object, "DV_PieChart")
+
+    def test_add_surface_chart(self):
+        self.load_data("x+y_3D.csv")
+        bpy.ops.data_vis.geonodes_surface_chart()
+        self.assertChartComponent(bpy.context.active_object)
+        self.assertDataTypeStored(bpy.context.active_object)
+        self.assertNodesModifier(bpy.context.active_object, "DV_SurfaceChart")
+
+    def test_add_pie_chart_invalid_data(self):
+        self.load_data("x+y_3D.csv")
+        self.assertFalse(bpy.ops.data_vis.geonodes_pie_chart.poll())
+
+    def test_add_surface_chart_invalid_data(self):
+        self.load_data("species_2D.csv")
+        self.assertFalse(bpy.ops.data_vis.geonodes_surface_chart.poll())
 
 
 class TestAddAxis(DataVisTestCase):
-    def test_add_categorical_axis(self): ...
+    def test_add_categorical_axis(self):
+        import data_vis
 
-    def test_add_numerical_axis(self): ...
+        self.load_data("species_2D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart()
+        bpy.ops.data_vis.add_axis(
+            axis="X",
+            axis_type=data_vis.geonodes.components.AxisType.CATEGORICAL,
+            pass_invoke=True,
+        )
+        modifiers = self.find_modifiers_by_node_group_name(
+            bpy.context.active_object, "DV_CategoricalAxis"
+        )
+        self.assertEqual(len(modifiers), 1)
+
+    def test_add_numerical_axis(self):
+        import data_vis
+
+        self.load_data("species_2D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart()
+        bpy.ops.data_vis.add_axis(
+            axis="Z",
+            axis_type=data_vis.geonodes.components.AxisType.NUMERIC,
+            pass_invoke=True,
+        )
+        modifiers = self.find_modifiers_by_node_group_name(
+            bpy.context.active_object, "DV_NumericAxis"
+        )
+        self.assertEqual(len(modifiers), 1)
 
 
 class TestAddLabels(DataVisTestCase):
-    def test_add_label(self): ...
+    def test_add_above_data_labels(self):
+        self.load_data("species_2D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart()
+        bpy.ops.data_vis.add_data_labels()
+        self.assertNodesModifier(bpy.context.active_object, "DV_DataLabels")
 
 
 class TestAddAnimation(DataVisTestCase):
