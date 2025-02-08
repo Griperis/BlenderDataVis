@@ -19,20 +19,20 @@ def find_blender_executable() -> str:
 
 
 def run_in_blender(script_path: str) -> int:
-    p = subprocess.Popen(
-        [
-            find_blender_executable(),
-            "--background",
-            "-noaudio",
-            "--factory-startup",
-            "--python-exit-code",
-            "1",
-            "--python",
-            script_path,
-            "--",
-            *sys.argv[sys.argv.index("--") + 1 :],
-        ]
-    )
+    if "--" in sys.argv:
+        additional_args = sys.argv[sys.argv.index("--") + 1 :]
+    else:
+        additional_args = []
+    args = []
+    args += [find_blender_executable()]
+    args += ["--background"]
+    args += ["-noaudio"]
+    args += ["--python-exit-code", "1"]
+    args += ["--factory-startup"]
+    args += ["--python", script_path]
+    args += ["--"]
+    args += additional_args
+    p = subprocess.Popen(args)
     p.wait()
     return p.returncode
 
@@ -43,7 +43,7 @@ def main():
         "--script_path", type=str, help="Path to the Blender script to run"
     )
     args, _ = parser.parse_known_args(sys.argv)
-    sys.exit(run_in_blender(args.script_path))
+    sys.exit(run_in_blender(os.path.abspath(args.script_path)))
 
 
 if __name__ == "__main__":
