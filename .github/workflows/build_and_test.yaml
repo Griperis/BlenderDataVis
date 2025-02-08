@@ -39,15 +39,17 @@ jobs:
       run: tar -xf /home/runner/blender.tar.xz -C /home/runner/blender --strip-components=1
     - name: Add Blender to PATH
       run: ln -s /home/runner/blender/blender /home/runner/.local/bin/blender
+    - name: Install pip dependencies
+      if: steps.blenderBinaryCache.outputs.cache-hit != 'true'
+      run: /home/runner/blender/4.2/python/bin/python3.11 -m pip install scipy
+    - name: Install Blender Dependencies
+      run: sudo apt-get install freeglut3-dev
     - name: Download Addon ZIP
       uses: actions/download-artifact@v4
       with:
         name: data_vis_zip
-    - name: Install Blender Dependencies
-      run: sudo apt-get install freeglut3-dev
-    - name: Install pip dependencies
-      if: steps.blenderBinaryCache.outputs.cache-hit != 'true'
-      run: /home/runner/blender/4.2/python/bin/python3.11 -m pip install scipy
+    - name: Prepare Addon Zip
+      run: mkdir -p dev/tests/intermediate && cp data_vis_3.0.0.zip dev/tests/intermediate/data_vis_3.0.0.zip
     - name: Test
-      run:  python dev/run_in_blender.py --script_path dev/tests/main.py
+      run: python dev/run_in_blender.py --script_path dev/tests/main.py
     
