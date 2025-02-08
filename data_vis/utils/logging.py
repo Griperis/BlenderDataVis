@@ -43,7 +43,7 @@ def logged_operator(cls: typing.Type[bpy.types.Operator]):
                 logger.exception(f"Uncaught exception raised in {cls}.execute")
                 # We return finished even in case an error happened, that way the user will be able
                 # to undo any changes the operator has made up until the error happened
-                return {'CANCELLED'}
+                return {"CANCELLED"}
 
         cls.execute = new_execute
 
@@ -60,7 +60,7 @@ def logged_operator(cls: typing.Type[bpy.types.Operator]):
                 logger.exception(f"Uncaught exception raised in {cls}.invoke")
                 # We return finished even in case an error happened, that way the user will be able
                 # to undo any changes the operator has made up until the error happened
-                return {'FINISHED'}
+                return {"FINISHED"}
 
         cls.invoke = new_invoke
 

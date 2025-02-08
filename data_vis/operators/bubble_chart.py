@@ -21,7 +21,7 @@ class OBJECT_OT_BubbleChart(OBJECT_OT_GenericChart):
 
     bl_idname = "object.create_bubble_chart"
     bl_label = "Bubble Chart"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     dimensions: bpy.props.EnumProperty(
         name="Dimensions",
@@ -161,7 +161,7 @@ class OBJECT_OT_BubbleChart(OBJECT_OT_GenericChart):
             )
 
         self.select_container()
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def determine_subtype(self):
         """Determines data subtype by user input"""

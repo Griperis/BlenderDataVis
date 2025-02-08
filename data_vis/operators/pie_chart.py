@@ -13,6 +13,7 @@ from ..properties import (
 from ..data_manager import DataManager, DataType
 from ..colors import ColorGen, ColorType
 from .features.legend import Legend
+
 logger = logging.getLogger("data_vis")
 
 
@@ -21,7 +22,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
 
     bl_idname = "object.create_pie_chart"
     bl_label = "Pie Chart"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     header_settings: bpy.props.PointerProperty(type=DV_HeaderPropertyGroup)
 
@@ -124,17 +125,17 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
 
         data_min = min(self.data, key=lambda entry: entry[1])[1]
         if data_min <= 0:
-            self.report({'ERROR'}, "Pie chart support only positive values!")
-            return {'CANCELLED'}
+            self.report({"ERROR"}, "Pie chart support only positive values!")
+            return {"CANCELLED"}
 
         data_len = len(self.data)
         if data_len >= self.vertices:
             self.report(
-                {'ERROR'},
+                {"ERROR"},
                 "There are more data than possible slices, "
                 + "please increase the vertices value!",
             )
-            return {'CANCELLED'}
+            return {"CANCELLED"}
 
         self.create_container()
 
@@ -208,7 +209,7 @@ class OBJECT_OT_PieChart(OBJECT_OT_GenericChart):
             )
 
         self.select_container()
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def join_slices(self, i_from, i_to):
         bpy.ops.object.select_all(action="DESELECT")

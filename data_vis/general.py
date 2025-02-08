@@ -20,7 +20,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
     bl_idname = "object.create_chart"
     bl_label = "Generic chart operator"
-    bl_options = {'REGISTER', 'UNDO', "INTERNAL"}
+    bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 
     data = None
     axis_mat = None
@@ -298,7 +298,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
             elif length == 3:
                 self.labels = (first_line[0], first_line[1], first_line[2])
             else:
-                self.report({'ERROR'}, "Unsupported number of labels on first line")
+                self.report({"ERROR"}, "Unsupported number of labels on first line")
         else:
             self.labels = [
                 self.label_settings.x_label,
@@ -407,7 +407,7 @@ class DV_ShowPopup(bpy.types.Operator):
                 column.label(text=line)
 
         context.window_manager.popup_menu(draw, title=self.title, icon=self.icon)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class DV_DataInspect(bpy.types.Operator):
@@ -501,14 +501,14 @@ class DV_DataInspect(bpy.types.Operator):
                 col.label(text=str(parsed_data[j][i]))
 
     def execute(self, context):
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def invoke(self, context: bpy.types.Context, event):
         metadata_index = context.scene.data_list_index
         metadata_list = context.scene.data_list
         if metadata_index < 0 or metadata_index >= len(metadata_list):
-            self.report({'ERROR'}, "Invalid data index!")
-            return {'CANCELLED'}
+            self.report({"ERROR"}, "Invalid data index!")
+            return {"CANCELLED"}
 
         metadata = metadata_list[metadata_index]
         metadata.load()

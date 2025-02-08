@@ -20,7 +20,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
 
     bl_idname = "object.create_surface_chart"
     bl_label = "Surface Chart"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     dimensions: bpy.props.EnumProperty(
         name="Dimensions", items=(("3", "3D", "X, Y, Z"),), options={"HIDDEN"}
@@ -49,7 +49,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
 
     color_shade: bpy.props.FloatVectorProperty(
         name="Base Color",
-        subtype='COLOR',
+        subtype="COLOR",
         default=(0.0, 0.0, 1.0),
         min=0.0,
         max=1.0,
@@ -69,7 +69,7 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         layout = self.layout
 
         box = layout.box()
-        box.label(icon='COLOR', text="Color Settings:")
+        box.label(icon="COLOR", text="Color Settings:")
         box.prop(self, "color_shade")
 
         row = layout.row()
@@ -184,4 +184,4 @@ class OBJECT_OT_SurfaceChart(OBJECT_OT_GenericChart):
         if self.header_settings.create:
             self.create_header()
         self.select_container()
-        return {'FINISHED'}
+        return {"FINISHED"}
