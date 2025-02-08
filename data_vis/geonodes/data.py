@@ -51,18 +51,18 @@ def get_data_types() -> typing.Set[str]:
     dm = DataManager()
     shape = dm.get_chart_data().parsed_data.shape
     if dm.predicted_data_type == DataType.Numerical:
-        if shape[0] > 1:
+        if shape[1] > 1:
             types.update({DataTypeValue.Data2D})
-        if shape[0] > 2:
+        if shape[1] > 2:
             types.update(
                 {DataTypeValue.Data2DA, DataTypeValue.Data2DW, DataTypeValue.Data3D}
             )
-        if shape[0] > 3:
+        if shape[1] > 3:
             types.update({DataTypeValue.Data3DW, DataTypeValue.Data3DA})
     elif dm.predicted_data_type == DataType.Categorical:
-        if shape[0] > 1:
+        if shape[1] > 1:
             types.update({DataTypeValue.CATEGORIC_Data2D})
-        if shape[0] > 2:
+        if shape[1] > 2:
             types.update({DataTypeValue.CATEGORIC_Data2DA})
 
     return types
