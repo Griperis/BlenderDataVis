@@ -18,11 +18,9 @@ jobs:
           name: data_vis_zip
           path: data_vis_3.0.0.zip
 
-  render_charts:
+  test:
     runs-on: ubuntu-latest
     needs: build
-    outputs:
-        artifact_url: ${{ steps.artifact-upload-step.outputs.artifact-url }}
     steps:
     - uses: actions/checkout@v4
     - name: Cache Blender
@@ -33,7 +31,7 @@ jobs:
         key: blender-4.2
     - name: Download Blender
       if: steps.blenderBinaryCache.outputs.cache-hit != 'true'
-      run: curl https://download.blender.org/release/Blender4.2/blender-4.2.5-linux-x64.tar.xz -o /home/runner/blender.tar.xz
+      run: curl https://download.blender.org/release/Blender4.2/blender-4.2.6-linux-x64.tar.xz -o /home/runner/blender.tar.xz
     - name: Mkdir
       run: mkdir {/home/runner/.local/bin,/home/runner/blender} -p
     - name: Extract Blender
@@ -51,4 +49,5 @@ jobs:
       if: steps.blenderBinaryCache.outputs.cache-hit != 'true'
       run: /home/runner/blender/4.2/python/bin/python3.11 -m pip install scipy
     - name: Test
-      run:  python dev/run_in_blender.py --script_path dev/tests/render_charts.py -- data_vis_3.0.0.zip dev/tests/data/ dev/tests/out
+      run:  python dev/run_in_blender.py --script_path dev/tests/main.py
+    
