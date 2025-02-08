@@ -310,11 +310,73 @@ class TestAddLabels(DataVisTestCase):
 
 
 class TestAddAnimation(DataVisTestCase):
-    def test_animate_data(self): ...
+    def test_shape_keys_created_2D(self):
+        import data_vis
 
-    def test_add_in_animation(self): ...
+        self.load_data("function-simple_3D_anim.csv")
+        bpy.ops.data_vis.geonodes_bar_chart(
+            data_type=data_vis.geonodes.data.DataTypeValue.Data2DA
+        )
+        chart_obj = bpy.context.active_object
+        # Basis + 5 columns
+        self.assertEqual(len(chart_obj.data.shape_keys.key_blocks), 6)
 
-    def test_add_out_animation(self): ...
+    def test_shape_keys_created_3D(self):
+        import data_vis
+
+        self.load_data("function-simple_3D_anim.csv")
+        bpy.ops.data_vis.geonodes_bar_chart(
+            data_type=data_vis.geonodes.data.DataTypeValue.Data3DA
+        )
+        chart_obj = bpy.context.active_object
+        # Basis + 4 columns
+        self.assertEqual(len(chart_obj.data.shape_keys.key_blocks), 5)
+
+    def test_add_animation(self):
+        import data_vis
+
+        self.load_data("function-simple_3D_anim.csv")
+        bpy.ops.data_vis.geonodes_bar_chart(
+            data_type=data_vis.geonodes.data.DataTypeValue.Data2DA
+        )
+        bpy.ops.data_vis.animate_data()
+        chart_obj = bpy.context.active_object
+        self.assertIsNotNone(chart_obj.data.shape_keys.animation_data)
+        self.assertEqual(
+            len(chart_obj.data.shape_keys.animation_data.action.fcurves), 6
+        )
+
+    def test_add_in_animation(self):
+        import data_vis
+
+        self.load_data("function-simple_3D_anim.csv")
+        bpy.ops.data_vis.geonodes_bar_chart(
+            data_type=data_vis.geonodes.data.DataTypeValue.Data2DA
+        )
+        bpy.context.scene.frame_current = 50
+        bpy.ops.data_vis.animate_data()
+        bpy.ops.data_vis.animate_in()
+        chart_obj = bpy.context.active_object
+        self.assertIsNotNone(chart_obj.data.shape_keys.animation_data)
+        self.assertEqual(
+            len(chart_obj.data.shape_keys.animation_data.action.fcurves), 7
+        )
+
+    def test_add_out_animation(self):
+        import data_vis
+
+        self.load_data("function-simple_3D_anim.csv")
+        bpy.ops.data_vis.geonodes_bar_chart(
+            data_type=data_vis.geonodes.data.DataTypeValue.Data2DA
+        )
+        bpy.context.scene.frame_current = 50
+        bpy.ops.data_vis.animate_data()
+        bpy.ops.data_vis.animate_out()
+        chart_obj = bpy.context.active_object
+        self.assertIsNotNone(chart_obj.data.shape_keys.animation_data)
+        self.assertEqual(
+            len(chart_obj.data.shape_keys.animation_data.action.fcurves), 7
+        )
 
 
 if __name__ == "__main__":
