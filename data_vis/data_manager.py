@@ -163,7 +163,7 @@ class DataManager:
             data = self.raw_data
 
             if self.has_labels:
-                self.labels = tuple(str(x) for x in self.raw_data[0])
+                self.labels = tuple(str(x).strip() for x in self.raw_data[0])
                 start_idx = 1
             else:
                 start_idx = 0
@@ -209,7 +209,7 @@ class DataManager:
                     ]
 
             if self.predicted_data_type == DataType.Categorical:
-                self.ranges["x"] = (0, len(self.parsed_data) - 1)
+                self.ranges["x"] = [0, len(self.parsed_data) - 1]
 
         def get_parsed_data(self, subtype=None):
             if subtype:
@@ -324,7 +324,7 @@ class DataManager:
                 self.subtypes += [DataSubtype.XYZ_Anim, DataSubtype.XYZW]
 
         def __merge_ranges(self, first, second):
-            return (min(first[0], second[0]), max(first[1], second[1]))
+            return [min(first[0], second[0]), max(first[1], second[1])]
 
         def __str__(self):
             return "{}\nSUBTYPES: {}\nL: {}\nNOFL: {}\nDIMS: {}\nRNGS: {}\nANIM_DATA: {}\nANIM: {}".format(
