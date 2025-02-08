@@ -53,6 +53,7 @@ def update_region_type(self, context):
 def get_example_data_path() -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), EXAMPLE_DATA_FOLDER))
 
+
 class DV_Preferences(bpy.types.AddonPreferences):
     """Preferences for data visualisation addon"""
 
@@ -151,7 +152,7 @@ class DV_Preferences(bpy.types.AddonPreferences):
         box.prop(self, "ui_region_type")
         box.prop(self, "ui_space_type")
         box.prop(self, "ui_category")
-        box.label(text="Check console for possible errors!", icon='ERROR')
+        box.label(text="Check console for possible errors!", icon="ERROR")
 
         box = layout.box()
         box.label(text="Other Settings", icon="PLUGIN")

@@ -24,7 +24,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
 
     bl_idname = "object.create_line_chart"
     bl_label = "Line Chart"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     bevel_edges: bpy.props.BoolProperty(
         name="Bevel edges", description="Can have bad affect on data from large dataset"
@@ -124,8 +124,8 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
             self.dm.predicted_data_type == DataType.Categorical
             and self.data_type_as_enum() == DataType.Numerical
         ):
-            self.report({'ERROR'}, "Cannot convert categorical data into numerical!")
-            return {'CANCELLED'}
+            self.report({"ERROR"}, "Cannot convert categorical data into numerical!")
+            return {"CANCELLED"}
 
         self.create_container()
 
@@ -193,7 +193,7 @@ class OBJECT_OT_LineChart(OBJECT_OT_GenericChart):
             self.create_header()
 
         self.select_container()
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def create_series_label(self, material):
         """Creates label for series specified with material"""
