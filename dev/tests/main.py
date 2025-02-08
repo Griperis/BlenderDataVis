@@ -4,7 +4,6 @@ import os
 import sys
 import logging
 import itertools
-import data_vis
 
 # Add the tests directory to the path, to be able to import it in Blender's python
 # environment.
@@ -58,8 +57,9 @@ class TestLoadData(DataVisTestCase):
         self.assertDataLoadedInScene(data_2_path)
 
     def test_load_categorical(self):
-        data_path = self.load_data("species_2D.csv")
+        import data_vis
 
+        data_path = self.load_data("species_2D.csv")
         dm = data_vis.DataManager()
         # Pre 3.0 API
         self.assertEqual(os.path.abspath(dm.filepath), data_path)
@@ -84,8 +84,9 @@ class TestLoadData(DataVisTestCase):
         self.assertEqual(chart_data.labels, ("species", "count"))
 
     def test_load_numerical(self):
-        data_path = self.load_data("x+y_3D.csv")
+        import data_vis
 
+        data_path = self.load_data("x+y_3D.csv")
         dm = data_vis.DataManager()
         # Pre 3.0 API
         self.assertEqual(os.path.abspath(dm.filepath), data_path)
@@ -119,8 +120,9 @@ class TestLoadData(DataVisTestCase):
         self.assertEqual(chart_data.labels, ("x", "y", "x+y"))
 
     def test_load_numerical_animable(self):
-        data_path = self.load_data("function-simple_3D_anim.csv")
+        import data_vis
 
+        data_path = self.load_data("function-simple_3D_anim.csv")
         dm = data_vis.DataManager()
         # Pre 3.0 API
         self.assertEqual(os.path.abspath(dm.filepath), data_path)
