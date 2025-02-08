@@ -107,6 +107,13 @@ class DV_AddInAnimation(DV_AnimationOperator):
         items=((AnimationNames.GROW_FROM_ZERO, "Grow", "Grow from zero"),),
     )
 
+    @classmethod
+    def poll(cls, context: bpy.types.Context) -> bool:
+        if not super().poll(context):
+            return False
+
+        return get_action(context.active_object) is not None
+
     def execute(self, context: bpy.types.Context):
         obj = context.active_object
         if is_in_present(obj):
@@ -164,6 +171,13 @@ class DV_AddOutAnimation(DV_AnimationOperator):
         name="Animation Type",
         items=((AnimationNames.GROW_TO_ZERO, "Shrink", "Shrink to zero"),),
     )
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context) -> bool:
+        if not super().poll(context):
+            return False
+
+        return get_action(context.active_object) is not None
 
     def execute(self, context: bpy.types.Context):
         obj = context.active_object
