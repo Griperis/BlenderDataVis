@@ -118,15 +118,20 @@ class DV_GN_BarChart(DV_GN_Chart):
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
         obj: bpy.types.Object = data.create_data_object("DV_BarChart", self.data_type)
+        data_nodegroup = library.load_data_nodegroup()
+        data_modifier: bpy.types.NodesModifier = obj.modifiers.new("Data", "NODES")
+        data_modifier.node_group = data_nodegroup
 
-        node_group = library.load_chart("DV_BarChart")
-        modifier: bpy.types.NodesModifier = obj.modifiers.new("Bar Chart", "NODES")
-        modifier.node_group = node_group
+        chart_nodegroup = library.load_chart("DV_BarChart")
+        chart_modifier: bpy.types.NodesModifier = obj.modifiers.new(
+            "Bar Chart", "NODES"
+        )
+        chart_modifier.node_group = chart_nodegroup
 
         components.mark_as_chart([obj])
         self._add_chart_to_scene(context, obj)
-        self._apply_material(modifier, prefs.color_type)
-        modifier_utils.add_used_materials_to_object(modifier, obj)
+        self._apply_material(chart_modifier, prefs.color_type)
+        modifier_utils.add_used_materials_to_object(chart_modifier, obj)
         return {"FINISHED"}
 
 
@@ -166,15 +171,20 @@ class DV_GN_PointChart(DV_GN_Chart):
     def execute(self, context: bpy.types.Context):
         prefs = preferences.get_preferences(context)
         obj: bpy.types.Object = data.create_data_object("DV_PointChart", self.data_type)
+        data_nodegroup = library.load_data_nodegroup()
+        data_modifier: bpy.types.NodesModifier = obj.modifiers.new("Data", "NODES")
+        data_modifier.node_group = data_nodegroup
 
         node_group = library.load_chart("DV_PointChart")
-        modifier: bpy.types.NodesModifier = obj.modifiers.new("Point Chart", "NODES")
-        modifier.node_group = node_group
+        chart_modifier: bpy.types.NodesModifier = obj.modifiers.new(
+            "Point Chart", "NODES"
+        )
+        chart_modifier.node_group = node_group
 
         components.mark_as_chart([obj])
         self._add_chart_to_scene(context, obj)
-        self._apply_material(modifier, prefs.color_type)
-        modifier_utils.add_used_materials_to_object(modifier, obj)
+        self._apply_material(chart_modifier, prefs.color_type)
+        modifier_utils.add_used_materials_to_object(chart_modifier, obj)
         return {"FINISHED"}
 
 
@@ -213,6 +223,9 @@ class DV_GN_LineChart(DV_GN_Chart):
         obj: bpy.types.Object = data.create_data_object(
             "DV_LineChart", self.data_type, connect_edges=True
         )
+        data_nodegroup = library.load_data_nodegroup()
+        data_modifier: bpy.types.NodesModifier = obj.modifiers.new("Data", "NODES")
+        data_modifier.node_group = data_nodegroup
 
         node_group = library.load_chart("DV_LineChart")
         modifier: bpy.types.NodesModifier = obj.modifiers.new("Line Chart", "NODES")
@@ -295,6 +308,9 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
                 method=self.rbf_function, m=self.grid_x, n=self.grid_y
             ),
         )
+        data_nodegroup = library.load_data_nodegroup()
+        data_modifier: bpy.types.NodesModifier = obj.modifiers.new("Data", "NODES")
+        data_modifier.node_group = data_nodegroup
 
         node_group = library.load_chart("DV_SurfaceChart")
         modifier: bpy.types.NodesModifier = obj.modifiers.new("Surface Chart", "NODES")
