@@ -33,6 +33,10 @@ class ChartData:
         self.parsed_data = np.array(parsed_data)
         self.lines = len(parsed_data)
         self.labels = labels
+        self.min_, self.max_ = (
+            np.min(self.parsed_data, axis=0)[:3],
+            np.max(self.parsed_data, axis=0)[:3],
+        )
 
 
 class DataManager:
