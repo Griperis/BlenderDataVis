@@ -83,6 +83,15 @@ class DV_GN_Chart(bpy.types.Operator):
             h = 1.0 - h
         return mathutils.Vector([*colorsys.hsv_to_rgb(h, s, v), 1.0])
 
+    def _set_default_ranges(self, data_modifier: bpy.types.NodesModifier) -> None:
+        chart_data = data.DataManager().get_chart_data()
+        modifier_utils.set_input(
+            data_modifier, "Min Range", mathutils.Vector(chart_data.min_)
+        )
+        modifier_utils.set_input(
+            data_modifier, "Max Range", mathutils.Vector(chart_data.max_)
+        )
+
 
 @utils.logging.logged_operator
 class DV_GN_BarChart(DV_GN_Chart):
@@ -121,6 +130,7 @@ class DV_GN_BarChart(DV_GN_Chart):
         data_nodegroup = library.load_data_nodegroup()
         data_modifier: bpy.types.NodesModifier = obj.modifiers.new("Data", "NODES")
         data_modifier.node_group = data_nodegroup
+        self._set_default_ranges(data_modifier)
 
         chart_nodegroup = library.load_chart("DV_BarChart")
         chart_modifier: bpy.types.NodesModifier = obj.modifiers.new(
@@ -174,6 +184,7 @@ class DV_GN_PointChart(DV_GN_Chart):
         data_nodegroup = library.load_data_nodegroup()
         data_modifier: bpy.types.NodesModifier = obj.modifiers.new("Data", "NODES")
         data_modifier.node_group = data_nodegroup
+        self._set_default_ranges(data_modifier)
 
         node_group = library.load_chart("DV_PointChart")
         chart_modifier: bpy.types.NodesModifier = obj.modifiers.new(
@@ -226,6 +237,7 @@ class DV_GN_LineChart(DV_GN_Chart):
         data_nodegroup = library.load_data_nodegroup()
         data_modifier: bpy.types.NodesModifier = obj.modifiers.new("Data", "NODES")
         data_modifier.node_group = data_nodegroup
+        self._set_default_ranges(data_modifier)
 
         node_group = library.load_chart("DV_LineChart")
         modifier: bpy.types.NodesModifier = obj.modifiers.new("Line Chart", "NODES")
@@ -311,6 +323,7 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
         data_nodegroup = library.load_data_nodegroup()
         data_modifier: bpy.types.NodesModifier = obj.modifiers.new("Data", "NODES")
         data_modifier.node_group = data_nodegroup
+        self._set_default_ranges(data_modifier)
 
         node_group = library.load_chart("DV_SurfaceChart")
         modifier: bpy.types.NodesModifier = obj.modifiers.new("Surface Chart", "NODES")
