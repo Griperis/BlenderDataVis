@@ -6,8 +6,8 @@ from .. import preferences
 
 class DV_GN_PanelMixin:
     bl_parent_id = "DV_PT_data_load"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
     bl_category = "DataVis"
 
     @classmethod

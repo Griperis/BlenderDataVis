@@ -8,7 +8,7 @@ from math import radians
 class DV_AlignLabels(bpy.types.Operator):
     bl_idname = "data_vis.align_labels"
     bl_label = "Align Labels"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
     bl_description = "Aligns labels to currently active camera or to the view"
 
     align_header: bpy.props.BoolProperty(
@@ -63,11 +63,11 @@ class DV_AlignLabels(bpy.types.Operator):
                 self.align_labels(context, "to", child)
 
         if axis_count in [2, 3] or is_pie:
-            self.report({'INFO'}, "Labels aligned!")
-            return {'FINISHED'}
+            self.report({"INFO"}, "Labels aligned!")
+            return {"FINISHED"}
         else:
-            self.report({'WARNING'}, "Select valid chart container!")
-            return {'CANCELLED'}
+            self.report({"WARNING"}, "Select valid chart container!")
+            return {"CANCELLED"}
 
     def invoke(self, context: bpy.types.Context, event):
         return context.window_manager.invoke_props_dialog(self)

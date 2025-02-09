@@ -21,7 +21,7 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
 
     bl_idname = "object.create_point_chart"
     bl_label = "Point Chart"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     dimensions: bpy.props.EnumProperty(
         name="Dimensions",
@@ -75,8 +75,8 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             value_index = 1
         else:
             if len(self.data[0]) == 2:
-                self.report({'ERROR'}, "Data are only 2D!")
-                return {'CANCELLED'}
+                self.report({"ERROR"}, "Data are only 2D!")
+                return {"CANCELLED"}
             value_index = 2
 
         self.create_container()
@@ -104,9 +104,9 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
             else:
                 if self.custom_obj_name not in bpy.data.objects:
                     self.report(
-                        {'ERROR'}, "Selected object is part of the chart or is deleted!"
+                        {"ERROR"}, "Selected object is part of the chart or is deleted!"
                     )
-                    return {'CANCELLED'}
+                    return {"CANCELLED"}
                 src_obj = bpy.data.objects[self.custom_obj_name]
                 point_obj = src_obj.copy()
                 point_obj.data = src_obj.data.copy()
@@ -156,4 +156,4 @@ class OBJECT_OT_PointChart(OBJECT_OT_GenericChart):
         if self.header_settings.create:
             self.create_header()
         self.select_container()
-        return {'FINISHED'}
+        return {"FINISHED"}

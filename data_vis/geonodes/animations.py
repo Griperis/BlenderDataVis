@@ -107,11 +107,18 @@ class DV_AddInAnimation(DV_AnimationOperator):
         items=((AnimationNames.GROW_FROM_ZERO, "Grow", "Grow from zero"),),
     )
 
+    @classmethod
+    def poll(cls, context: bpy.types.Context) -> bool:
+        if not super().poll(context):
+            return False
+
+        return get_action(context.active_object) is not None
+
     def execute(self, context: bpy.types.Context):
         obj = context.active_object
         if is_in_present(obj):
-            self.report({'WARNING'}, "In animation already present, remove it first.")
-            return {'CANCELLED'}
+            self.report({"WARNING"}, "In animation already present, remove it first.")
+            return {"CANCELLED"}
 
         # Infer the keyframe spacing from the existing keyframes, if they exist
         action = get_action(obj)
@@ -124,10 +131,10 @@ class DV_AddInAnimation(DV_AnimationOperator):
         frame_n = context.scene.frame_current
         if frame_n - frame_spacing <= 0:
             self.report(
-                {'ERROR'},
+                {"ERROR"},
                 f"There is no space for in animation, please adjust the keyframes.",
             )
-            return {'CANCELLED'}
+            return {"CANCELLED"}
 
         sk = obj.shape_key_add(name=self.type_, from_mix=True)
         sk.value = 0
@@ -150,7 +157,7 @@ class DV_AddInAnimation(DV_AnimationOperator):
             sk.keyframe_insert(data_path="value", frame=frame_n)
 
         ensure_animation_naming(obj)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         return context.window_manager.invoke_props_dialog(self)
@@ -165,13 +172,20 @@ class DV_AddOutAnimation(DV_AnimationOperator):
         items=((AnimationNames.GROW_TO_ZERO, "Shrink", "Shrink to zero"),),
     )
 
+    @classmethod
+    def poll(cls, context: bpy.types.Context) -> bool:
+        if not super().poll(context):
+            return False
+
+        return get_action(context.active_object) is not None
+
     def execute(self, context: bpy.types.Context):
         obj = context.active_object
         if is_out_present(context.active_object):
             self.report(
-                {'WARNING'}, "Out animation is already present, remove it first."
+                {"WARNING"}, "Out animation is already present, remove it first."
             )
-            return {'CANCELLED'}
+            return {"CANCELLED"}
 
         # Infer the keyframe spacing and last keyframe from the existing keyframes, if they exist
         action = get_action(obj)
@@ -202,7 +216,7 @@ class DV_AddOutAnimation(DV_AnimationOperator):
             sk.keyframe_insert(data_path="value", frame=frame_n + frame_spacing)
 
         ensure_animation_naming(obj)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         return context.window_manager.invoke_props_dialog(self)
@@ -225,13 +239,15 @@ class DV_RemoveInOutAnimation(DV_AnimationOperator):
             if sk.name in to_remove:
                 obj.shape_key_remove(sk)
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
 class DV_AnimateData(DV_AnimationOperator):
     bl_idname = "data_vis.animate_data"
     bl_label = "Animate Data"
-    bl_description = "Animates the chart. The chart has to be created with animation support"
+    bl_description = (
+        "Animates the chart. The chart has to be created with animation support"
+    )
 
     keyframe_spacing: bpy.props.IntProperty(name="Keyframe Spacing", default=20, min=1)
 
@@ -258,7 +274,7 @@ class DV_AnimateData(DV_AnimationOperator):
         start_idx = max(0, self.start_idx)
         end_idx = min(self.end_idx, len(obj.data.shape_keys.key_blocks) - 1)
         self.report(
-            {'INFO'},
+            {"INFO"},
             f"Animating data from column {start_idx} to {end_idx} spaced at {self.keyframe_spacing} frames",
         )
         for i in range(start_idx, end_idx + 1):
@@ -278,7 +294,7 @@ class DV_AnimateData(DV_AnimationOperator):
         adjust_z_override_to_data(obj, 0, len(obj.data.shape_keys.key_blocks) - 1)
         ensure_animation_naming(obj)
 
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         return context.window_manager.invoke_props_dialog(self)
@@ -301,4 +317,6 @@ class DV_AnimatePanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
 
         row = layout.row(align=True)
         row.operator(DV_AddOutAnimation.bl_idname, text="Out Animation")
-        row.operator(DV_RemoveInOutAnimation.bl_idname, text="", icon="X").in_out = False
+        row.operator(DV_RemoveInOutAnimation.bl_idname, text="", icon="X").in_out = (
+            False
+        )

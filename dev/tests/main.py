@@ -77,6 +77,23 @@ class DataVisTestCase(unittest.TestCase):
         modifiers = self.find_modifiers_by_node_group_name(chart_obj, group_name)
         self.assertGreaterEqual(len(modifiers), 1)
 
+    def assertNodesModifierInFront(
+        self,
+        obj: bpy.types.Object,
+        first_node_group_name: str,
+        second_node_group_name: str,
+    ) -> None:
+        first_mod = self.find_modifiers_by_node_group_name(
+            obj, first_node_group_name
+        ).pop()
+        second_mod = self.find_modifiers_by_node_group_name(
+            obj, second_node_group_name
+        ).pop()
+        self.assertLess(
+            obj.modifiers.find(first_mod.name),
+            obj.modifiers.find(second_mod.name),
+        )
+
 
 class TestLoadData(DataVisTestCase):
     def test_load_multiple(self):
@@ -231,6 +248,10 @@ class TestAddCharts(DataVisTestCase):
         self.assertChartComponent(bpy.context.active_object)
         self.assertDataTypeStored(bpy.context.active_object)
         self.assertNodesModifier(bpy.context.active_object, "DV_BarChart")
+        self.assertNodesModifier(bpy.context.active_object, "DV_Data")
+        self.assertNodesModifierInFront(
+            bpy.context.active_object, "DV_Data", "DV_BarChart"
+        )
 
     def test_add_line_chart(self):
         self.load_data("x+y_3D.csv")
@@ -238,6 +259,10 @@ class TestAddCharts(DataVisTestCase):
         self.assertChartComponent(bpy.context.active_object)
         self.assertDataTypeStored(bpy.context.active_object)
         self.assertNodesModifier(bpy.context.active_object, "DV_LineChart")
+        self.assertNodesModifier(bpy.context.active_object, "DV_Data")
+        self.assertNodesModifierInFront(
+            bpy.context.active_object, "DV_Data", "DV_LineChart"
+        )
 
     def test_add_point_chart(self):
         self.load_data("x+y_3D.csv")
@@ -245,6 +270,10 @@ class TestAddCharts(DataVisTestCase):
         self.assertChartComponent(bpy.context.active_object)
         self.assertDataTypeStored(bpy.context.active_object)
         self.assertNodesModifier(bpy.context.active_object, "DV_PointChart")
+        self.assertNodesModifier(bpy.context.active_object, "DV_Data")
+        self.assertNodesModifierInFront(
+            bpy.context.active_object, "DV_Data", "DV_PointChart"
+        )
 
     def test_add_pie_chart(self):
         self.load_data("species_2D.csv")
@@ -259,6 +288,10 @@ class TestAddCharts(DataVisTestCase):
         self.assertChartComponent(bpy.context.active_object)
         self.assertDataTypeStored(bpy.context.active_object)
         self.assertNodesModifier(bpy.context.active_object, "DV_SurfaceChart")
+        self.assertNodesModifier(bpy.context.active_object, "DV_Data")
+        self.assertNodesModifierInFront(
+            bpy.context.active_object, "DV_Data", "DV_SurfaceChart"
+        )
 
     def test_add_pie_chart_invalid_data(self):
         self.load_data("x+y_3D.csv")

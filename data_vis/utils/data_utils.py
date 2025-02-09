@@ -58,8 +58,6 @@ def find_data_range(data, range_x, range_y=None):
     )
 
 
-
-
 def float_range(start, stop=None, step=None, precision=0.00001):
     """
     Generates range of float numbers like python range, but step can be float

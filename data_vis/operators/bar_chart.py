@@ -21,7 +21,7 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
 
     bl_idname = "object.create_bar_chart"
     bl_label = "Bar Chart"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     dimensions: bpy.props.EnumProperty(
         name="Dimensions",
@@ -102,8 +102,8 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             self.dm.predicted_data_type == DataType.Categorical
             and self.data_type_as_enum() == DataType.Numerical
         ):
-            self.report({'ERROR'}, "Cannot convert categorical data into numerical!")
-            return {'CANCELLED'}
+            self.report({"ERROR"}, "Cannot convert categorical data into numerical!")
+            return {"CANCELLED"}
 
         self.dm.override(self.data_type_as_enum(), int(self.dimensions))
 
@@ -140,9 +140,9 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
             elif self.use_obj == "Custom":
                 if self.custom_obj_name not in bpy.data.objects:
                     self.report(
-                        {'ERROR'}, "Selected object is part of the chart or is deleted!"
+                        {"ERROR"}, "Selected object is part of the chart or is deleted!"
                     )
-                    return {'CANCELLED'}
+                    return {"CANCELLED"}
                 src_obj = bpy.data.objects[self.custom_obj_name]
                 bar_obj = src_obj.copy()
                 bar_obj.data = src_obj.data.copy()
@@ -202,4 +202,4 @@ class OBJECT_OT_BarChart(OBJECT_OT_GenericChart):
         if self.header_settings.create:
             self.create_header()
         self.select_container()
-        return {'FINISHED'}
+        return {"FINISHED"}

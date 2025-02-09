@@ -23,7 +23,7 @@ GEONODES_BLENDS_PATH = os.path.abspath(
 )
 
 
-def _load_nodegroup(name: str, link: bool = True) -> bpy.types.NodeGroup:
+def _load_nodegroup(name: str, link: bool = True) -> bpy.types.NodeTree:
     if not os.path.isfile(GEONODES_BLENDS_PATH):
         raise FileNotFoundError(
             f"Geometry nodes library couldn't be found at {GEONODES_BLENDS_PATH}"
@@ -73,17 +73,21 @@ def load_material(name: str, link: bool = True) -> bpy.types.Material:
     return data_to.materials[0]
 
 
-def load_chart(name: str, link: bool = True):
+def load_data_nodegroup(link: bool = True) -> bpy.types.NodeTree:
+    return _load_nodegroup("DV_Data", link)
+
+
+def load_chart(name: str, link: bool = True) -> bpy.types.NodeTree:
     return _load_nodegroup(name, link)
 
 
-def load_numeric_axis(link: bool = True) -> bpy.types.NodeGroup:
+def load_numeric_axis(link: bool = True) -> bpy.types.NodeTree:
     return _load_nodegroup("DV_NumericAxis", link)
 
 
-def load_categorical_axis(link: bool = True) -> bpy.types.NodeGroup:
+def load_categorical_axis(link: bool = True) -> bpy.types.NodeTree:
     return _load_nodegroup("DV_CategoricalAxis", link)
 
 
-def load_above_data_labels(link: bool = True) -> bpy.types.NodeGroup:
+def load_above_data_labels(link: bool = True) -> bpy.types.NodeTree:
     return _load_nodegroup("DV_DataLabels", link)
