@@ -9,7 +9,6 @@ from .charts import (
     DV_GN_LineChart,
     DV_GN_SurfaceChart,
     DV_GN_PieChart,
-    DV_ChartPanel,
 )
 from .data import DV_DataProperties
 from .components import (
@@ -17,8 +16,6 @@ from .components import (
     DV_AddHeading,
     DV_AddAxisLabel,
     DV_AddDataLabels,
-    DV_AxisPanel,
-    DV_DataLabelsPanel,
 )
 from .animations import (
     DV_AddInAnimation,
@@ -26,9 +23,9 @@ from .animations import (
     DV_RemoveInOutAnimation,
     DV_AnimateAxis,
     DV_AnimateData,
-    DV_AnimatePanel,
 )
 from .modifier_utils import DV_RemoveModifier
+from .panel import DV_ChartPanel, DV_AxisPanel, DV_DataLabelsPanel, DV_AnimatePanel
 
 CLASSES = [
     DV_DataProperties,
