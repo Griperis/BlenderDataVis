@@ -22,6 +22,7 @@ from .animations import (
     DV_AddOutAnimation,
     DV_RemoveInOutAnimation,
     DV_AnimateAxis,
+    DV_AnimateAboveDataLabels,
     DV_AnimateData,
 )
 from .modifier_utils import DV_RemoveModifier
@@ -46,6 +47,7 @@ CLASSES = [
     DV_AddOutAnimation,
     DV_RemoveInOutAnimation,
     DV_AnimateAxis,
+    DV_AnimateAboveDataLabels,
     DV_AnimateData,
     DV_AnimatePanel,
 ]

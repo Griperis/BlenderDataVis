@@ -162,6 +162,9 @@ class DV_DataLabelsPanel(bpy.types.Panel, DV_GN_PanelMixin):
             row.prop(mod, "show_expanded", text="")
             row.label(text=mod.name)
             row.operator(
+                animations.DV_AnimateAboveDataLabels.bl_idname, text="", icon="ANIM"
+            ).target_mod = mod.name
+            row.operator(
                 modifier_utils.DV_RemoveModifier.bl_idname, text="", icon="X"
             ).modifier_name = mod.name
             if mod.show_expanded:
