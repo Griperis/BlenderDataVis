@@ -10,8 +10,10 @@ from .data_manager import DataManager, DataType
 from .icon_manager import IconManager
 from .utils.data_utils import find_axis_range, normalize_value
 from .colors import ColorType
+from .utils import data_vis_logging
 
 
+@data_vis_logging.logged_operator
 class OBJECT_OT_GenericChart(bpy.types.Operator):
     """
     Encapsulation of common methods for charts, when creating new chart operator inherit this
@@ -392,6 +394,7 @@ class OBJECT_OT_GenericChart(bpy.types.Operator):
 
 # Code inspired from thread at blender.stackexchange
 # https://blender.stackexchange.com/questions/109711/how-to-popup-simple-message-box-from-python-console
+@data_vis_logging.logged_operator
 class DV_ShowPopup(bpy.types.Operator):
     bl_idname = "data_vis.show_popup"
     bl_label = "Show Popup"
@@ -410,6 +413,7 @@ class DV_ShowPopup(bpy.types.Operator):
         return {"FINISHED"}
 
 
+@data_vis_logging.logged_operator
 class DV_DataInspect(bpy.types.Operator):
     bl_idname = "data_vis.data_inspect"
     bl_label = "Inspect Data"

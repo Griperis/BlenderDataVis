@@ -4,6 +4,7 @@ import bpy
 from . import data
 from . import components
 from . import modifier_utils
+from ..utils import data_vis_logging
 
 
 class AnimationNames:
@@ -86,6 +87,7 @@ def adjust_z_override_to_data(obj: bpy.types.Object, start_idx: int, end_idx: in
     modifier_utils.set_input(chart_modiifer, "Z Max", max_z)
 
 
+@data_vis_logging.logged_operator
 class DV_AnimationOperator(bpy.types.Operator):
     @classmethod
     def poll(cls, context: bpy.types.Context) -> bool:
@@ -97,6 +99,7 @@ class DV_AnimationOperator(bpy.types.Operator):
         return data.DataTypeValue.is_animated(data.get_chart_data_type(context.object))
 
 
+@data_vis_logging.logged_operator
 class DV_AddInAnimation(DV_AnimationOperator):
     bl_idname = "data_vis.animate_in"
     bl_label = "Add In Animation"
@@ -162,6 +165,7 @@ class DV_AddInAnimation(DV_AnimationOperator):
         return context.window_manager.invoke_props_dialog(self)
 
 
+@data_vis_logging.logged_operator
 class DV_AddOutAnimation(DV_AnimationOperator):
     bl_idname = "data_vis.animate_out"
     bl_label = "Add Out Animation"
@@ -221,6 +225,7 @@ class DV_AddOutAnimation(DV_AnimationOperator):
         return context.window_manager.invoke_props_dialog(self)
 
 
+@data_vis_logging.logged_operator
 class DV_RemoveInOutAnimation(DV_AnimationOperator):
     bl_idname = "data_vis.remove_in_out"
     bl_label = "Remove In/Out Animation"
@@ -241,6 +246,7 @@ class DV_RemoveInOutAnimation(DV_AnimationOperator):
         return {"FINISHED"}
 
 
+@data_vis_logging.logged_operator
 class DV_AnimateData(DV_AnimationOperator):
     bl_idname = "data_vis.animate_data"
     bl_label = "Animate Data"
@@ -315,6 +321,7 @@ class DV_AnimateData(DV_AnimationOperator):
 # TODO: Header, Chart Labels, Legend animation - popup, fade in, fade out, ...
 
 
+@data_vis_logging.logged_operator
 class DV_AnimateAxis(DV_AnimationOperator):
     bl_idname = "data_vis.animate_axis"
     bl_label = "Animate Axis"

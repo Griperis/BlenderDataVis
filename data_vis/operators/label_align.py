@@ -3,8 +3,10 @@
 import bpy
 from mathutils import Vector, Quaternion
 from math import radians
+from ..utils import data_vis_logging
 
 
+@data_vis_logging.logged_operator
 class DV_AlignLabels(bpy.types.Operator):
     bl_idname = "data_vis.align_labels"
     bl_label = "Align Labels"

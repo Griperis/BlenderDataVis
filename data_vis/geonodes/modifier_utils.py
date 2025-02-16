@@ -3,10 +3,12 @@
 import bpy
 import typing
 import logging
+from ..utils import data_vis_logging
 
 logger = logging.getLogger("data_vis")
 
 
+@data_vis_logging.logged_operator
 class DV_RemoveModifier(bpy.types.Operator):
     bl_idname = "data_vis.remove_modifier"
     bl_label = "Remove Modifier"

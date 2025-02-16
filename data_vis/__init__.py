@@ -19,7 +19,7 @@ import bpy.utils.previews
 import os
 
 # import logging first, so it is initialized before all other modules
-from .utils import logging
+from .utils import data_vis_logging
 
 from .operators.bar_chart import OBJECT_OT_BarChart
 from .operators.line_chart import OBJECT_OT_LineChart
@@ -54,6 +54,7 @@ PERFORMANCE_WARNING_LINE_THRESHOLD = 150
 EXAMPLE_DATA_FOLDER = "example_data"
 
 
+@data_vis_logging.logged_operator
 class FILE_OT_DVLoadFile(bpy.types.Operator):
     bl_idname = "ui.dv_load_data"
     bl_label = "Load New File"
@@ -97,6 +98,7 @@ class FILE_OT_DVLoadFile(bpy.types.Operator):
         return {"FINISHED"}
 
 
+@data_vis_logging.logged_operator
 class DV_OT_ReloadData(bpy.types.Operator):
     """Reload data on current index in data list"""
 
@@ -112,6 +114,7 @@ class DV_OT_ReloadData(bpy.types.Operator):
         return {"FINISHED"}
 
 
+@data_vis_logging.logged_operator
 class DV_OT_PrintData(bpy.types.Operator):
     """Prints data to blender console"""
 
@@ -129,6 +132,7 @@ class DV_OT_PrintData(bpy.types.Operator):
         return {"FINISHED"}
 
 
+@data_vis_logging.logged_operator
 class DV_OT_RemoveData(bpy.types.Operator):
     """Removes data entry from DV_UL_DataList"""
 

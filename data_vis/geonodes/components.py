@@ -7,7 +7,7 @@ import math
 from . import library
 from . import modifier_utils
 from . import data
-from .. import utils
+from ..utils import data_vis_logging
 import re
 import logging
 
@@ -81,7 +81,7 @@ def get_chart_modifier(obj: bpy.types.Object) -> bpy.types.Modifier | None:
     return obj.modifiers[0] if len(obj.modifiers) > 0 else None
 
 
-@utils.logging.logged_operator
+@data_vis_logging.logged_operator
 class DV_AddAxis(bpy.types.Operator):
     bl_idname = "data_vis.add_axis"
     bl_label = "Add Axis"
@@ -184,7 +184,7 @@ class DV_AddAxis(bpy.types.Operator):
         modifier_utils.set_input(mod, "Labels", ",".join(data_from_obj["categories"]))
 
 
-@utils.logging.logged_operator
+@data_vis_logging.logged_operator
 class DV_AddDataLabels(bpy.types.Operator):
     bl_idname = "data_vis.add_data_labels"
     bl_label = "Add Data Labels"
@@ -204,6 +204,7 @@ class DV_AddDataLabels(bpy.types.Operator):
 
 
 # TODO: Create a object that's in the middle of the axis and parented to the chart object
+@data_vis_logging.logged_operator
 class DV_AddAxisLabel(bpy.types.Operator):
     bl_idname = "data_vis.add_axis_label"
     bl_label = "Add Axis Label"
@@ -215,6 +216,7 @@ class DV_AddAxisLabel(bpy.types.Operator):
 
 
 # TODO: Add heading to the chart
+@data_vis_logging.logged_operator
 class DV_AddHeading(bpy.types.Operator):
     # Adds a heading to the selected chart
     bl_idname = "data_vis.add_heading"
