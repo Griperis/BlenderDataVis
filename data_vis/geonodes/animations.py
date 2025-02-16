@@ -1,7 +1,6 @@
 # ©copyright Zdenek Dolezal 2024-, License GPL
 
 import bpy
-from . import panel
 from . import data
 from . import components
 from . import modifier_utils
@@ -410,29 +409,3 @@ class DV_AnimateAxis(DV_AnimationOperator):
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
         return context.window_manager.invoke_props_dialog(self)
-
-
-class DV_AnimatePanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
-    bl_idname = "DV_PT_animate_panel"
-    bl_label = "Animation"
-
-    def draw_header(self, context: bpy.types.Context):
-        self.layout.label(text="", icon="ORIENTATION_VIEW")
-
-    def draw(self, context: bpy.types.Context) -> None:
-        layout = self.layout
-        layout.operator(DV_AnimateData.bl_idname, text="Animate")
-
-        row = layout.row(align=True)
-        row.operator(DV_AddInAnimation.bl_idname, text="In Animation")
-        row.operator(DV_RemoveInOutAnimation.bl_idname, text="", icon="X").in_out = True
-
-        row = layout.row(align=True)
-        row.operator(DV_AddOutAnimation.bl_idname, text="Out Animation")
-        row.operator(DV_RemoveInOutAnimation.bl_idname, text="", icon="X").in_out = (
-            False
-        )
-
-        layout.operator(DV_AnimateAxis.bl_idname, text="Animate Axis").target_mod = (
-            "Numeric Axis X"
-        )

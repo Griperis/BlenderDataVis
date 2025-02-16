@@ -6,7 +6,6 @@ import math
 
 from . import library
 from . import modifier_utils
-from . import panel
 from . import data
 from .. import utils
 import re
@@ -224,92 +223,3 @@ class DV_AddHeading(bpy.types.Operator):
 
     def execute(self, context):
         return {"FINISHED"}
-
-
-class DV_AxisPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
-    bl_idname = "DV_PT_axis_panel"
-    bl_label = "Axis"
-
-    def draw_header(self, context: bpy.types.Context):
-        self.layout.label(text="", icon="ORIENTATION_VIEW")
-
-    def draw_header_preset(self, context: bpy.types.Context):
-        layout = self.layout
-        layout.operator(DV_AddAxis.bl_idname, text="", icon="ADD").pass_invoke = False
-
-    def draw_axis_inputs(
-        self, mod: bpy.types.NodesModifier, layout: bpy.types.UILayout
-    ) -> None:
-        box = layout.box()
-        row = box.row()
-        row.prop(mod, "show_expanded", text="")
-        row.label(text=mod.name)
-        row.operator(
-            modifier_utils.DV_RemoveModifier.bl_idname, text="", icon="X"
-        ).modifier_name = mod.name
-        if mod.show_expanded:
-            modifier_utils.draw_modifier_inputs(mod, box)
-
-    def draw(self, context: bpy.types.Context) -> None:
-        layout = self.layout
-        obj = context.active_object
-        if obj is None:
-            layout.label(text="No active object")
-            return
-
-        if not is_chart(obj):
-            layout.label(text="Active object is not a valid chart")
-            return
-
-        compatible_axis = get_compatible_axis(obj)
-        for axis, mod in get_axis_on_chart(obj).items():
-            if mod is None:
-                axis_type = compatible_axis.get(axis, None)
-                if axis_type is not None:
-                    op = layout.operator(
-                        DV_AddAxis.bl_idname,
-                        text=f"Add {axis} ({axis_type})",
-                        icon="ADD",
-                    )
-                    op.axis = axis
-                    op.axis_type = compatible_axis[axis]
-                    op.pass_invoke = True
-            else:
-                self.draw_axis_inputs(mod, layout)
-
-
-class DV_DataLabelsPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
-    bl_idname = "DV_PT_data_labels_panel"
-    bl_label = "Data Labels"
-
-    def draw_header(self, context: bpy.types.Context):
-        self.layout.label(text="", icon="SYNTAX_OFF")
-
-    def draw_header_preset(self, context: bpy.types.Context):
-        self.layout.operator(DV_AddDataLabels.bl_idname, text="", icon="ADD")
-
-    def draw(self, context: bpy.types.Context):
-        layout = self.layout
-        obj = context.active_object
-        if obj is None:
-            layout.label(text="No active object")
-            return
-
-        if not is_chart(obj):
-            layout.label(text="Active object is not a valid chart")
-            return
-
-        for mod in filter(
-            lambda m: m.type == "NODES"
-            and remove_duplicate_suffix(m.node_group.name) == "DV_DataLabels",
-            obj.modifiers,
-        ):
-            box = layout.box()
-            row = box.row()
-            row.prop(mod, "show_expanded", text="")
-            row.label(text=mod.name)
-            row.operator(
-                modifier_utils.DV_RemoveModifier.bl_idname, text="", icon="X"
-            ).modifier_name = mod.name
-            if mod.show_expanded:
-                modifier_utils.draw_modifier_inputs(mod, box)

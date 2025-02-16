@@ -8,9 +8,7 @@ from . import library
 from . import components
 from . import data
 from .. import preferences
-from ..icon_manager import IconManager
 from .. import utils
-from . import panel
 from . import modifier_utils
 from ..data_manager import DataManager
 
@@ -388,57 +386,3 @@ class DV_GN_PieChart(DV_GN_Chart):
         self._add_chart_to_scene(context, obj)
         modifier_utils.add_used_materials_to_object(modifier, obj)
         return {"FINISHED"}
-
-
-class DV_ChartPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
-    bl_idname = "DV_PT_chart_panel"
-    bl_label = "Chart"
-
-    @classmethod
-    def poll(self, context: bpy.types.Context):
-        return components.is_chart(context.active_object)
-
-    def draw_header(self, context: bpy.types.Context):
-        self.layout.label(text="", icon_value=IconManager().get_icon_id("addon_icon"))
-
-    def draw(self, context: bpy.types.Context) -> None:
-        layout = self.layout
-        obj = context.active_object
-        if obj is None:
-            layout.label(text="No active object")
-            return
-
-        if not components.is_chart(obj):
-            layout.label(text="Active object is not a valid chart")
-            return
-
-        for mod in filter(
-            lambda m: m.type == "NODES"
-            and components.remove_duplicate_suffix(m.node_group.name) == "DV_Data",
-            obj.modifiers,
-        ):
-            box = layout.box()
-            row = box.row()
-            row.prop(mod, "show_expanded", text="")
-            row.label(text=mod.name)
-            row.operator(
-                modifier_utils.DV_RemoveModifier.bl_idname, text="", icon="X"
-            ).modifier_name = mod.name
-            if mod.show_expanded:
-                modifier_utils.draw_modifier_inputs(mod, box)
-
-        for mod in filter(
-            lambda m: m.type == "NODES"
-            and components.remove_duplicate_suffix(m.node_group.name).startswith("DV_")
-            and components.remove_duplicate_suffix(m.node_group.name).endswith("Chart"),
-            obj.modifiers,
-        ):
-            box = layout.box()
-            row = box.row()
-            row.prop(mod, "show_expanded", text="")
-            row.label(text=mod.name)
-            row.operator(
-                modifier_utils.DV_RemoveModifier.bl_idname, text="", icon="X"
-            ).modifier_name = mod.name
-            if mod.show_expanded:
-                modifier_utils.draw_modifier_inputs(mod, box)
