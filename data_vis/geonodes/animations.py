@@ -300,6 +300,95 @@ class DV_AnimateData(DV_AnimationOperator):
         return context.window_manager.invoke_props_dialog(self)
 
 
+# Animation types:
+# - general - allow reversing the animation
+# Axis:
+# - animate axis geometry (grow, scale, move in, ...)
+# - animate axis labels (fade in, fade out, ...)
+# - animate step
+# Above data labels:
+# - popup above data labels (by index?)
+# - grow from 0 to data value?
+# Data animation:
+# - scale in data points, popup data points by index, ...
+# - geometry nodes modifier creating the animation (only one allowed?)
+# - keyframed animate property of the geonodes modifier
+# TODO: Header, Chart Labels, Legend animation - popup, fade in, fade out, ...
+
+
+# TODO:
+# - keyframe the relevant properties at start value
+# - keyframe the relevant properties at current value at frame start + frames
+# - set the interpolation to the selected style
+class DV_AnimateAxis(DV_AnimationOperator):
+    bl_idname = "data_vis.animate_axis"
+    bl_label = "Animate Axis"
+
+    target_mod: bpy.props.StringProperty(
+        name="Target Modifier",
+    )
+
+    animation_type: bpy.props.EnumProperty(
+        items=(
+            ("GROW", "Grow", "Grow the axis"),
+            ("SCALE", "Scale", "Scale the axis"),
+            ("MOVE_IN", "Move In", "Move the axis in"),
+        )
+    )
+
+    animation_style: bpy.props.EnumProperty(
+        items=(
+            ("LINEAR", "Linear", "Linear interpolation"),
+            ("CUBIC", "Cubic", "Cubic interpolation"),
+            ("BOUNCE", "Bounce", "Bounce interpolation"),
+        )
+    )
+
+    frames: bpy.props.IntProperty(min=1, default=20)
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context) -> bool:
+        return context.active_object is not None and components.is_chart(
+            context.active_object
+        )
+
+    def draw(self, context: bpy.types.Context) -> None:
+        layout = self.layout
+        layout.prop(self, "animation_type")
+        layout.prop(self, "animation_style")
+        layout.prop(self, "frames")
+
+    def execute(self, context: bpy.types.Context):
+        animation_properties_map = {
+            "GROW": {
+                "Length": [0.0, 1.0],
+                "Thickness": [0.0, 0.1],
+                "Label Size": [0.0, 0.05],
+            },
+            "SCALE": {},
+            "MOVE_IN": {},
+        }
+
+        modifier = context.active_object.modifiers.get(self.target_mod, None)
+        if modifier is None:
+            raise ValueError(f"Modifier {self.target_mod} not found")
+
+        start_frame = context.scene.frame_current
+        end_frame = start_frame + self.frames
+
+        for input_name, (start_value, end_value) in animation_properties_map[
+            self.animation_type
+        ].items():
+            modifier_utils.animate_input(
+                modifier, input_name, (start_frame, start_value), (end_frame, end_value)
+            )
+
+        return {"FINISHED"}
+
+    def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
+        return context.window_manager.invoke_props_dialog(self)
+
+
 class DV_AnimatePanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
     bl_idname = "DV_PT_animate_panel"
     bl_label = "Animation"
@@ -319,4 +408,8 @@ class DV_AnimatePanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
         row.operator(DV_AddOutAnimation.bl_idname, text="Out Animation")
         row.operator(DV_RemoveInOutAnimation.bl_idname, text="", icon="X").in_out = (
             False
+        )
+
+        layout.operator(DV_AnimateAxis.bl_idname, text="Animate Axis").target_mod = (
+            "Numeric Axis X"
         )

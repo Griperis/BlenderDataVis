@@ -42,6 +42,27 @@ def set_input(modifier: bpy.types.Modifier, name: str, value: typing.Any) -> Non
         modifier[input_.identifier] = value
 
 
+def animate_input(
+    modifier: bpy.types.NodesModifier,
+    name: str,
+    start: tuple[int, typing.Any],
+    end: tuple[int, typing.Any],
+):
+    if start[0] >= end[0]:
+        raise ValueError("Start frame must be before the end frame")
+
+    if modifier.node_group is None:
+        logger.warning(f"Modifier {modifier.name} has no node group")
+        return
+
+    input_ = modifier.node_group.interface.items_tree.get(name, None)
+    if input_ is not None:
+        modifier[input_.identifier] = start[1]
+        modifier.keyframe_insert(f'["{input_.identifier}"]', frame=start[0])
+        modifier[input_.identifier] = end[1]
+        modifier.keyframe_insert(f'["{input_.identifier}"]', frame=end[0])
+
+
 def draw_modifier_input(
     modifier: bpy.types.Modifier,
     item: bpy.types.NodeTreeInterfaceItem,
