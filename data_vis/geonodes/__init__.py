@@ -24,6 +24,7 @@ from .animations import (
     DV_AddInAnimation,
     DV_AddOutAnimation,
     DV_RemoveInOutAnimation,
+    DV_AnimateAxis,
     DV_AnimateData,
     DV_AnimatePanel,
 )
@@ -47,6 +48,7 @@ CLASSES = [
     DV_AddInAnimation,
     DV_AddOutAnimation,
     DV_RemoveInOutAnimation,
+    DV_AnimateAxis,
     DV_AnimateData,
     DV_AnimatePanel,
 ]
