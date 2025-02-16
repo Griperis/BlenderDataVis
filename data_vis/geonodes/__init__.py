@@ -24,7 +24,7 @@ from .animations import (
     DV_AddDataTransitionAnimation,
 )
 from .modifier_utils import DV_RemoveModifier
-from .panel import DV_ChartPanel, DV_AxisPanel, DV_DataLabelsPanel, DV_AnimatePanel
+from .panel import DV_ChartPanel, DV_AxisPanel, DV_DataLabelsPanel
 
 CLASSES = [
     DV_DataProperties,
@@ -45,7 +45,6 @@ CLASSES = [
     DV_AnimateAboveDataLabels,
     DV_AnimateData,
     DV_AddDataTransitionAnimation,
-    DV_AnimatePanel,
 ]
 
 

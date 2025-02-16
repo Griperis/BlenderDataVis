@@ -50,6 +50,7 @@ class DV_ChartPanel(bpy.types.Panel, DV_GN_PanelMixin):
             row = box.row()
             row.prop(mod, "show_expanded", text="")
             row.label(text=mod.name)
+            row.operator(animations.DV_AnimateData.bl_idname, text="", icon="TIME")
             row.operator(
                 animations.DV_AddDataTransitionAnimation.bl_idname, text="", icon="ANIM"
             ).target_mod = mod.name
@@ -172,15 +173,3 @@ class DV_DataLabelsPanel(bpy.types.Panel, DV_GN_PanelMixin):
             ).modifier_name = mod.name
             if mod.show_expanded:
                 modifier_utils.draw_modifier_inputs(mod, box)
-
-
-class DV_AnimatePanel(bpy.types.Panel, DV_GN_PanelMixin):
-    bl_idname = "DV_PT_animate_panel"
-    bl_label = "Animation"
-
-    def draw_header(self, context: bpy.types.Context):
-        self.layout.label(text="", icon="ORIENTATION_VIEW")
-
-    def draw(self, context: bpy.types.Context) -> None:
-        layout = self.layout
-        layout.operator(animations.DV_AnimateData.bl_idname, text="Animate")

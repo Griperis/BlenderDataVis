@@ -220,7 +220,7 @@ class DV_AnimateModifierOperator(DV_AnimationOperator):
 
 
 @data_vis_logging.logged_operator
-class DV_AnimateAxis(DV_AnimationOperator):
+class DV_AnimateAxis(DV_AnimateModifierOperator):
     bl_idname = "data_vis.animate_axis"
     bl_label = "Animate Axis"
     bl_description = "Animates selected axis of the chart"
@@ -288,13 +288,13 @@ class DV_AnimateAboveDataLabels(DV_AnimateModifierOperator):
 
 @data_vis_logging.logged_operator
 class DV_AddDataTransitionAnimation(DV_AnimateModifierOperator):
-    bl_idname = "data_vis.data_effect_animation"
-    bl_label = "Data Effect Animation"
-    bl_description = "Adds animated effect to the chart"
+    bl_idname = "data_vis.data_transition_animation"
+    bl_label = "Data Transition Animation"
+    bl_description = "Adds animated transition to the chart"
 
     animation_type: bpy.props.EnumProperty(
         name="Animation Type",
-        description="How the data effect will be animated",
+        description="Transition to use and animate",
         items=(
             ("EXPLODE", "Explode", "Explode the data points"),
             ("GROW", "Grow", "Grow the data points"),

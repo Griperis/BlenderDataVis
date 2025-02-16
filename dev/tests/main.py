@@ -379,7 +379,7 @@ class TestAddAnimation(DataVisTestCase):
             len(chart_obj.data.shape_keys.animation_data.action.fcurves), 6
         )
 
-    def test_add_in_animation(self):
+    def test_add_data_transition_animation(self):
         import data_vis
 
         self.load_data("function-simple_3D_anim.csv")
@@ -387,15 +387,12 @@ class TestAddAnimation(DataVisTestCase):
             data_type=data_vis.geonodes.data.DataTypeValue.Data2DA
         )
         bpy.context.scene.frame_current = 50
-        bpy.ops.data_vis.animate_data()
-        bpy.ops.data_vis.animate_in()
+        bpy.ops.data_vis.data_transition_animation(animation_type="GROW_BY_INDEX")
         chart_obj = bpy.context.active_object
-        self.assertIsNotNone(chart_obj.data.shape_keys.animation_data)
-        self.assertEqual(
-            len(chart_obj.data.shape_keys.animation_data.action.fcurves), 7
-        )
+        self.assertIsNotNone(chart_obj.animation_data)
+        self.assertEqual(len(chart_obj.animation_data.action.fcurves), 1)
 
-    def test_add_out_animation(self):
+    def test_add_data_transition_animation_reversed(self):
         import data_vis
 
         self.load_data("function-simple_3D_anim.csv")
@@ -403,13 +400,12 @@ class TestAddAnimation(DataVisTestCase):
             data_type=data_vis.geonodes.data.DataTypeValue.Data2DA
         )
         bpy.context.scene.frame_current = 50
-        bpy.ops.data_vis.animate_data()
-        bpy.ops.data_vis.animate_out()
-        chart_obj = bpy.context.active_object
-        self.assertIsNotNone(chart_obj.data.shape_keys.animation_data)
-        self.assertEqual(
-            len(chart_obj.data.shape_keys.animation_data.action.fcurves), 7
+        bpy.ops.data_vis.data_transition_animation(
+            animation_type="GROW_BY_INDEX", reverse=True
         )
+        chart_obj = bpy.context.active_object
+        self.assertIsNotNone(chart_obj.animation_data)
+        self.assertEqual(len(chart_obj.animation_data.action.fcurves), 1)
 
 
 if __name__ == "__main__":
