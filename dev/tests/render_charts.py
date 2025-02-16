@@ -24,12 +24,20 @@ logger = logging.getLogger("data_vis")
 
 
 @dataclasses.dataclass
+class AxisConfiguration:
+    axis: str
+    axis_type: str
+    length: float = 1.0
+    step: float = 0.1
+
+
+@dataclasses.dataclass
 class ChartConfiguration:
     name: str
     data_file: str
     data_type: str
     operator: typing.Callable
-    axis: typing.Dict[str, str] = dataclasses.field(default_factory=dict)
+    axis: typing.List[AxisConfiguration] = dataclasses.field(default_factory=list)
     out_rotation: typing.Tuple[float, float, float] = (0, 0, 0)
     out_location: typing.Tuple[float, float, float] = (0, 0, 0)
 
@@ -48,28 +56,27 @@ CONFIGURATIONS = [
         "species_2D.csv",
         "Cat_2D",
         bpy.ops.data_vis.geonodes_bar_chart,
-        axis={"X": "Categorical", "Z": "Numeric"},
+        axis=[AxisConfiguration("X", "Categorical"), AxisConfiguration("Z", "Numeric")],
     ),
     ChartConfiguration(
         "Line Chart Categorical 2D",
         "species_2D.csv",
         "Cat_2D",
         bpy.ops.data_vis.geonodes_line_chart,
-        axis={"X": "Categorical", "Z": "Numeric"},
+        axis=[AxisConfiguration("X", "Categorical"), AxisConfiguration("Z", "Numeric")],
     ),
     ChartConfiguration(
         "Point Chart Categorical 2D",
         "species_2D.csv",
         "Cat_2D",
         bpy.ops.data_vis.geonodes_point_chart,
-        axis={"X": "Categorical", "Z": "Numeric"},
+        axis=[AxisConfiguration("X", "Categorical"), AxisConfiguration("Z", "Numeric")],
     ),
     ChartConfiguration(
         "Pie Chart Categorical 2D",
         "species_2D.csv",
         "Cat_2D",
         bpy.ops.data_vis.geonodes_pie_chart,
-        axis={"X": "Categorical", "Y": "Numeric"},
         out_rotation=(math.radians(90), 0, 0),
         out_location=(0.5, 0.5, 0.5),
     ),
@@ -78,21 +85,47 @@ CONFIGURATIONS = [
         "x+y_3D.csv",
         "3D",
         bpy.ops.data_vis.geonodes_bar_chart,
-        axis={"X": "Numeric", "Y": "Numeric", "Z": "Numeric"},
+        axis=[
+            AxisConfiguration("X", "Numeric"),
+            AxisConfiguration("Y", "Numeric"),
+            AxisConfiguration("Z", "Numeric"),
+        ],
     ),
     ChartConfiguration(
         "Point Chart Numerical 3D",
         "x+y_3D.csv",
         "3D",
         bpy.ops.data_vis.geonodes_point_chart,
-        axis={"X": "Numeric", "Y": "Numeric", "Z": "Numeric"},
+        axis=[
+            AxisConfiguration("X", "Numeric"),
+            AxisConfiguration("Y", "Numeric"),
+            AxisConfiguration("Z", "Numeric"),
+        ],
     ),
     ChartConfiguration(
         "Surface Chart Numerical 3D",
         "x+y_3D.csv",
         "3D",
         bpy.ops.data_vis.geonodes_surface_chart,
-        axis={"X": "Numeric", "Y": "Numeric", "Z": "Numeric"},
+        axis=[
+            AxisConfiguration("X", "Numeric"),
+            AxisConfiguration("Y", "Numeric"),
+            AxisConfiguration("Z", "Numeric"),
+        ],
+    ),
+    ChartConfiguration(
+        "Bar Chart Long Axis",
+        "x+y_3D.csv",
+        "2D",
+        bpy.ops.data_vis.geonodes_bar_chart,
+        axis=[AxisConfiguration("X", "Numeric", length=2.0)],
+    ),
+    ChartConfiguration(
+        "Bar Chart Different Step",
+        "x+y_3D.csv",
+        "2D",
+        bpy.ops.data_vis.geonodes_bar_chart,
+        axis=[AxisConfiguration("X", "Numeric", step=0.2)],
     ),
 ]
 
@@ -133,8 +166,18 @@ def render_configurations(
         configuration.operator(data_type=configuration.data_type)
         bpy.context.active_object.rotation_euler = configuration.out_rotation
         bpy.context.active_object.location = configuration.out_location
-        for axis, axis_type in configuration.axis.items():
-            bpy.ops.data_vis.add_axis(axis=axis, axis_type=axis_type)
+        for axis in configuration.axis:
+            bpy.ops.data_vis.add_axis(axis=axis.axis, axis_type=axis.axis_type)
+            mod = bpy.context.active_object.modifiers[
+                f"{axis.axis_type} Axis {axis.axis}"
+            ]
+            if "Length" in mod.node_group.interface.items_tree:
+                mod[mod.node_group.interface.items_tree["Length"].identifier] = (
+                    axis.length
+                )
+            if "Step" in mod.node_group.interface.items_tree:
+                mod[mod.node_group.interface.items_tree["Step"].identifier] = axis.step
+
         bpy.context.scene.render.filepath = os.path.join(
             output_dir, configuration.output_filepath
         )
