@@ -321,24 +321,16 @@ class DV_AnimateData(DV_AnimationOperator):
 # TODO: Header, Chart Labels, Legend animation - popup, fade in, fade out, ...
 
 
-@data_vis_logging.logged_operator
-class DV_AnimateAxis(DV_AnimationOperator):
-    bl_idname = "data_vis.animate_axis"
-    bl_label = "Animate Axis"
-    bl_description = "Animates selected axis of the chart"
-
+class DV_AnimateModifierOperator(DV_AnimationOperator):
     target_mod: bpy.props.StringProperty(
         name="Target Modifier",
         description="Name of the modifier to animate",
     )
 
+    # This field is overriden by the subclasses and specific animations
     animation_type: bpy.props.EnumProperty(
         name="Animation Type",
-        description="How the axis will be animated",
-        items=(
-            ("GROW", "Grow", "Grow the axis"),
-            ("MOVE_IN", "Move In", "Move the axis in"),
-        ),
+        description="How the component will be animated",
     )
 
     animation_style: bpy.props.EnumProperty(
@@ -362,18 +354,59 @@ class DV_AnimateAxis(DV_AnimationOperator):
         default=20,
     )
 
-    @classmethod
-    def poll(cls, context: bpy.types.Context) -> bool:
-        return context.active_object is not None and components.is_chart(
-            context.active_object
-        )
-
     def draw(self, context: bpy.types.Context) -> None:
         layout = self.layout
         layout.prop(self, "animation_type")
         layout.prop(self, "animation_style")
         layout.prop(self, "reverse")
         layout.prop(self, "frames")
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context) -> bool:
+        return context.active_object is not None and components.is_chart(
+            context.active_object
+        )
+
+    def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def _animate(
+        self,
+        context: bpy.types.Context,
+        modifier: bpy.types.NodesModifier,
+        current_animation: dict,
+    ) -> None:
+        start_frame = context.scene.frame_current
+        end_frame = start_frame + self.frames
+
+        for input_name, (start_value, end_value) in current_animation.items():
+            if self.reverse:
+                start_value, end_value = end_value, start_value
+
+            modifier_utils.animate_input(
+                modifier, input_name, (start_frame, start_value), (end_frame, end_value)
+            )
+
+        for fcurve in context.active_object.animation_data.action.fcurves:
+            for input_name in current_animation:
+                if fcurve.data_path.startswith(f'modifiers["{modifier.name}"]'):
+                    fcurve.keyframe_points[0].interpolation = self.animation_style
+
+
+@data_vis_logging.logged_operator
+class DV_AnimateAxis(DV_AnimationOperator):
+    bl_idname = "data_vis.animate_axis"
+    bl_label = "Animate Axis"
+    bl_description = "Animates selected axis of the chart"
+
+    animation_type: bpy.props.EnumProperty(
+        name="Animation Type",
+        description="How the axis will be animated",
+        items=(
+            ("GROW", "Grow", "Grow the axis"),
+            ("MOVE_IN", "Move In", "Move the axis in"),
+        ),
+    )
 
     def execute(self, context: bpy.types.Context):
         modifier = context.active_object.modifiers.get(self.target_mod, None)
@@ -395,24 +428,33 @@ class DV_AnimateAxis(DV_AnimationOperator):
         }
 
         current_animation = ANIMATION_PROPERTIES_MAP[self.animation_type]
-
-        start_frame = context.scene.frame_current
-        end_frame = start_frame + self.frames
-
-        for input_name, (start_value, end_value) in current_animation.items():
-            if self.reverse:
-                start_value, end_value = end_value, start_value
-
-            modifier_utils.animate_input(
-                modifier, input_name, (start_frame, start_value), (end_frame, end_value)
-            )
-
-        for fcurve in context.active_object.animation_data.action.fcurves:
-            for input_name in current_animation:
-                if fcurve.data_path.startswith(f'modifiers["{modifier.name}"]'):
-                    fcurve.keyframe_points[0].interpolation = self.animation_style
-
+        self._animate(context, modifier, current_animation)
         return {"FINISHED"}
 
-    def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
-        return context.window_manager.invoke_props_dialog(self)
+
+@data_vis_logging.logged_operator
+class DV_AnimateAboveDataLabels(DV_AnimateModifierOperator):
+    bl_idname = "data_vis.animate_above_data_labels"
+    bl_label = "Animate Labels"
+    bl_description = "Animates above data labels of the chart"
+
+    animation_type: bpy.props.EnumProperty(
+        name="Animation Type",
+        description="How the labels will be animated",
+        items=(("SCALE", "Scale", "Scale the labels"),),
+    )
+
+    def execute(self, context: bpy.types.Context):
+        modifier = context.active_object.modifiers.get(self.target_mod, None)
+        if modifier is None:
+            raise ValueError(f"Modifier {self.target_mod} not found")
+
+        ANIMATION_PROPERTIES_MAP = {
+            "SCALE": {
+                "Labels Scale": [0.0, 0.05],
+            },
+        }
+
+        current_animation = ANIMATION_PROPERTIES_MAP[self.animation_type]
+        self._animate(context, modifier, current_animation)
+        return {"FINISHED"}
