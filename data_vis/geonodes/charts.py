@@ -414,6 +414,21 @@ class DV_ChartPanel(bpy.types.Panel, panel.DV_GN_PanelMixin):
 
         for mod in filter(
             lambda m: m.type == "NODES"
+            and components.remove_duplicate_suffix(m.node_group.name) == "DV_Data",
+            obj.modifiers,
+        ):
+            box = layout.box()
+            row = box.row()
+            row.prop(mod, "show_expanded", text="")
+            row.label(text=mod.name)
+            row.operator(
+                modifier_utils.DV_RemoveModifier.bl_idname, text="", icon="X"
+            ).modifier_name = mod.name
+            if mod.show_expanded:
+                modifier_utils.draw_modifier_inputs(mod, box)
+
+        for mod in filter(
+            lambda m: m.type == "NODES"
             and components.remove_duplicate_suffix(m.node_group.name).startswith("DV_")
             and components.remove_duplicate_suffix(m.node_group.name).endswith("Chart"),
             obj.modifiers,
