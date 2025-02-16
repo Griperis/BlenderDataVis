@@ -85,12 +85,9 @@ class DV_GN_Chart(bpy.types.Operator):
 
     def _set_default_ranges(self, data_modifier: bpy.types.NodesModifier) -> None:
         chart_data = data.DataManager().get_chart_data()
-        modifier_utils.set_input(
-            data_modifier, "Min Range", mathutils.Vector(chart_data.min_)
-        )
-        modifier_utils.set_input(
-            data_modifier, "Max Range", mathutils.Vector(chart_data.max_)
-        )
+        min_, max_ = chart_data.get_padded_min_max()
+        modifier_utils.set_input(data_modifier, "Min Range", mathutils.Vector(min_))
+        modifier_utils.set_input(data_modifier, "Max Range", mathutils.Vector(max_))
 
 
 @utils.logging.logged_operator

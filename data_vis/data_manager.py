@@ -33,10 +33,31 @@ class ChartData:
         self.parsed_data = np.array(parsed_data)
         self.lines = len(parsed_data)
         self.labels = labels
+
+        # Adjust categorical data to also calculate correct axis values
+        if isinstance(self.parsed_data[0][1], str):
+            adjusted_data = np.column_stack(
+                [
+                    np.zeros(self.parsed_data.shape[0]),
+                    self.parsed_data[:, 1:].astype(np.number),
+                ]
+            )
+        else:
+            adjusted_data = self.parsed_data
+
         self.min_, self.max_ = (
-            np.min(self.parsed_data, axis=0)[:3],
-            np.max(self.parsed_data, axis=0)[:3],
+            np.min(adjusted_data, axis=0)[:3],
+            np.max(adjusted_data, axis=0)[:3],
         )
+
+    def get_padded_min_max(self) -> typing.Tuple[np.ndarray, np.ndarray]:
+        """Returns min and max values with 0 padding to get Vector3s"""
+        min_ = self.min_
+        max_ = self.max_
+        if len(self.min_) == 2:
+            min_ = np.append(self.min_, 0)
+            max_ = np.append(self.max_, 0)
+        return min_, max_
 
 
 class DataManager:
