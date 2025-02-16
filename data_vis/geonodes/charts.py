@@ -9,10 +9,12 @@ from . import components
 from . import data
 from .. import preferences
 from .. import utils
+from ..utils import data_vis_logging
 from . import modifier_utils
 from ..data_manager import DataManager
 
 
+@data_vis_logging.logged_operator
 class DV_GN_Chart(bpy.types.Operator):
     ACCEPTABLE_DATA_TYPES = None
 
@@ -88,7 +90,7 @@ class DV_GN_Chart(bpy.types.Operator):
         modifier_utils.set_input(data_modifier, "Max Range", mathutils.Vector(max_))
 
 
-@utils.logging.logged_operator
+@data_vis_logging.logged_operator
 class DV_GN_BarChart(DV_GN_Chart):
     bl_idname = "data_vis.geonodes_bar_chart"
     bl_label = "Bar Chart"
@@ -140,7 +142,7 @@ class DV_GN_BarChart(DV_GN_Chart):
         return {"FINISHED"}
 
 
-@utils.logging.logged_operator
+@utils.data_vis_logging.logged_operator
 class DV_GN_PointChart(DV_GN_Chart):
     bl_idname = "data_vis.geonodes_point_chart"
     bl_label = "Point Chart"
@@ -194,6 +196,7 @@ class DV_GN_PointChart(DV_GN_Chart):
         return {"FINISHED"}
 
 
+@utils.data_vis_logging.logged_operator
 class DV_GN_LineChart(DV_GN_Chart):
     bl_idname = "data_vis.geonodes_line_chart"
     bl_label = "Line Chart"
@@ -245,6 +248,7 @@ class DV_GN_LineChart(DV_GN_Chart):
         return {"FINISHED"}
 
 
+@utils.data_vis_logging.logged_operator
 class DV_GN_SurfaceChart(DV_GN_Chart):
     bl_idname = "data_vis.geonodes_surface_chart"
     bl_label = "Surface Chart"
@@ -331,6 +335,7 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
         return {"FINISHED"}
 
 
+@utils.data_vis_logging.logged_operator
 class DV_GN_PieChart(DV_GN_Chart):
     bl_idname = "data_vis.geonodes_pie_chart"
     bl_label = "Pie Chart"
