@@ -11,7 +11,7 @@ logger = logging.getLogger("data_vis")
 @data_vis_logging.logged_operator
 class DV_RemoveModifier(bpy.types.Operator):
     bl_idname = "data_vis.remove_modifier"
-    bl_label = "Remove Modifier"
+    bl_label = "Remove"
     bl_description = "Removes given geometry nodes modifier from the object"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -32,6 +32,9 @@ class DV_RemoveModifier(bpy.types.Operator):
 
         obj.modifiers.remove(modifier)
         return {"FINISHED"}
+
+    def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
+        return context.window_manager.invoke_confirm(self, event)
 
 
 def set_input(modifier: bpy.types.Modifier, name: str, value: typing.Any) -> None:
