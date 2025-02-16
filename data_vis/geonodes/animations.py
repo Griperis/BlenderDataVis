@@ -316,35 +316,45 @@ class DV_AnimateData(DV_AnimationOperator):
 # TODO: Header, Chart Labels, Legend animation - popup, fade in, fade out, ...
 
 
-# TODO:
-# - keyframe the relevant properties at start value
-# - keyframe the relevant properties at current value at frame start + frames
-# - set the interpolation to the selected style
 class DV_AnimateAxis(DV_AnimationOperator):
     bl_idname = "data_vis.animate_axis"
     bl_label = "Animate Axis"
+    bl_description = "Animates selected axis of the chart"
 
     target_mod: bpy.props.StringProperty(
         name="Target Modifier",
+        description="Name of the modifier to animate",
     )
 
     animation_type: bpy.props.EnumProperty(
+        name="Animation Type",
+        description="How the axis will be animated",
         items=(
             ("GROW", "Grow", "Grow the axis"),
-            ("SCALE", "Scale", "Scale the axis"),
             ("MOVE_IN", "Move In", "Move the axis in"),
-        )
+        ),
     )
 
     animation_style: bpy.props.EnumProperty(
+        name="Interpolation",
+        description="Defines the animation style, choose the interpolation type",
         items=(
             ("LINEAR", "Linear", "Linear interpolation"),
             ("CUBIC", "Cubic", "Cubic interpolation"),
             ("BOUNCE", "Bounce", "Bounce interpolation"),
-        )
+        ),
     )
 
-    frames: bpy.props.IntProperty(min=1, default=20)
+    reverse: bpy.props.BoolProperty(
+        name="Reverse", description="Reverse the animation", default=False
+    )
+
+    frames: bpy.props.IntProperty(
+        name="Duration",
+        description="Duration of the animation in frames",
+        min=1,
+        default=20,
+    )
 
     @classmethod
     def poll(cls, context: bpy.types.Context) -> bool:
@@ -356,32 +366,45 @@ class DV_AnimateAxis(DV_AnimationOperator):
         layout = self.layout
         layout.prop(self, "animation_type")
         layout.prop(self, "animation_style")
+        layout.prop(self, "reverse")
         layout.prop(self, "frames")
 
     def execute(self, context: bpy.types.Context):
-        animation_properties_map = {
+        modifier = context.active_object.modifiers.get(self.target_mod, None)
+        if modifier is None:
+            raise ValueError(f"Modifier {self.target_mod} not found")
+
+        ANIMATION_PROPERTIES_MAP = {
             "GROW": {
                 "Length": [0.0, 1.0],
                 "Thickness": [0.0, 0.1],
                 "Label Size": [0.0, 0.05],
             },
-            "SCALE": {},
-            "MOVE_IN": {},
+            "MOVE_IN": {
+                "Offset": [
+                    (-5.0, -5.0, -5.0),
+                    tuple(modifier_utils.get_input(modifier, "Offset")),
+                ]
+            },
         }
 
-        modifier = context.active_object.modifiers.get(self.target_mod, None)
-        if modifier is None:
-            raise ValueError(f"Modifier {self.target_mod} not found")
+        current_animation = ANIMATION_PROPERTIES_MAP[self.animation_type]
 
         start_frame = context.scene.frame_current
         end_frame = start_frame + self.frames
 
-        for input_name, (start_value, end_value) in animation_properties_map[
-            self.animation_type
-        ].items():
+        for input_name, (start_value, end_value) in current_animation.items():
+            if self.reverse:
+                start_value, end_value = end_value, start_value
+
             modifier_utils.animate_input(
                 modifier, input_name, (start_frame, start_value), (end_frame, end_value)
             )
+
+        for fcurve in context.active_object.animation_data.action.fcurves:
+            for input_name in current_animation:
+                if fcurve.data_path.startswith(f'modifiers["{modifier.name}"]'):
+                    fcurve.keyframe_points[0].interpolation = self.animation_style
 
         return {"FINISHED"}
 

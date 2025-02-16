@@ -42,6 +42,17 @@ def set_input(modifier: bpy.types.Modifier, name: str, value: typing.Any) -> Non
         modifier[input_.identifier] = value
 
 
+def get_input(modifier: bpy.types.NodesModifier, name: str) -> typing.Any | None:
+    if modifier.node_group is None:
+        logger.warning(f"Modifier {modifier.name} has no node group")
+        return None
+
+    input_ = modifier.node_group.interface.items_tree.get(name, None)
+    if input_ is not None:
+        return modifier[input_.identifier]
+    return None
+
+
 def animate_input(
     modifier: bpy.types.NodesModifier,
     name: str,
