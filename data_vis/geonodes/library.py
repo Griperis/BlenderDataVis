@@ -91,3 +91,7 @@ def load_categorical_axis(link: bool = True) -> bpy.types.NodeTree:
 
 def load_above_data_labels(link: bool = True) -> bpy.types.NodeTree:
     return _load_nodegroup("DV_DataLabels", link)
+
+
+def load_data_animation(name: str, link: bool = True) -> bpy.types.NodeTree:
+    return _load_nodegroup(f"DV_DataAnim_{name}", link)

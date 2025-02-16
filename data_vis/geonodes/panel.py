@@ -51,6 +51,9 @@ class DV_ChartPanel(bpy.types.Panel, DV_GN_PanelMixin):
             row.prop(mod, "show_expanded", text="")
             row.label(text=mod.name)
             row.operator(
+                animations.DV_AddDataTransitionAnimation.bl_idname, text="", icon="ANIM"
+            ).target_mod = mod.name
+            row.operator(
                 modifier_utils.DV_RemoveModifier.bl_idname, text="", icon="X"
             ).modifier_name = mod.name
             if mod.show_expanded:
@@ -181,15 +184,3 @@ class DV_AnimatePanel(bpy.types.Panel, DV_GN_PanelMixin):
     def draw(self, context: bpy.types.Context) -> None:
         layout = self.layout
         layout.operator(animations.DV_AnimateData.bl_idname, text="Animate")
-
-        row = layout.row(align=True)
-        row.operator(animations.DV_AddInAnimation.bl_idname, text="In Animation")
-        row.operator(
-            animations.DV_RemoveInOutAnimation.bl_idname, text="", icon="X"
-        ).in_out = True
-
-        row = layout.row(align=True)
-        row.operator(animations.DV_AddOutAnimation.bl_idname, text="Out Animation")
-        row.operator(
-            animations.DV_RemoveInOutAnimation.bl_idname, text="", icon="X"
-        ).in_out = False

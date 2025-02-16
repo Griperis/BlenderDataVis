@@ -18,12 +18,10 @@ from .components import (
     DV_AddDataLabels,
 )
 from .animations import (
-    DV_AddInAnimation,
-    DV_AddOutAnimation,
-    DV_RemoveInOutAnimation,
     DV_AnimateAxis,
     DV_AnimateAboveDataLabels,
     DV_AnimateData,
+    DV_AddDataTransitionAnimation,
 )
 from .modifier_utils import DV_RemoveModifier
 from .panel import DV_ChartPanel, DV_AxisPanel, DV_DataLabelsPanel, DV_AnimatePanel
@@ -43,12 +41,10 @@ CLASSES = [
     DV_ChartPanel,
     DV_AxisPanel,
     DV_DataLabelsPanel,
-    DV_AddInAnimation,
-    DV_AddOutAnimation,
-    DV_RemoveInOutAnimation,
     DV_AnimateAxis,
     DV_AnimateAboveDataLabels,
     DV_AnimateData,
+    DV_AddDataTransitionAnimation,
     DV_AnimatePanel,
 ]
 

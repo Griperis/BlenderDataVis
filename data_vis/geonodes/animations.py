@@ -4,15 +4,8 @@ import bpy
 from . import data
 from . import components
 from . import modifier_utils
+from . import library
 from ..utils import data_vis_logging
-
-
-class AnimationNames:
-    GROW_FROM_ZERO = "IN: Grow-from-zero"
-    GROW_TO_ZERO = "OUT: Grow-to-zero"
-
-    IN_ANIMATIONS = {GROW_FROM_ZERO}
-    OUT_ANIMATIONS = {GROW_TO_ZERO}
 
 
 def is_column_sk(sk: bpy.types.ShapeKey) -> bool:
@@ -37,26 +30,6 @@ def ensure_animation_naming(obj: bpy.types.Object):
 
     # This should be called only if the animation data already exist
     obj.data.shape_keys.animation_data.action.name = "DV_Action"
-
-
-def is_in_present(obj: bpy.types.Object) -> bool:
-    return (
-        len(
-            AnimationNames.IN_ANIMATIONS
-            & set(kb.name for kb in obj.data.shape_keys.key_blocks)
-        )
-        > 0
-    )
-
-
-def is_out_present(obj: bpy.types.Object) -> bool:
-    return (
-        len(
-            AnimationNames.OUT_ANIMATIONS
-            & set(kb.name for kb in obj.data.shape_keys.key_blocks)
-        )
-        > 0
-    )
 
 
 def get_shape_keys_z_range(
@@ -97,153 +70,6 @@ class DV_AnimationOperator(bpy.types.Operator):
             return False
 
         return data.DataTypeValue.is_animated(data.get_chart_data_type(context.object))
-
-
-@data_vis_logging.logged_operator
-class DV_AddInAnimation(DV_AnimationOperator):
-    bl_idname = "data_vis.animate_in"
-    bl_label = "Add In Animation"
-
-    type_: bpy.props.EnumProperty(
-        name="Animation Type",
-        items=((AnimationNames.GROW_FROM_ZERO, "Grow", "Grow from zero"),),
-    )
-
-    @classmethod
-    def poll(cls, context: bpy.types.Context) -> bool:
-        if not super().poll(context):
-            return False
-
-        return get_action(context.active_object) is not None
-
-    def execute(self, context: bpy.types.Context):
-        obj = context.active_object
-        if is_in_present(obj):
-            self.report({"WARNING"}, "In animation already present, remove it first.")
-            return {"CANCELLED"}
-
-        # Infer the keyframe spacing from the existing keyframes, if they exist
-        action = get_action(obj)
-        keyframe_xs = [x.co[0] for x in action.fcurves[0].keyframe_points]
-        if len(keyframe_xs) > 2:
-            frame_spacing = keyframe_xs[2] - keyframe_xs[1]
-        else:
-            frame_spacing = 20
-
-        frame_n = context.scene.frame_current
-        if frame_n - frame_spacing <= 0:
-            self.report(
-                {"ERROR"},
-                f"There is no space for in animation, please adjust the keyframes.",
-            )
-            return {"CANCELLED"}
-
-        sk = obj.shape_key_add(name=self.type_, from_mix=True)
-        sk.value = 0
-        if self.type_ == AnimationNames.GROW_FROM_ZERO:
-            for data in sk.data:
-                data.co = (data.co[0], data.co[1], 0)
-        else:
-            raise RuntimeError(f"Unknown animation type '{self.type_}'")
-
-        sk.value = 1
-        sk.keyframe_insert(data_path="value", frame=frame_n - frame_spacing)
-        for sk_other in obj.data.shape_keys.key_blocks:
-            if sk_other != sk:
-                sk_other.value = 0
-                sk_other.keyframe_insert(
-                    data_path="value", frame=frame_n - frame_spacing
-                )
-
-            sk.value = 0
-            sk.keyframe_insert(data_path="value", frame=frame_n)
-
-        ensure_animation_naming(obj)
-        return {"FINISHED"}
-
-    def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
-        return context.window_manager.invoke_props_dialog(self)
-
-
-@data_vis_logging.logged_operator
-class DV_AddOutAnimation(DV_AnimationOperator):
-    bl_idname = "data_vis.animate_out"
-    bl_label = "Add Out Animation"
-
-    type_: bpy.props.EnumProperty(
-        name="Animation Type",
-        items=((AnimationNames.GROW_TO_ZERO, "Shrink", "Shrink to zero"),),
-    )
-
-    @classmethod
-    def poll(cls, context: bpy.types.Context) -> bool:
-        if not super().poll(context):
-            return False
-
-        return get_action(context.active_object) is not None
-
-    def execute(self, context: bpy.types.Context):
-        obj = context.active_object
-        if is_out_present(context.active_object):
-            self.report(
-                {"WARNING"}, "Out animation is already present, remove it first."
-            )
-            return {"CANCELLED"}
-
-        # Infer the keyframe spacing and last keyframe from the existing keyframes, if they exist
-        action = get_action(obj)
-        keyframe_xs = [x.co[0] for x in action.fcurves[0].keyframe_points]
-
-        sk = obj.shape_key_add(name=self.type_, from_mix=True)
-        sk.value = 0
-
-        if self.type_ == AnimationNames.GROW_TO_ZERO:
-            for data in sk.data:
-                data.co = (data.co[0], data.co[1], 0)
-        else:
-            raise RuntimeError(f"Unknown animation type '{self.type_}'")
-
-        frame_n = (
-            keyframe_xs[-1] if len(keyframe_xs) > 0 else context.scene.frame_current
-        )
-        sk.value = 0
-        sk.keyframe_insert(data_path="value", frame=frame_n)
-        for sk_other in obj.data.shape_keys.key_blocks:
-            if sk_other != sk:
-                sk_other.value = 0
-                sk_other.keyframe_insert(data_path="value", frame=frame_n)
-
-        if len(keyframe_xs) > 2:
-            frame_spacing = keyframe_xs[-1] - keyframe_xs[-2]
-            sk.value = 1
-            sk.keyframe_insert(data_path="value", frame=frame_n + frame_spacing)
-
-        ensure_animation_naming(obj)
-        return {"FINISHED"}
-
-    def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
-        return context.window_manager.invoke_props_dialog(self)
-
-
-@data_vis_logging.logged_operator
-class DV_RemoveInOutAnimation(DV_AnimationOperator):
-    bl_idname = "data_vis.remove_in_out"
-    bl_label = "Remove In/Out Animation"
-
-    in_out: bpy.props.BoolProperty(default=True)
-
-    def execute(self, context: bpy.types.Context):
-        obj = context.active_object
-        to_remove = (
-            AnimationNames.IN_ANIMATIONS
-            if self.in_out
-            else AnimationNames.OUT_ANIMATIONS
-        )
-        for sk in obj.data.shape_keys.key_blocks:
-            if sk.name in to_remove:
-                obj.shape_key_remove(sk)
-
-        return {"FINISHED"}
 
 
 @data_vis_logging.logged_operator
@@ -457,4 +283,55 @@ class DV_AnimateAboveDataLabels(DV_AnimateModifierOperator):
 
         current_animation = ANIMATION_PROPERTIES_MAP[self.animation_type]
         self._animate(context, modifier, current_animation)
+        return {"FINISHED"}
+
+
+@data_vis_logging.logged_operator
+class DV_AddDataTransitionAnimation(DV_AnimateModifierOperator):
+    bl_idname = "data_vis.data_effect_animation"
+    bl_label = "Data Effect Animation"
+    bl_description = "Adds animated effect to the chart"
+
+    animation_type: bpy.props.EnumProperty(
+        name="Animation Type",
+        description="How the data effect will be animated",
+        items=(
+            ("EXPLODE", "Explode", "Explode the data points"),
+            ("GROW", "Grow", "Grow the data points"),
+            ("GROW_BY_INDEX", "Grow by index", "Grow the data points by index"),
+            ("POPUP_BY_INDEX", "Popup by index", "Popup the data points by index"),
+        ),
+    )
+
+    def execute(self, context: bpy.types.Context):
+        ENUM_MOD_MAP = {
+            "EXPLODE": "Explode",
+            "GROW": "Grow",
+            "GROW_BY_INDEX": "GrowByIndex",
+            "POPUP_BY_INDEX": "PopupByIndex",
+        }
+
+        # Remove existing modifiers
+        for modifier in list(context.active_object.modifiers):
+            if modifier.type != "NODES":
+                continue
+
+            if modifier.node_group is None:
+                continue
+
+            if components.remove_duplicate_suffix(modifier.name).endswith(
+                tuple(ENUM_MOD_MAP.values())
+            ):
+                context.active_object.modifiers.remove(modifier)
+
+        node_group = library.load_data_animation(ENUM_MOD_MAP[self.animation_type])
+        modifier: bpy.types.NodesModifier = context.active_object.modifiers.new(
+            f"Data {ENUM_MOD_MAP[self.animation_type]}", type="NODES"
+        )
+        modifier.node_group = node_group
+
+        idx = context.active_object.modifiers.find(modifier.name)
+        context.active_object.modifiers.move(idx, 1)
+
+        self._animate(context, modifier, {"Animate": [0.0, 1.0]})
         return {"FINISHED"}
