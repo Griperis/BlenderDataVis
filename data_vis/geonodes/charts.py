@@ -75,6 +75,12 @@ class DV_GN_Chart(bpy.types.Operator):
             material.node_tree.nodes["Principled BSDF"].inputs[0].default_value = (
                 mathutils.Vector([*self.color, 1.0])
             )
+        elif type_ == library.MaterialType.HueRandom:
+            material.node_tree.nodes["Hue/Saturation/Value"].inputs[
+                "Color"
+            ].default_value = mathutils.Vector([*self.color, 1.0])
+        else:
+            raise ValueError(f"Unknown material type {type_}")
 
         modifier_utils.set_input(modifier, "Material", material)
 
