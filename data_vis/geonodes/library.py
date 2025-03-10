@@ -9,12 +9,19 @@ class MaterialType:
     Gradient = "DV_Gradient"
     Sign = "DV_Sign"
     Constant = "DV_Constant"
+    HueRandom = "DV_HueRandom"
 
     @classmethod
     def as_enum_items(cls):
         return [
             (x, x.replace("DV_", ""), x)
-            for x in [cls.Gradient, cls.GradientRandom, cls.Constant, cls.Sign]
+            for x in [
+                cls.Gradient,
+                cls.GradientRandom,
+                cls.HueRandom,
+                cls.Constant,
+                cls.Sign,
+            ]
         ]
 
 
