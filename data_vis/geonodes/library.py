@@ -74,7 +74,7 @@ def load_material(name: str, link: bool = True) -> bpy.types.Material:
         data_from,
         data_to,
     ):
-        assert name in data_from.materials
+        assert name in data_from.materials, f"{name} not in {GEONODES_BLENDS_PATH}"
         data_to.materials = [name]
 
     return data_to.materials[0]
