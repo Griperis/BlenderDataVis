@@ -42,8 +42,8 @@ def _load_nodegroup(name: str, link: bool = True) -> bpy.types.NodeTree:
     if library is not None:
         library.reload()
 
-    if name in bpy.data.node_groups:
-        return bpy.data.node_groups[name]
+        if (name, library.filepath) in bpy.data.node_groups:
+            return bpy.data.node_groups[(name, library.filepath)]
 
     with bpy.data.libraries.load(GEONODES_BLENDS_PATH, link=link) as (
         data_from,
@@ -61,14 +61,14 @@ def load_material(name: str, link: bool = True) -> bpy.types.Material:
             f"Geometry nodes library couldn't be found at {GEONODES_BLENDS_PATH}"
         )
 
-    libary: bpy.types.Library = bpy.data.libraries.get(
+    library: bpy.types.Library = bpy.data.libraries.get(
         os.path.basename(GEONODES_BLENDS_PATH)
     )
-    if libary is not None:
-        libary.reload()
+    if library is not None:
+        library.reload()
 
-    if name in bpy.data.materials:
-        return bpy.data.materials[name]
+        if (name, library.filepath) in bpy.data.materials:
+            return bpy.data.materials[(name, library.filepath)]
 
     with bpy.data.libraries.load(GEONODES_BLENDS_PATH, link=link) as (
         data_from,
