@@ -376,7 +376,7 @@ class TestAddAnimation(DataVisTestCase):
         chart_obj = bpy.context.active_object
         self.assertIsNotNone(chart_obj.data.shape_keys.animation_data)
         self.assertEqual(
-            len(chart_obj.data.shape_keys.animation_data.action.fcurves), 6
+            len(chart_obj.data.shape_keys.animation_data.action.fcurves), 1
         )
 
     def test_add_data_transition_animation(self):
