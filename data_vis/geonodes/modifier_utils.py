@@ -122,8 +122,8 @@ def draw_modifier_inputs(
     modifier: bpy.types.Modifier,
     layout: bpy.types.UILayout,
 ) -> None:
+    layout.use_property_split = True
     col = layout.column()
-    col.label(text=f"{modifier.name}")
     for item in modifier.node_group.interface.items_tree:
         if item.item_type == "PANEL":
             col = layout.box()
