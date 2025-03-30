@@ -243,12 +243,29 @@ def _convert_data_to_geometry(
         )
         X, Y = np.meshgrid(x, y)
 
+        # Interpolate data points into a grid
+        data_x = data.vert_positions[:, 0]
+        data_y = data.vert_positions[:, 1]
         res = interpolate.Rbf(
-            data.vert_positions[:, 0],
-            data.vert_positions[:, 1],
+            data_x,
+            data_y,
             data.vert_positions[:, 2],
             function=interpolation_config.method,
         )(X, Y)
+
+        if data.z_ns is not None:
+            # Interpolate data points for animation into a grid
+            data.z_ns = np.array(
+                [
+                    interpolate.Rbf(
+                        data_x,
+                        data_y,
+                        z,
+                        function=interpolation_config.method,
+                    )(X, Y).reshape(-1)
+                    for z in data.z_ns.T
+                ]
+            ).T
 
         for row in range(interpolation_config.m):
             for col in range(interpolation_config.n):
