@@ -54,10 +54,10 @@ def get_shape_keys_z_range(
 
 def adjust_z_override_to_data(obj: bpy.types.Object, start_idx: int, end_idx: int):
     min_z, max_z = get_shape_keys_z_range(obj, start_idx, end_idx)
-    chart_modiifer = components.get_chart_modifier(obj)
-    modifier_utils.set_input(chart_modiifer, "Override Z Range", True)
-    modifier_utils.set_input(chart_modiifer, "Z Min", min_z)
-    modifier_utils.set_input(chart_modiifer, "Z Max", max_z)
+    data_modifier = components.get_data_modifier(obj)
+    modifier_utils.set_input(data_modifier, "Override Z Range", True)
+    modifier_utils.set_input(data_modifier, "Z Min", min_z)
+    modifier_utils.set_input(data_modifier, "Z Max", max_z)
 
 
 @data_vis_logging.logged_operator
@@ -80,11 +80,13 @@ class DV_AnimateData(DV_AnimationOperator):
         "Animates the chart. The chart has to be created with animation support"
     )
 
-    keyframe_spacing: bpy.props.IntProperty(name="Keyframe Spacing", default=20, min=1)
+    frames_per_datapoint: bpy.props.IntProperty(
+        name="Frames per data point", default=20, min=1
+    )
 
-    start_idx: bpy.props.IntProperty(name="Start Index", default=0, min=0)
+    start_idx: bpy.props.IntProperty(name="Data Start Index", default=0, min=0)
 
-    end_idx: bpy.props.IntProperty(name="End Index", default=5, min=0)
+    end_idx: bpy.props.IntProperty(name="Data End Index", default=5, min=0)
 
     def draw(self, context: bpy.types.Context) -> None:
         layout = self.layout
@@ -96,7 +98,7 @@ class DV_AnimateData(DV_AnimationOperator):
 
         col = layout.column(align=True)
         col.label(text=f"From column {self.start_idx} to {self.end_idx}")
-        col.label(text=f"Spaced at {self.keyframe_spacing} frames")
+        col.label(text=f"{self.frames_per_datapoint} frames per datapoint")
         col.label(text=f"Starting at frame {context.scene.frame_current}")
 
     def execute(self, context: bpy.types.Context):
@@ -110,7 +112,7 @@ class DV_AnimateData(DV_AnimationOperator):
         shape_keys.use_relative = False
         end_idx = min(self.end_idx, len(obj.data.shape_keys.key_blocks) - 1)
         start_eval_time = 0
-        end_keyframe = (end_idx + 1) * self.keyframe_spacing
+        end_keyframe = (end_idx + 1) * self.frames_per_datapoint
         end_eval_time = end_idx * 10
 
         shape_keys.eval_time = start_eval_time
