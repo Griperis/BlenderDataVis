@@ -100,27 +100,24 @@ class DV_AnimateData(DV_AnimationOperator):
         col.label(text=f"Starting at frame {context.scene.frame_current}")
 
     def execute(self, context: bpy.types.Context):
-        obj = context.active_object
+        obj: bpy.types.Object = context.active_object
         frame_n = context.scene.frame_current
-        start_idx = max(0, self.start_idx)
-        end_idx = min(self.end_idx, len(obj.data.shape_keys.key_blocks) - 1)
-        self.report(
-            {"INFO"},
-            f"Animating data from column {start_idx} to {end_idx} spaced at {self.keyframe_spacing} frames",
-        )
-        for i in range(start_idx, end_idx + 1):
-            sk = obj.data.shape_keys.key_blocks[i]
-            if not is_column_sk(sk):
-                continue
+        shape_keys: bpy.types.Key = obj.data.shape_keys
+        if shape_keys is None:
+            self.report({"ERROR"}, "No shape keys found")
+            return {"CANCELLED"}
 
-            # Set current shape key to active by using the value and disable others
-            sk.value = 1
-            sk.keyframe_insert(data_path="value", frame=frame_n)
-            frame_n += self.keyframe_spacing
-            for sko in obj.data.shape_keys.key_blocks:
-                if sko != sk:
-                    sko.value = 0
-                    sko.keyframe_insert(data_path="value", frame=frame_n)
+        shape_keys.use_relative = False
+        end_idx = min(self.end_idx, len(obj.data.shape_keys.key_blocks) - 1)
+        start_eval_time = 0
+        end_keyframe = (end_idx + 1) * self.keyframe_spacing
+        end_eval_time = end_idx * 10
+
+        shape_keys.eval_time = start_eval_time
+        shape_keys.keyframe_insert(data_path="eval_time", frame=frame_n)
+
+        shape_keys.eval_time = end_eval_time
+        shape_keys.keyframe_insert(data_path="eval_time", frame=frame_n + end_keyframe)
 
         adjust_z_override_to_data(obj, 0, len(obj.data.shape_keys.key_blocks) - 1)
         ensure_animation_naming(obj)
