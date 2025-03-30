@@ -520,3 +520,35 @@ class DV_DataInspect(bpy.types.Operator):
 
     def _format_range(self, range: typing.Tuple) -> str:
         return str(tuple(f"{x:.2f}" for x in range)).replace("'", "")
+
+
+@data_vis_logging.logged_operator
+class DV_DataOpenFile(bpy.types.Operator):
+    bl_idname = "data_vis.open_file"
+    bl_label = "Open File"
+
+    filepath: bpy.props.StringProperty(subtype="FILE_PATH")
+
+    @classmethod
+    def description(
+        cls, ontext: bpy.types.Context, props: bpy.types.OperatorProperties
+    ):
+        return f"Open '{props.filepath}'"
+
+    def execute(self, context: bpy.types.Context):
+        import subprocess
+        import os
+        import sys
+
+        if not os.path.isfile(self.filepath):
+            self.report({"ERROR"}, f"File '{self.filepath}' not found")
+            return {"CANCELLED"}
+
+        if sys.platform == "win32":
+            os.startfile(self.filepath)
+        elif sys.platform == "darwin":
+            subprocess.call(["open", self.filepath])
+        else:
+            subprocess.call(["xdg-open", self.filepath])
+
+        return {"FINISHED"}
