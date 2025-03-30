@@ -40,7 +40,7 @@ from .properties import (
 from .data_manager import DataManager, DataType
 from .docs import get_example_data_doc, draw_tooltip_button
 from .icon_manager import IconManager
-from .general import DV_ShowPopup, DV_DataInspect
+from .general import DV_ShowPopup, DV_DataInspect, DV_DataOpenFile
 from .utils import env_utils
 from . import preferences as prefs
 from . import geonodes
@@ -405,6 +405,9 @@ class DV_UL_DataList(bpy.types.UIList):
             row = layout.row(align=True)
             row.operator(DV_OT_ReloadData.bl_idname, icon="FILE_REFRESH", text="")
             row.operator(DV_DataInspect.bl_idname, icon="VIEWZOOM", text="")
+            row.operator(
+                DV_DataOpenFile.bl_idname, icon="FILEBROWSER", text=""
+            ).filepath = item.filepath
             if get_preferences(context).debug:
                 row.operator(DV_OT_PrintData.bl_idname, icon="OUTPUT", text="")
 
@@ -418,6 +421,7 @@ classes = [
     DV_Preferences,
     DV_ShowPopup,
     DV_DataInspect,
+    DV_DataOpenFile,
     DV_LabelPropertyGroup,
     DV_ColorPropertyGroup,
     DV_AxisPropertyGroup,
