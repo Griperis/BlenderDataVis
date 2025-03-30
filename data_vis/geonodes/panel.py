@@ -157,6 +157,7 @@ class DV_DataLabelsPanel(bpy.types.Panel, DV_GN_PanelMixin):
 
         for mod in filter(
             lambda m: m.type == "NODES"
+            and m.node_group is not None
             and components.remove_duplicate_suffix(m.node_group.name)
             == "DV_DataLabels",
             obj.modifiers,

@@ -50,6 +50,9 @@ def get_axis_on_chart(
 ) -> typing.Dict[str, typing.Optional[bpy.types.NodesModifier]]:
     ret = {"X": None, "Y": None, "Z": None}
     for mod in obj.modifiers:
+        if mod.node_group is None:
+            continue
+
         if mod.type == "NODES":
             if remove_duplicate_suffix(mod.node_group.name) in AXIS_NODE_GROUPS:
                 split = mod.name.rsplit(" ", 1)
@@ -77,7 +80,7 @@ def get_compatible_axis(obj: bpy.types.Object) -> typing.Dict[str, str]:
     return ret
 
 
-def get_chart_modifier(obj: bpy.types.Object) -> bpy.types.Modifier | None:
+def get_data_modifier(obj: bpy.types.Object) -> bpy.types.Modifier | None:
     return obj.modifiers[0] if len(obj.modifiers) > 0 else None
 
 
