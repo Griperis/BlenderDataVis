@@ -311,10 +311,6 @@ class DV_AddonPanel(bpy.types.Panel):
         col.prop(scn.general_props, "container_size", text="")
 
 
-# Provide the PANEL_CLASS reference to preferences, so UI position can be updated
-prefs.PANEL_CLASS = DV_AddonPanel
-
-
 class OBJECT_OT_AddChart(bpy.types.Menu):
     """
     Menu panel grouping chart related operators in Blender AddObject panel
@@ -443,6 +439,13 @@ classes = [
     OBJECT_OT_BubbleChart,
     DV_AlignLabels,
     FILE_OT_DVLoadFile,
+]
+
+# Provide all panel classes to the prefs module, so they can be reregistered elsewhere.
+prefs.PANEL_CLASSES = [
+    cls
+    for cls in [DV_AddonPanel, *geonodes.CLASSES, *classes]
+    if cls.bl_rna.identifier == "Panel"
 ]
 
 

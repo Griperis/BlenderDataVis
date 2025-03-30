@@ -11,43 +11,33 @@ from .geonodes.library import MaterialType
 
 
 EXAMPLE_DATA_FOLDER = "example_data"
-PANEL_CLASS = None
+PANEL_CLASSES = None
+
+
+def _try_update_classes_prop(self, bl_prop: str, self_prop: str):
+    if PANEL_CLASSES is None:
+        raise RuntimeError(f"Panel class was not provided to preferences!")
+
+    for cls in PANEL_CLASSES:
+        try:
+            if hasattr(bpy.types, cls.bl_idname):
+                bpy.utils.unregister_class(cls)
+            setattr(cls, bl_prop, getattr(self, self_prop))
+            bpy.utils.register_class(cls)
+        except Exception as e:
+            logger.exception("Setting Space Type error")
 
 
 def update_space_type(self, context):
-    if PANEL_CLASS is None:
-        raise RuntimeError(f"Panel class was not provided to preferences!")
-    try:
-        if hasattr(bpy.types, "DV_PT_data_load"):
-            bpy.utils.unregister_class(PANEL_CLASS)
-        PANEL_CLASS.bl_space_type = self.ui_space_type
-        bpy.utils.register_class(PANEL_CLASS)
-    except Exception as e:
-        logger.exception("Setting Space Type error")
+    _try_update_classes_prop(self, "bl_space_type", "ui_space_type")
 
 
 def update_category(self, context):
-    if PANEL_CLASS is None:
-        raise RuntimeError(f"Panel class was not provided to preferences!")
-    try:
-        if hasattr(bpy.types, "DV_PT_data_load"):
-            bpy.utils.unregister_class(PANEL_CLASS)
-        PANEL_CLASS.bl_category = self.ui_category
-        bpy.utils.register_class(PANEL_CLASS)
-    except Exception as e:
-        logger.exception("Setting Category error")
+    _try_update_classes_prop(self, "bl_category", "ui_category")
 
 
 def update_region_type(self, context):
-    if PANEL_CLASS is None:
-        raise RuntimeError(f"Panel class was not provided to preferences!")
-    try:
-        if hasattr(bpy.types, "DV_PT_data_load"):
-            bpy.utils.unregister_class(PANEL_CLASS)
-        PANEL_CLASS.bl_region_type = self.ui_region_type
-        bpy.utils.register_class(PANEL_CLASS)
-    except Exception as e:
-        logger.exception("Setting Region Type error")
+    _try_update_classes_prop(self, "bl_region_type", "ui_region_type")
 
 
 def get_example_data_path() -> str:
