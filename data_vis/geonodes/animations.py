@@ -44,10 +44,9 @@ def get_shape_keys_z_range(
     key_blocks = obj.data.shape_keys.key_blocks
     for i in range(start_idx, end_idx + 1):
         sk = key_blocks[i]
-        if sk != obj.data.shape_keys.reference_key:
-            for v in sk.data:
-                min_z = min(v.co.z, min_z)
-                max_z = max(v.co.z, max_z)
+        for v in sk.data:
+            min_z = min(v.co.z, min_z)
+            max_z = max(v.co.z, max_z)
 
     return min_z, max_z
 
