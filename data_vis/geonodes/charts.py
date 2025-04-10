@@ -338,6 +338,10 @@ class DV_GN_SurfaceChart(DV_GN_Chart):
         self._add_chart_to_scene(context, obj)
         self._apply_material(modifier, prefs.color_type)
         modifier_utils.add_used_materials_to_object(modifier, obj)
+
+        for f in obj.data.polygons:
+            f.use_smooth = True
+
         return {"FINISHED"}
 
 
