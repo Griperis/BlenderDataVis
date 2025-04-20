@@ -135,6 +135,7 @@ class PreprocessedData:
     ws: np.ndarray | None = None
     z_ns: np.ndarray | None = None
     categories: np.ndarray | None = None
+    axis_labels: typing.List[str] = dataclasses.field(default_factory=list)
 
 
 def _store_chart_data_info(
@@ -144,8 +145,11 @@ def _store_chart_data_info(
         "data_type": data_type,
         "shape": verts.shape,
     }
-    if data is not None and data.categories is not None:
-        data_dict["categories"] = data.categories.tolist()
+    if data is not None:
+        if data.categories is not None:
+            data_dict["categories"] = data.categories.tolist()
+        if data.axis_labels is not None:
+            data_dict["axis_labels"] = data.axis_labels
 
     obj[DATA_TYPE_PROPERTY] = json.dumps(data_dict)
 
@@ -205,7 +209,7 @@ def _preprocess_data(data, data_type: str) -> PreprocessedData:
     else:
         raise RuntimeError(f"Unknown DataType {data_type}")
 
-    return PreprocessedData(vert_positions, ws, z_ns, categories)
+    return PreprocessedData(vert_positions, ws, z_ns, categories, axis_labels=[])
 
 
 @dataclasses.dataclass
@@ -220,7 +224,9 @@ def _convert_data_to_geometry(
     connect_edges: bool = False,
     interpolation_config: InterpolationConfig | None = None,
 ) -> tuple[list, list, list, PreprocessedData]:
-    data = _preprocess_data(DataManager().get_chart_data().parsed_data, data_type)
+    chart_data = DataManager().get_chart_data()
+    data = _preprocess_data(chart_data.parsed_data, data_type)
+    data.axis_labels = chart_data.labels
     verts = []
     edges = []
     faces = []

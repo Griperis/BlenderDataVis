@@ -13,8 +13,6 @@ from .charts import (
 from .data import DV_DataProperties
 from .components import (
     DV_AddAxis,
-    DV_AddHeading,
-    DV_AddAxisLabel,
     DV_AddDataLabels,
 )
 from .animations import (
@@ -35,8 +33,6 @@ CLASSES = [
     DV_GN_SurfaceChart,
     DV_GN_PieChart,
     DV_AddAxis,
-    DV_AddHeading,
-    DV_AddAxisLabel,
     DV_AddDataLabels,
     DV_ChartPanel,
     DV_AxisPanel,

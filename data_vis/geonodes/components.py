@@ -156,6 +156,8 @@ class DV_AddAxis(bpy.types.Operator):
         if self.axis_type == AxisType.CATEGORICAL:
             self._setup_categorical_axis(obj, mod)
 
+        self._add_labels_if_available(obj, mod)
+
         modifier_utils.add_used_materials_to_object(mod, obj)
         return {"FINISHED"}
 
@@ -180,11 +182,34 @@ class DV_AddAxis(bpy.types.Operator):
         assert is_chart(obj)
         data_from_obj = data.get_chart_data_info(obj)
         if data_from_obj is None:
-            logger.error("No data found on the chart {obj.name}")
+            logger.error(f"No data found on the chart {obj.name}")
             return
 
         modifier_utils.set_input(mod, "Tick Count", len(data_from_obj["categories"]))
         modifier_utils.set_input(mod, "Labels", ",".join(data_from_obj["categories"]))
+
+    def _add_labels_if_available(
+        self, obj: bpy.types.Object, mod: bpy.types.NodesModifier
+    ) -> None:
+        assert is_chart(obj)
+        data_from_obj = data.get_chart_data_info(obj)
+        if data_from_obj is None:
+            logger.error(f"No data found on the chart {obj.name}")
+            return
+
+        axis_labels = data_from_obj["axis_labels"]
+        if len(axis_labels) == 0:
+            return
+        if self.axis == "X" and len(axis_labels) > 0:
+            modifier_utils.set_input(mod, "Axis Label Text", axis_labels[0])
+
+        if self.axis == "Y" and len(axis_labels) > 1:
+            modifier_utils.set_input(mod, "Axis Label Text", axis_labels[1])
+
+        if self.axis == "Z" and len(axis_labels) == 2:
+            modifier_utils.set_input(mod, "Axis Label Text", axis_labels[1])
+        elif len(axis_labels) == 3:
+            modifier_utils.set_input(mod, "Axis Label Text", axis_labels[2])
 
 
 @data_vis_logging.logged_operator
@@ -203,28 +228,4 @@ class DV_AddDataLabels(bpy.types.Operator):
         mod = obj.modifiers.new("Data Labels", type="NODES")
         mod.node_group = library.load_above_data_labels()
         modifier_utils.add_used_materials_to_object(mod, obj)
-        return {"FINISHED"}
-
-
-# TODO: Create a object that's in the middle of the axis and parented to the chart object
-@data_vis_logging.logged_operator
-class DV_AddAxisLabel(bpy.types.Operator):
-    bl_idname = "data_vis.add_axis_label"
-    bl_label = "Add Axis Label"
-    bl_options = {"REGISTER", "UNDO"}
-
-    # Adds a axis label to the selected chart
-    def execute(self, context):
-        return {"FINISHED"}
-
-
-# TODO: Add heading to the chart
-@data_vis_logging.logged_operator
-class DV_AddHeading(bpy.types.Operator):
-    # Adds a heading to the selected chart
-    bl_idname = "data_vis.add_heading"
-    bl_label = "Add Heading"
-    bl_options = {"REGISTER", "UNDO"}
-
-    def execute(self, context):
         return {"FINISHED"}
