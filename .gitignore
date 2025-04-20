@@ -11,3 +11,4 @@ data_vis/site-packages/*
 builds/*
 dev/tests/out/*
 dev/tests/intermediate/*
+site/*
