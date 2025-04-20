@@ -1,0 +1,44 @@
+site_name: Data Vis Documentation
+site_description: "A Blender add-on for creating charts and graphs from data."
+site_author: "Zdeněk Doležal"
+copyright: "© 2020- Zdeněk Doležal"
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+
+plugins:
+  mkdocs-video:
+    is_video: True
+    video_controls: False
+    video_autoplay: True
+    video_loop: True
+    css_style:
+        width: "100%"
+        padding: "0px 16px"
+
+theme:
+  name: material
+  favicon: assets/logo_square.png
+  logo: assets/logo_square.png
+  palette:
+    scheme: slate
+    primary: black
+    accent: deep purple
+  features:
+    - navigation.top
+    - navigation.footer
+
+nav:
+  - About: index.md
+  - Quickstart: quickstart.md
+  - Data: data.md
+  - Charts: charts.md
+  - Features:
+      - Axis: features/axis.md
+      - Color: features/color.md
+      - Animations: features/animations.md
+      - Data Labels: features/data_labels.md
+  - Legacy Mode: legacy_mode.md
+
+
