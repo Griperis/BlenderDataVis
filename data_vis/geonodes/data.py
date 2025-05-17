@@ -5,7 +5,7 @@ import typing
 import json
 import numpy as np
 import dataclasses
-from ..data_manager import DataManager, DataType
+from ..data_manager import DataManager, DataType, ChartData
 import logging
 
 logger = logging.getLogger("data_vis")
@@ -139,11 +139,17 @@ class PreprocessedData:
 
 
 def _store_chart_data_info(
-    obj: bpy.types.Object, verts: np.ndarray, data: PreprocessedData, data_type: str
+    obj: bpy.types.Object,
+    verts: np.ndarray,
+    chart_data: ChartData,
+    data: PreprocessedData,
+    data_type: str,
 ) -> None:
     data_dict = {
         "data_type": data_type,
         "shape": verts.shape,
+        "min": list(chart_data.min_),
+        "max": list(chart_data.max_),
     }
     if data is not None:
         if data.categories is not None:
@@ -221,10 +227,10 @@ class InterpolationConfig:
 
 def _convert_data_to_geometry(
     data_type: str,
+    chart_data: ChartData,
     connect_edges: bool = False,
     interpolation_config: InterpolationConfig | None = None,
 ) -> tuple[list, list, list, PreprocessedData]:
-    chart_data = DataManager().get_chart_data()
     data = _preprocess_data(chart_data.parsed_data, data_type)
     data.axis_labels = chart_data.labels
     verts = []
@@ -309,8 +315,9 @@ def create_data_object(
     connect_edges: bool = False,
     interpolation_config: InterpolationConfig | None = None,
 ) -> bpy.types.Object:
+    chart_data = DataManager().get_chart_data()
     verts, edges, faces, data = _convert_data_to_geometry(
-        data_type, connect_edges, interpolation_config
+        data_type, chart_data, connect_edges, interpolation_config
     )
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(vertices=verts, edges=edges, faces=faces)
@@ -333,7 +340,7 @@ def create_data_object(
 
         obj.data.shape_keys.name = "DV_Animation"
 
-    _store_chart_data_info(obj, verts, data, data_type)
+    _store_chart_data_info(obj, verts, chart_data, data, data_type)
     return obj
 
 

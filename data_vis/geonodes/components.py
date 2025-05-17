@@ -156,6 +156,7 @@ class DV_AddAxis(bpy.types.Operator):
         if self.axis_type == AxisType.CATEGORICAL:
             self._setup_categorical_axis(obj, mod)
 
+        self._try_set_axis_ranges(obj, mod)
         self._add_labels_if_available(obj, mod)
 
         modifier_utils.add_used_materials_to_object(mod, obj)
@@ -210,6 +211,28 @@ class DV_AddAxis(bpy.types.Operator):
             modifier_utils.set_input(mod, "Axis Label Text", axis_labels[1])
         elif len(axis_labels) == 3:
             modifier_utils.set_input(mod, "Axis Label Text", axis_labels[2])
+
+    def _try_set_axis_ranges(
+        self, obj: bpy.types.Object, mod: bpy.types.NodesModifier
+    ) -> None:
+        assert is_chart(obj)
+        data_from_obj = data.get_chart_data_info(obj)
+        if data_from_obj is None:
+            logger.error(f"No data found on the chart {obj.name}")
+            return
+
+        min_ = data_from_obj["min"]
+        max_ = data_from_obj["max"]
+
+        if self.axis == "X":
+            modifier_utils.set_input(mod, "Min", float(min_[0]))
+            modifier_utils.set_input(mod, "Max", float(max_[0]))
+        elif self.axis == "Y":
+            modifier_utils.set_input(mod, "Min", float(min_[1]))
+            modifier_utils.set_input(mod, "Max", float(max_[1]))
+        elif self.axis == "Z":
+            modifier_utils.set_input(mod, "Min", float(min_[2]))
+            modifier_utils.set_input(mod, "Max", float(max_[2]))
 
 
 @data_vis_logging.logged_operator
