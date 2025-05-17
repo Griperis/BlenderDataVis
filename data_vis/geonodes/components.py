@@ -203,9 +203,11 @@ class DV_AddAxis(bpy.types.Operator):
             return
         if self.axis == "X" and len(axis_labels) > 0:
             modifier_utils.set_input(mod, "Axis Label Text", axis_labels[0])
+            return
 
         if self.axis == "Y" and len(axis_labels) > 1:
             modifier_utils.set_input(mod, "Axis Label Text", axis_labels[1])
+            return
 
         if self.axis == "Z" and len(axis_labels) == 2:
             modifier_utils.set_input(mod, "Axis Label Text", axis_labels[1])
