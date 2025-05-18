@@ -395,8 +395,14 @@ class DV_GN_PieChart(DV_GN_Chart):
         modifier_utils.set_input(modifier, "Shown Labels", count)
 
         components.mark_as_chart([obj])
+        # Pie chart is an exception, it doesn't use the other way of how charts are created,
+        # thus we call the _store_chart_data_info directly.
         data._store_chart_data_info(
-            obj, np.array(parsed_data), None, data.DataTypeValue.CATEGORIC_Data2D
+            obj,
+            np.array(parsed_data),
+            dm.get_chart_data(),
+            None,
+            data.DataTypeValue.CATEGORIC_Data2D,
         )
         self._add_chart_to_scene(context, obj)
         modifier_utils.add_used_materials_to_object(modifier, obj)
