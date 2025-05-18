@@ -50,7 +50,7 @@ The object's mesh contains your data points and the modifiers that create chart 
     Similarly to tweaking data range, you can find `Chart` modifier allowing you to tweak chart specific settings like bar size, or materials.
 
 ## Adding Axis
-Add all axis at once by clicking the `+` in the header of the `Axis` panel or individual axis one by one.
+Add individual axis inside the panel by one click or custom axis by clicking the `+` in the header of the `Axis` panel.
 
 ???+ info "Tweaking Properties"
     Each axis is an additional geometry nodes modifier. Properties can be tweaked in the `N` panel or in the `Modifiers` panel.

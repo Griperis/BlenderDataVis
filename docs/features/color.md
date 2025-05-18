@@ -15,6 +15,12 @@ Following color presets are available directly in the addons as predefined mater
 Custom material can be used. Create a material and assign it to the `Material` input
 in the `DataVis` panel or in the modifier panel.
 
+
+???+ info "Materials are added to the Chart Object"
+    All materials used by the geometry nodes are available in the `Material` tab and are assigned
+    to material slots.
+    ![Materials Auto Added To Slots](../assets/materials_added_to_slots.png)
+
 ![Customize Material](../assets/custom_material.png)
 
 The generated chart mesh contains various attributes that you can use to customize the color.
