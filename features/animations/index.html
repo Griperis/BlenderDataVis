@@ -13,22 +13,25 @@
       
       
       
-        <link rel="prev" href="../data_labels/">
+        <link rel="prev" href="../color/">
       
       
-        <link rel="next" href="../../legacy_mode/">
+        <link rel="next" href="../data_labels/">
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/logo_square.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
     
     
       
-        <title>Animations - Blender Data Vis</title>
+        <title>Animations - Data Vis Documentation</title>
       
     
     
       <link rel="stylesheet" href="../../assets/stylesheets/main.2afb09e1.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -57,7 +60,12 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-purple">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -82,10 +90,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Blender Data Vis" class="md-header__button md-logo" aria-label="Blender Data Vis" data-md-component="logo">
+    <a href="../.." title="Data Vis Documentation" class="md-header__button md-logo" aria-label="Data Vis Documentation" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/logo_square.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -96,7 +103,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Blender Data Vis
+            Data Vis Documentation
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -109,50 +116,10 @@
       </div>
     </div>
     
-    
-      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
-    
+      
     
     
-      
-      
-        <label class="md-header__button md-icon" for="__search">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        </label>
-        <div class="md-search" data-md-component="search" role="dialog">
-  <label class="md-search__overlay" for="__search"></label>
-  <div class="md-search__inner" role="search">
-    <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
-      <label class="md-search__icon md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
-      </label>
-      <nav class="md-search__options" aria-label="Search">
-        
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
-          
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
-      </nav>
-      
-    </form>
-    <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
-        <div class="md-search-result" data-md-component="search-result">
-          <div class="md-search-result__meta">
-            Initializing search
-          </div>
-          <ol class="md-search-result__list" role="presentation"></ol>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-      
+    
     
     
   </nav>
@@ -180,13 +147,12 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Blender Data Vis" class="md-nav__button md-logo" aria-label="Blender Data Vis" data-md-component="logo">
+    <a href="../.." title="Data Vis Documentation" class="md-nav__button md-logo" aria-label="Data Vis Documentation" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+  <img src="../../assets/logo_square.png" alt="logo">
 
     </a>
-    Blender Data Vis
+    Data Vis Documentation
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -242,6 +208,28 @@
   
   
     <li class="md-nav__item">
+      <a href="../../data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../charts/" class="md-nav__link">
         
   
@@ -274,10 +262,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -290,8 +278,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             Features
           </label>
@@ -333,29 +321,6 @@
   
   <span class="md-ellipsis">
     Color
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../data_labels/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Data Labels
     
   </span>
   
@@ -423,51 +388,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#common-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Properties
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#data-animations" class="md-nav__link">
     <span class="md-ellipsis">
       Data Animations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Data Animations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#entry-in-out-animations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Entry (In-Out) Animations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#data-point-animations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Point Animations
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#axis-animations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Axis Animations
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-labels-animations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Labels Animations
     </span>
   </a>
   
@@ -477,6 +409,29 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_labels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Labels
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -538,51 +493,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#common-properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Properties
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#data-animations" class="md-nav__link">
     <span class="md-ellipsis">
       Data Animations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Data Animations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#entry-in-out-animations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Entry (In-Out) Animations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#data-point-animations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Point Animations
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#axis-animations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Axis Animations
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-labels-animations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Labels Animations
     </span>
   </a>
   
@@ -604,12 +526,68 @@
 
 
 
-<h1 id="animations">Animations</h1>
+<div><h1 id="animations">Animations</h1>
+<p>Data, axis and data labels can be animated using a preset directly from the addon panel.</p>
+<details class="tip" open="open">
+<summary>Animate Modifier Properties</summary>
+<p>Custom animations of individual components can be achieved by keyframing the properties of the geometry nodes modifiers.
+Just keyframe the property using the <code>I</code> button and adjust in <code>FCurve Editor</code>. </p>
+</details>
+<p>Data can be animated by the <code>Data Animation</code> button.</p>
+<p><img alt="Data Animation Button" src="../../assets/data_animation_btn.png"></p>
+<p>Feature animations can be tweaked by the <code>Curve</code> icon button next to individual features.</p>
+<p><img alt="Animation Buttons" src="../../assets/animation_btns.png"></p>
+<details class="info" open="open">
+<summary>Animations are based on <code>Current Frame</code></summary>
+<p>All animations created by the addon are started at the <code>Current Frame</code> of the scene. To start animating
+from a different frame, adjust the <code>Current Frame</code> of the scene.</p>
+</details>
+<details class="tip" open="open">
+<summary>Adding Both In and Out Effect</summary>
+<ol>
+<li>Add any animation with <code>Reversed</code> when you want the in effect to start (Mark it as <code>Current Frame</code>)</li>
+<li>Add animation (without <code>Reversed</code>) when you want to start the out effect with <code>Current Frame</code> </li>
+</ol>
+</details>
+<h2 id="common-properties">Common Properties</h2>
+<p>Feature animations and data entry animations share following common properties:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Animation Type</td>
+<td>Specifies the type of animation applied (Grow, Explode, ...).</td>
+</tr>
+<tr>
+<td>Interpolation</td>
+<td>Determines how values transition between keyframes (e.g., linear, cubic, bounce).</td>
+</tr>
+<tr>
+<td>Reverse</td>
+<td>Plays the animation in reverse direction.</td>
+</tr>
+<tr>
+<td>Duration</td>
+<td>Sets how long the animation lasts (in frames).</td>
+</tr>
+</tbody>
+</table>
 <h2 id="data-animations">Data Animations</h2>
-<h3 id="entry-in-out-animations">Entry (In-Out) Animations</h3>
-<h3 id="data-point-animations">Data Point Animations</h3>
-<h2 id="axis-animations">Axis Animations</h2>
-<h2 id="data-labels-animations">Data Labels Animations</h2>
+<details class="warning" open="open">
+<summary>Chart has to be created as <strong>Animated</strong></summary>
+<p>In order to enable the <code>Animate Data</code> button, the chart has to have suitable data and has to be created as animated.
+Creating chart as animated create shape keys based on different columns of the <code>Z[t], Z[t+1], ...</code> values.</p>
+</details>
+<p><img alt="Data Animation Button" src="../../assets/data_animation_btn.png"></p>
+<p>After clicking the animation button, a popup is shown, where you can select which columns to animate and shows you information
+about the crated animation.</p>
+<p><img alt="Animate Data Popup" src="../../assets/animate_data.png"></p>
+<p>This will create keyframes on the data mesh <code>Shape Keys</code>, which control the value and the data points will be animated.</p></div>
 
 
 
@@ -630,9 +608,55 @@
 <script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
         
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
       </main>
       
         <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../color/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Color">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Color
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../data_labels/" class="md-footer__link md-footer__link--next" aria-label="Next: Data Labels">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Data Labels
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -662,7 +686,7 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.footer"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
