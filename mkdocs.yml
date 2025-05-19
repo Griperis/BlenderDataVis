@@ -13,6 +13,7 @@ plugins:
     video_controls: False
     video_autoplay: True
     video_loop: True
+    video_muted: True
     css_style:
         width: "100%"
         padding: "0px 16px"
@@ -29,6 +30,23 @@ theme:
     - navigation.top
     - navigation.footer
 
+extra:
+  analytics:
+    provider: google
+    property: G-DZZY8FSL1X
+    feedback:
+          title: Was this page helpful?
+          ratings:
+            - icon: material/emoticon-happy-outline
+              name: This page was helpful
+              data: 1
+              note: >-
+                Thanks for your feedback!
+            - icon: material/emoticon-sad-outline
+              name: This page could be improved
+              data: 0
+              note: >- 
+                Thanks for your feedback!
 nav:
   - About: index.md
   - Quickstart: quickstart.md
