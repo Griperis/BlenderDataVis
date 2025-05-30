@@ -1,6 +1,7 @@
 site_name: Data Vis Documentation
 site_description: "A Blender add-on for creating charts and graphs from data."
 site_author: "Zdeněk Doležal"
+repo_url: https://github.com/Griperis/BlenderDataVis/
 copyright: "© 2020- Zdeněk Doležal"
 markdown_extensions:
   - admonition
