@@ -7,8 +7,11 @@ import argparse
 BUILDS_FOLDER = "../builds"
 
 
-def remove_unwanted_dirs(folder: str, unwanted_dir_names: list[str]):
+def remove_unwanted_paths(folder: str, unwanted_dir_names: list[str]):
     for root, dir_names, files in os.walk(folder):
+        for file_ in files:
+            if file_.endswith(".blend1"):
+                os.remove(os.path.join(root, file_))
         for dir_name in dir_names:
             if dir_name in unwanted_dir_names:
                 print(f"Removing '{dir_name}'")
@@ -54,8 +57,8 @@ def main():
         f"{addon_package}/blender_manifest.toml", f"{BUILDS_FOLDER}/{addon_package}"
     )
 
-    remove_unwanted_dirs(
-        f"{BUILDS_FOLDER}/{addon_package}", ["__pycache__", "site-packages"]
+    remove_unwanted_paths(
+        f"{BUILDS_FOLDER}/{addon_package}", ["__pycache__", "site-packages", "docs"]
     )
 
     init_file = f"{BUILDS_FOLDER}/{addon_package}/__init__.py"
