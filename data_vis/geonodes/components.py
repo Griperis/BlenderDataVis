@@ -233,8 +233,15 @@ class DV_AddAxis(bpy.types.Operator):
             modifier_utils.set_input(mod, "Min", float(min_[1]))
             modifier_utils.set_input(mod, "Max", float(max_[1]))
         elif self.axis == "Z":
-            modifier_utils.set_input(mod, "Min", float(min_[2]))
-            modifier_utils.set_input(mod, "Max", float(max_[2]))
+            if len(min_) < 3 or len(max_) < 3:
+                min_value = min_[1]
+                max_value = max_[1]
+            else:
+                min_value = min_[2]
+                max_value = max_[2]
+
+            modifier_utils.set_input(mod, "Min", float(min_value))
+            modifier_utils.set_input(mod, "Max", float(max_value))
 
 
 @data_vis_logging.logged_operator
