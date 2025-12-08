@@ -3,9 +3,11 @@
 import bpy
 import typing
 import json
+import math
 import numpy as np
 import dataclasses
 from ..data_manager import DataManager, DataType, ChartData
+from ..utils import data_vis_logging
 import logging
 
 logger = logging.getLogger("data_vis")
@@ -144,13 +146,18 @@ def _store_chart_data_info(
     chart_data: ChartData,
     data: PreprocessedData,
     data_type: str,
+    connect_edges: bool = False,
+    interpolation_config: typing.Optional["InterpolationConfig"] = None,
 ) -> None:
     data_dict = {
         "data_type": data_type,
         "shape": verts.shape,
         "min": list(chart_data.min_),
         "max": list(chart_data.max_),
+        "connect_edges": connect_edges,
     }
+    if interpolation_config is not None:
+        data_dict["interpolation"] = dataclasses.asdict(interpolation_config)
     if data is not None:
         if data.categories is not None:
             data_dict["categories"] = data.categories.tolist()
@@ -340,8 +347,159 @@ def create_data_object(
 
         obj.data.shape_keys.name = "DV_Animation"
 
-    _store_chart_data_info(obj, verts, chart_data, data, data_type)
+    _store_chart_data_info(
+        obj, verts, chart_data, data, data_type, connect_edges, interpolation_config
+    )
     return obj
+
+
+@data_vis_logging.logged_operator
+class DV_RegenerateData(bpy.types.Operator):
+    bl_idname = "data_vis.regenerate_data"
+    bl_label = "Regenerate Data"
+    bl_description = (
+        "Recomputes mesh data for the active chart using the currently loaded data"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context: bpy.types.Context) -> bool:
+        obj = context.active_object
+        if obj is None:
+            return False
+        if DataManager().get_chart_data() is None:
+            return False
+        from . import components
+
+        return components.is_chart(obj)
+
+    def execute(self, context: bpy.types.Context):
+        obj: bpy.types.Object = context.active_object
+        chart_data = DataManager().get_chart_data()
+        if chart_data is None:
+            self.report({"ERROR"}, "No data loaded. Load data to regenerate chart.")
+            return {"CANCELLED"}
+
+        chart_data_info = get_chart_data_info(obj)
+        if not chart_data_info:
+            self.report({"ERROR"}, "Chart has no stored data information.")
+            return {"CANCELLED"}
+
+        data_type = chart_data_info.get("data_type")
+        if not data_type or data_type == "None":
+            self.report({"ERROR"}, "Chart data type missing.")
+            return {"CANCELLED"}
+
+        if data_type not in get_data_types():
+            self.report(
+                {"ERROR"},
+                f"Loaded data is not compatible with chart type '{data_type}'.",
+            )
+            return {"CANCELLED"}
+
+        interpolation_cfg_dict = chart_data_info.get("interpolation")
+        interpolation_cfg = None
+        if interpolation_cfg_dict is not None:
+            try:
+                interpolation_cfg = InterpolationConfig(
+                    method=interpolation_cfg_dict.get("method"),
+                    m=int(interpolation_cfg_dict.get("m")),
+                    n=int(interpolation_cfg_dict.get("n")),
+                )
+            except Exception:
+                logger.exception("Failed to parse stored interpolation config")
+                self.report({"ERROR"}, "Invalid interpolation config stored on chart.")
+                return {"CANCELLED"}
+        else:
+            interpolation_cfg = self._infer_interpolation_config(obj)
+
+        connect_edges = chart_data_info.get("connect_edges")
+        if connect_edges is None:
+            connect_edges = self._infer_connect_edges(obj)
+        connect_edges = bool(connect_edges)
+
+        try:
+            verts, edges, faces, preprocessed_data = _convert_data_to_geometry(
+                data_type,
+                chart_data,
+                connect_edges=connect_edges,
+                interpolation_config=interpolation_cfg,
+            )
+        except Exception as exc:
+            logger.exception("Failed to regenerate chart data")
+            self.report({"ERROR"}, str(exc))
+            return {"CANCELLED"}
+
+        old_mesh = obj.data
+        old_mesh_name = old_mesh.name
+        old_materials = [mat for mat in old_mesh.materials]
+        new_mesh = bpy.data.meshes.new(old_mesh.name)
+        new_mesh.from_pydata(vertices=verts, edges=edges, faces=faces)
+        if preprocessed_data.ws is not None:
+            attr = new_mesh.attributes.new(W_ATTRIBUTE_NAME, "FLOAT", "POINT")
+            attr.data.foreach_set("value", preprocessed_data.ws)
+        for mat in old_materials:
+            if mat is not None:
+                new_mesh.materials.append(mat)
+
+        obj.data = new_mesh
+
+        if preprocessed_data.z_ns is not None:
+            obj.shape_key_add(name="Basis")
+            for i, z_col in enumerate(preprocessed_data.z_ns.transpose()):
+                sk = obj.shape_key_add(name=f"Column: {i}")
+                sk.value = 0
+                for j, z in enumerate(z_col):
+                    sk.data[j].co.z = z
+
+            obj.data.shape_keys.name = "DV_Animation"
+
+        _store_chart_data_info(
+            obj,
+            verts,
+            chart_data,
+            preprocessed_data,
+            data_type,
+            connect_edges,
+            interpolation_cfg,
+        )
+
+        if old_mesh != new_mesh and old_mesh.users == 0:
+            bpy.data.meshes.remove(old_mesh)
+            new_mesh.name = old_mesh_name
+
+        return {"FINISHED"}
+
+    def _infer_interpolation_config(
+        self, obj: bpy.types.Object
+    ) -> typing.Optional[InterpolationConfig]:
+        verts_count = len(obj.data.vertices)
+        faces_count = len(obj.data.polygons)
+        if verts_count == 0 or faces_count == 0:
+            return None
+
+        limit = int(math.sqrt(verts_count)) + 2
+        for m in range(2, limit):
+            if verts_count % m != 0:
+                continue
+            n = verts_count // m
+            if (m - 1) * (n - 1) == faces_count:
+                return InterpolationConfig(method="multiquadric", m=m, n=n)
+
+        return None
+
+    def _infer_connect_edges(self, obj: bpy.types.Object) -> bool:
+        from . import components
+
+        for mod in obj.modifiers:
+            if (
+                mod.type == "NODES"
+                and mod.node_group is not None
+                and components.remove_duplicate_suffix(mod.node_group.name)
+                == "DV_LineChart"
+            ):
+                return True
+        return False
 
 
 def is_data_suitable(acceptable: typing.Set[str]):

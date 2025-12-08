@@ -10,7 +10,7 @@ from .charts import (
     DV_GN_SurfaceChart,
     DV_GN_PieChart,
 )
-from .data import DV_DataProperties
+from .data import DV_DataProperties, DV_RegenerateData
 from .components import (
     DV_AddAxis,
     DV_AddDataLabels,
@@ -32,6 +32,7 @@ CLASSES = [
     DV_GN_LineChart,
     DV_GN_SurfaceChart,
     DV_GN_PieChart,
+    DV_RegenerateData,
     DV_AddAxis,
     DV_AddDataLabels,
     DV_ChartPanel,
