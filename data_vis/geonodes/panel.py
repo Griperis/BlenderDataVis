@@ -4,6 +4,7 @@ import bpy
 from . import modifier_utils
 from . import components
 from . import animations
+from . import data
 from .. import preferences
 from ..icon_manager import IconManager
 
@@ -50,6 +51,11 @@ class DV_ChartPanel(bpy.types.Panel, DV_GN_PanelMixin):
             row = box.row()
             row.prop(mod, "show_expanded", text="")
             row.label(text=mod.name)
+            row.operator(
+                data.DV_RegenerateData.bl_idname,
+                text="",
+                icon="FILE_REFRESH",
+            )
             row.operator(animations.DV_AnimateData.bl_idname, text="", icon="TIME")
             row.operator(
                 animations.DV_AddDataTransitionAnimation.bl_idname, text="", icon="ANIM"
