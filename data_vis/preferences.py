@@ -95,7 +95,7 @@ class DV_Preferences(bpy.types.AddonPreferences):
 
     def get_addon_mode(self, context: bpy.types.Context):
         ret = []
-        if bpy.app.version >= (4, 0, 0):
+        if bpy.app.version >= (4, 2, 0):
             ret.append(
                 (
                     "GEONODES",
