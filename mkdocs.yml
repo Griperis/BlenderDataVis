@@ -59,5 +59,6 @@ nav:
       - Animations: features/animations.md
       - Data Labels: features/data_labels.md
   - Legacy Mode: legacy_mode.md
+  - FAQ: faq.md
 
 
