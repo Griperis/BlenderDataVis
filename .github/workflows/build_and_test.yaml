@@ -24,24 +24,24 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Cache Blender
-      id: blender_4_2_binary
-      uses: actions/cache@v3
+      id: blender_5_1_binary
+      uses: actions/cache@v4
       with:
         path: /home/runner/blender
-        key: blender-4.2
+        key: blender-5.1
     - name: Download Blender
-      if: steps.blenderBinaryCache.outputs.cache-hit != 'true'
-      run: curl https://download.blender.org/release/Blender4.2/blender-4.2.6-linux-x64.tar.xz -o /home/runner/blender.tar.xz
+      if: steps.blender_5_1_binary.outputs.cache-hit != 'true'
+      run: curl https://download.blender.org/release/Blender5.1/blender-5.1.0-linux-x64.tar.xz -o /home/runner/blender.tar.xz
     - name: Mkdir
       run: mkdir {/home/runner/.local/bin,/home/runner/blender} -p
     - name: Extract Blender
-      if: steps.blenderBinaryCache.outputs.cache-hit != 'true'
+      if: steps.blender_5_1_binary.outputs.cache-hit != 'true'
       run: tar -xf /home/runner/blender.tar.xz -C /home/runner/blender --strip-components=1
     - name: Add Blender to PATH
       run: ln -s /home/runner/blender/blender /home/runner/.local/bin/blender
     - name: Install pip dependencies
-      if: steps.blenderBinaryCache.outputs.cache-hit != 'true'
-      run: /home/runner/blender/4.2/python/bin/python3.11 -m pip install scipy
+      if: steps.blender_5_1_binary.outputs.cache-hit != 'true'
+      run: /home/runner/blender/5.1/python/bin/python3.13 -m pip install scipy
     - name: Install Blender Dependencies
       run: sudo apt-get install freeglut3-dev
     - name: Download Addon ZIP
