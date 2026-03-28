@@ -359,6 +359,139 @@ class TestAddAxis(DataVisTestCase):
         self.assertEqual(len(modifiers), 1)
 
 
+class TestModifierOrdering(DataVisTestCase):
+    def test_axis_after_chart_modifier(self):
+        import data_vis
+
+        self.load_data("species_2D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart()
+        bpy.ops.data_vis.add_axis(
+            axis="X",
+            axis_type=data_vis.geonodes.components.AxisType.CATEGORICAL,
+            pass_invoke=True,
+        )
+        self.assertNodesModifierInFront(
+            bpy.context.active_object, "DV_BarChart", "DV_CategoricalAxis"
+        )
+
+    def test_axis_after_chart_modifier_numerical(self):
+        import data_vis
+
+        self.load_data("x+y_3D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart()
+        bpy.ops.data_vis.add_axis(
+            axis="Z",
+            axis_type=data_vis.geonodes.components.AxisType.NUMERIC,
+            pass_invoke=True,
+        )
+        self.assertNodesModifierInFront(
+            bpy.context.active_object, "DV_BarChart", "DV_NumericAxis"
+        )
+
+    def test_data_labels_after_chart_modifier(self):
+        self.load_data("species_2D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart()
+        bpy.ops.data_vis.add_data_labels()
+        self.assertNodesModifierInFront(
+            bpy.context.active_object, "DV_BarChart", "DV_DataLabels"
+        )
+
+    def test_multiple_axes_after_chart_modifier(self):
+        import data_vis
+
+        self.load_data("x+y_3D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart()
+        bpy.ops.data_vis.add_axis(
+            axis="X",
+            axis_type=data_vis.geonodes.components.AxisType.NUMERIC,
+            pass_invoke=True,
+        )
+        bpy.ops.data_vis.add_axis(
+            axis="Z",
+            axis_type=data_vis.geonodes.components.AxisType.NUMERIC,
+            pass_invoke=True,
+        )
+        chart_obj = bpy.context.active_object
+        # Both axis modifiers must come after the chart modifier
+        axis_mods = self.find_modifiers_by_node_group_name(chart_obj, "DV_NumericAxis")
+        self.assertEqual(len(axis_mods), 2)
+        chart_mod_idx = list(chart_obj.modifiers).index(
+            self.find_modifiers_by_node_group_name(chart_obj, "DV_BarChart").pop()
+        )
+        for mod in axis_mods:
+            self.assertGreater(chart_obj.modifiers.find(mod.name), chart_mod_idx)
+
+
+class TestDataTypeProperty(DataVisTestCase):
+    def _get_stored_prop(self, chart_obj):
+        import data_vis
+
+        return data_vis.geonodes.data.get_chart_data_info(chart_obj)
+
+    def test_data_type_stored_numerical_2d(self):
+        import data_vis
+
+        self.load_data("x+y_3D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart(
+            data_type=data_vis.geonodes.data.DataTypeValue.Data2D
+        )
+        info = self._get_stored_prop(bpy.context.active_object)
+        self.assertIsNotNone(info)
+        self.assertEqual(info["data_type"], data_vis.geonodes.data.DataTypeValue.Data2D)
+        self.assertIn("shape", info)
+        self.assertIn("min", info)
+        self.assertIn("max", info)
+
+    def test_data_type_stored_categorical(self):
+        import data_vis
+
+        self.load_data("species_2D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart()
+        info = self._get_stored_prop(bpy.context.active_object)
+        self.assertIsNotNone(info)
+        self.assertEqual(
+            info["data_type"], data_vis.geonodes.data.DataTypeValue.CATEGORIC_Data2D
+        )
+
+    def test_data_type_stored_animated(self):
+        import data_vis
+
+        self.load_data("function-simple_3D_anim.csv")
+        bpy.ops.data_vis.geonodes_bar_chart(
+            data_type=data_vis.geonodes.data.DataTypeValue.Data2DA
+        )
+        info = self._get_stored_prop(bpy.context.active_object)
+        self.assertIsNotNone(info)
+        self.assertEqual(
+            info["data_type"], data_vis.geonodes.data.DataTypeValue.Data2DA
+        )
+        self.assertTrue(
+            data_vis.geonodes.data.DataTypeValue.is_animated(info["data_type"])
+        )
+
+    def test_data_type_helpers_consistent(self):
+        import data_vis
+
+        self.load_data("x+y_3D.csv")
+        bpy.ops.data_vis.geonodes_bar_chart(
+            data_type=data_vis.geonodes.data.DataTypeValue.Data3D
+        )
+        chart_obj = bpy.context.active_object
+        data_type = data_vis.geonodes.data.get_chart_data_type(chart_obj)
+        self.assertEqual(data_type, data_vis.geonodes.data.DataTypeValue.Data3D)
+        self.assertTrue(data_vis.geonodes.data.DataTypeValue.is_3d(data_type))
+        self.assertFalse(data_vis.geonodes.data.DataTypeValue.is_animated(data_type))
+        self.assertFalse(data_vis.geonodes.data.DataTypeValue.is_categorical(data_type))
+
+    def test_get_chart_data_type_returns_none_for_non_chart(self):
+        import data_vis
+
+        bpy.ops.mesh.primitive_cube_add()
+        cube = bpy.context.active_object
+        data_type = data_vis.geonodes.data.get_chart_data_type(cube)
+        self.assertEqual(data_type, "None")
+
+
 class TestAddLabels(DataVisTestCase):
     def test_add_above_data_labels(self):
         self.load_data("species_2D.csv")
