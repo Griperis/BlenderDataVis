@@ -18,13 +18,13 @@ def find_blender_executable() -> str:
     raise RuntimeError("Blender executable not found.")
 
 
-def run_in_blender(script_path: str) -> int:
+def run_in_blender(script_path: str, blender_executable: str) -> int:
     if "--" in sys.argv:
         additional_args = sys.argv[sys.argv.index("--") + 1 :]
     else:
         additional_args = []
     args = []
-    args += [find_blender_executable()]
+    args += [blender_executable]
     args += ["--background"]
     args += ["-noaudio"]
     args += ["--python-exit-code", "1"]
@@ -42,8 +42,12 @@ def main():
     parser.add_argument(
         "--script_path", type=str, help="Path to the Blender script to run"
     )
+    parser.add_argument(
+        "--blender", type=str, default=None, help="Path to the Blender executable"
+    )
     args, _ = parser.parse_known_args(sys.argv)
-    sys.exit(run_in_blender(os.path.abspath(args.script_path)))
+    blender = args.blender if args.blender else find_blender_executable()
+    sys.exit(run_in_blender(os.path.abspath(args.script_path), blender))
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ import logging
 import typing
 import itertools
 import json
+import argparse
 
 # Add the tests directory to the path, to be able to import it in Blender's python
 # environment.
@@ -19,12 +20,36 @@ finally:
 
 logger = logging.getLogger("data_vis")
 
+_DEFAULT_ADDON_ZIP = "dev/tests/intermediate/data_vis_3.0.0.zip"
+
+
+def _count_action_fcurves(action: bpy.types.Action) -> int:
+    if bpy.app.version >= (5, 0, 0):
+        return sum(
+            len(channelbag.fcurves)
+            for layer in action.layers
+            for strip in layer.strips
+            for channelbag in strip.channelbags
+        )
+    return len(action.fcurves)
+
+
+def _parse_addon_zip() -> str:
+    """Read the addon ZIP path from args after '--', falling back to the default."""
+    if "--" in sys.argv:
+        extra = sys.argv[sys.argv.index("--") + 1 :]
+        parser = argparse.ArgumentParser()
+        parser.add_argument("addon_zip", nargs="?", default=_DEFAULT_ADDON_ZIP)
+        args, _ = parser.parse_known_args(extra)
+        return args.addon_zip
+    return _DEFAULT_ADDON_ZIP
+
 
 class DataVisTestCase(unittest.TestCase):
     def setUp(self):
         self.clean_scene()
         self.data_folder = "dev/tests/data"
-        utils.install_addon("dev/tests/intermediate/data_vis_3.0.0.zip", "data_vis")
+        utils.install_addon(_parse_addon_zip(), "data_vis")
         super().setUp()
 
     def tearDown(self):
@@ -376,7 +401,7 @@ class TestAddAnimation(DataVisTestCase):
         chart_obj = bpy.context.active_object
         self.assertIsNotNone(chart_obj.data.shape_keys.animation_data)
         self.assertEqual(
-            len(chart_obj.data.shape_keys.animation_data.action.fcurves), 1
+            _count_action_fcurves(chart_obj.data.shape_keys.animation_data.action), 1
         )
 
     def test_add_data_transition_animation(self):
@@ -390,7 +415,7 @@ class TestAddAnimation(DataVisTestCase):
         bpy.ops.data_vis.data_transition_animation(animation_type="GROW_BY_INDEX")
         chart_obj = bpy.context.active_object
         self.assertIsNotNone(chart_obj.animation_data)
-        self.assertEqual(len(chart_obj.animation_data.action.fcurves), 1)
+        self.assertEqual(_count_action_fcurves(chart_obj.animation_data.action), 1)
 
     def test_add_data_transition_animation_reversed(self):
         import data_vis
@@ -405,7 +430,7 @@ class TestAddAnimation(DataVisTestCase):
         )
         chart_obj = bpy.context.active_object
         self.assertIsNotNone(chart_obj.animation_data)
-        self.assertEqual(len(chart_obj.animation_data.action.fcurves), 1)
+        self.assertEqual(_count_action_fcurves(chart_obj.animation_data.action), 1)
 
 
 if __name__ == "__main__":
