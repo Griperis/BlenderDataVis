@@ -34,7 +34,11 @@ class DV_RemoveModifier(bpy.types.Operator):
         return {"FINISHED"}
 
     def invoke(self, context: bpy.types.Context, event: bpy.types.Event):
-        return context.window_manager.invoke_confirm(self, event, message="")
+        return context.window_manager.invoke_confirm(
+            self,
+            event,
+            message=f"Are you sure you want to remove '{self.modifier_name}'?",
+        )
 
 
 def set_input(modifier: bpy.types.Modifier, name: str, value: typing.Any) -> None:

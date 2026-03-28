@@ -158,6 +158,7 @@ class DV_AddAxis(bpy.types.Operator):
 
         self._try_set_axis_ranges(obj, mod)
         self._add_labels_if_available(obj, mod)
+        self._try_fixing_dot_decimal(obj, mod)
 
         modifier_utils.add_used_materials_to_object(mod, obj)
         return {"FINISHED"}
@@ -242,6 +243,16 @@ class DV_AddAxis(bpy.types.Operator):
 
             modifier_utils.set_input(mod, "Min", float(min_value))
             modifier_utils.set_input(mod, "Max", float(max_value))
+
+    def _try_fixing_dot_decimal(
+        self, _: bpy.types.Object, mod: bpy.types.NodesModifier
+    ) -> None:
+        # Fixes a difference within Blender versions where the String to Curves node works differently from
+        # Blender 5.1, that causes the dot decimal to be misaligned.
+        if bpy.app.version >= (5, 1, 0):
+            modifier_utils.set_input(mod, "Decimal Dot Offset", 0.3)
+        else:
+            modifier_utils.set_input(mod, "Decimal Dot Offset", -0.7)
 
 
 @data_vis_logging.logged_operator
