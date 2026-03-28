@@ -150,7 +150,9 @@ def setup_scene():
     bpy.context.scene.collection.objects.link(light)
     bpy.context.scene.render.resolution_x = 512
     bpy.context.scene.render.resolution_y = 512
-    bpy.context.scene.render.engine = "BLENDER_EEVEE_NEXT"
+    bpy.context.scene.render.engine = (
+        "BLENDER_EEVEE" if (bpy.app.version >= (5, 0, 0)) else "BLENDER_EEVEE_NEXT"
+    )
 
 
 def render_configurations(

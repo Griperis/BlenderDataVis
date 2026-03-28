@@ -8,7 +8,7 @@ import os
 def find_blender_executable() -> str:
     POSSIBLE_PATHS = [
         shutil.which("blender"),
-        "C:/Program Files/Blender Foundation/Blender 4.2/blender.exe",
+        "C:/Program Files/Blender Foundation/Blender 5.1/blender.exe",
     ]
 
     for path in POSSIBLE_PATHS:

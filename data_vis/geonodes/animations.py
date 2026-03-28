@@ -59,6 +59,20 @@ def adjust_z_override_to_data(obj: bpy.types.Object, start_idx: int, end_idx: in
     modifier_utils.set_input(data_modifier, "Z Max", max_z)
 
 
+def _iter_action_fcurves(action: bpy.types.Action):
+    """Iterate fcurves of an action, compatible with Blender 4.x and 5.0+.
+
+    In Blender 5.0 Action.fcurves was removed in favour of the Action Slots system.
+    """
+    if bpy.app.version >= (5, 0, 0):
+        for layer in action.layers:
+            for strip in layer.strips:
+                for channelbag in strip.channelbags:
+                    yield from channelbag.fcurves
+    else:
+        yield from action.fcurves
+
+
 @data_vis_logging.logged_operator
 class DV_AnimationOperator(bpy.types.Operator):
     @classmethod
@@ -211,7 +225,7 @@ class DV_AnimateModifierOperator(DV_AnimationOperator):
                 modifier, input_name, (start_frame, start_value), (end_frame, end_value)
             )
 
-        for fcurve in context.active_object.animation_data.action.fcurves:
+        for fcurve in _iter_action_fcurves(context.active_object.animation_data.action):
             for input_name in current_animation:
                 if fcurve.data_path.startswith(f'modifiers["{modifier.name}"]'):
                     fcurve.keyframe_points[0].interpolation = self.animation_style

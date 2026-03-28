@@ -39,7 +39,7 @@ class ChartData:
             adjusted_data = np.column_stack(
                 [
                     np.zeros(self.parsed_data.shape[0]),
-                    self.parsed_data[:, 1:].astype(np.number),
+                    self.parsed_data[:, 1:].astype(np.float64),
                 ]
             )
         else:
